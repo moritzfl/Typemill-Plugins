@@ -3,4 +3,4 @@ version: 1.0.0
 description: Upload and manage files of all types. Provides a GUI in system settings to upload files to the media/files folder, list uploads, copy links, delete files, and replace files.
 author: Moritz
 url: https://github.com/moritzfl/Typemill-Plugins
-license: MIT
+license: LGPL

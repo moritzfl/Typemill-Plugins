@@ -3,7 +3,7 @@ version: 1.0.0
 description: Store restorable page versions, including deleted pages in a recycle bin.
 author: Moritz
 homepage: https://github.com/moritzfl/Typemill-Plugins
-license: MIT
+license: LGPL
 
 settings:
   retention_days: 30
