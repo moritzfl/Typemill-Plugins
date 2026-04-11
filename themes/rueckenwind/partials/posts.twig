@@ -19,7 +19,7 @@
       {% endif %}
 
       <div class="p-5">
-        <a href="{{ element.urlAbs }}">
+        <a href="{{ element.urlRel }}">
           <h2 class="mb-1 text-lg font-semibold text-gray-950 transition-colors group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-300">
             {{ post.meta.title|e }}
           </h2>
@@ -36,7 +36,7 @@
             {{ post.meta.description|e }}
           </p>
         {% endif %}
-        <a href="{{ element.urlAbs }}" class="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary-600 transition-colors hover:text-primary-700 dark:text-primary-300 dark:hover:text-primary-200">
+        <a href="{{ element.urlRel }}" class="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary-600 transition-colors hover:text-primary-700 dark:text-primary-300 dark:hover:text-primary-200">
           {{ translate('Read more') }}
           <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
@@ -54,7 +54,7 @@
       {% if i == currentpage %}
         <span class="flex h-9 w-9 items-center justify-center rounded-full bg-primary-600 text-sm font-medium text-white shadow-lg shadow-primary-600/20">{{ i }}</span>
       {% else %}
-        <a href="{{ item.urlAbs }}/p/{{ i }}" class="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 bg-white/80 text-sm text-gray-600 shadow-sm shadow-gray-950/5 transition-colors hover:border-primary-300 hover:text-primary-700 dark:border-gray-700 dark:bg-gray-900/70 dark:text-gray-300 dark:hover:border-primary-700 dark:hover:text-primary-200">{{ i }}</a>
+        <a href="{{ item.urlRel }}/p/{{ i }}" class="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 bg-white/80 text-sm text-gray-600 shadow-sm shadow-gray-950/5 transition-colors hover:border-primary-300 hover:text-primary-700 dark:border-gray-700 dark:bg-gray-900/70 dark:text-gray-300 dark:hover:border-primary-700 dark:hover:text-primary-200">{{ i }}</a>
       {% endif %}
     {% endfor %}
   </div>
