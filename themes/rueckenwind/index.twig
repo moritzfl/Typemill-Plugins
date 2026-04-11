@@ -1,0 +1,16 @@
+{% extends 'layout.twig' %}
+
+{% block title %}{{ metatabs.meta.title }} | {{ settings.title }}{% endblock %}
+
+
+{% block content %}
+
+  {% if home and settings.themes.rueckenwind.blog %}
+    {% include 'blog.twig' %}
+  {% elseif home %}
+    {% include 'home.twig' %}
+  {% else %}
+    {% include 'page.twig' %}
+  {% endif %}
+
+{% endblock %}

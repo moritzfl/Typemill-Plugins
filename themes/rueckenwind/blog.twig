@@ -1,0 +1,87 @@
+{# Blog homepage – lists posts from a configured folder #}
+{% set theme = settings.themes.rueckenwind %}
+
+<main class="flex-1 min-w-0 max-w-4xl px-4 py-8 sm:px-6 lg:px-10 xl:px-14">
+
+  {% if theme.blogintro %}
+    <article class="prose mb-10">
+      <h1 class="text-3xl font-semibold text-gray-950 dark:text-white">{{ title|e }}</h1>
+      {{ content }}
+    </article>
+  {% else %}
+    <h1 class="mb-8 text-3xl font-semibold text-gray-950 dark:text-white">{{ title|e }}</h1>
+  {% endif %}
+
+  {% set pagelist = getPageList(navigation, theme.blogfolder, base_url) %}
+  {% set pagesize = 10 %}
+  {% set pages = (pagelist.folderContent|length / pagesize)|round(0, 'ceil') %}
+  {% set currentpage = currentpage ? currentpage : 1 %}
+  {% set offset = (currentpage - 1) * pagesize %}
+
+  {% if pagelist.contains == 'posts' %}
+
+    <ul class="space-y-8">
+      {% for element in pagelist.folderContent|slice(offset, pagesize) %}
+        {% set post = getPageMeta(settings, element) %}
+        {% set date = element.order[0:4] ~ '-' ~ element.order[4:2] ~ '-' ~ element.order[6:2] %}
+
+        <li class="group overflow-hidden rounded-2xl border border-gray-200/80 bg-white/80 shadow-sm shadow-gray-950/5 ring-1 ring-gray-950/5 transition-all hover:border-primary-300 hover:shadow-lg hover:shadow-primary-500/10 dark:border-gray-800/80 dark:bg-gray-900/70 dark:ring-white/10 dark:hover:border-primary-700">
+
+          {% if theme.blogimage and post.meta.heroimage %}
+            <figure class="m-0">
+              <img src="{{ assets.image(post.meta.heroimage).resize(820, 400).src() }}"
+                   {% if post.meta.heroimagealt %} alt="{{ post.meta.heroimagealt|e }}"{% endif %}
+                   class="w-full h-52 object-cover" />
+            </figure>
+          {% endif %}
+
+          <div class="p-5 sm:p-6">
+            <a href="{{ element.urlAbs }}" class="block">
+              <h2 class="mb-1 text-xl font-semibold text-gray-950 transition-colors group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-300">
+                {{ post.meta.title|e }}
+              </h2>
+            </a>
+            <div class="flex items-center gap-3 text-sm text-gray-400 dark:text-gray-500 mb-3">
+              <time datetime="{{ date }}">{{ date|date('d.m.Y') }}</time>
+              {% if post.meta.author|default(post.meta.owner) %}
+                <span>&middot;</span>
+                <span>{{ post.meta.author|default(post.meta.owner)|e }}</span>
+              {% endif %}
+            </div>
+            {% if post.meta.description %}
+              <p class="text-gray-600 dark:text-gray-300 leading-relaxed text-sm">
+                {{ post.meta.description|e }}
+              </p>
+            {% endif %}
+            <a href="{{ element.urlAbs }}" class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary-600 transition-colors hover:text-primary-700 dark:text-primary-300 dark:hover:text-primary-200">
+              {{ translate('Read more') }}
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+
+        </li>
+      {% endfor %}
+    </ul>
+
+    {# Pagination #}
+    {% if pages > 1 %}
+      <div class="mt-10 flex items-center justify-center gap-2">
+        {% for i in 1..pages %}
+          {% if i == currentpage %}
+            <span class="rounded-full bg-primary-600 px-3.5 py-2 text-sm font-medium text-white shadow-lg shadow-primary-600/20">{{ i }}</span>
+          {% else %}
+            <a href="{{ item.urlAbs }}/p/{{ i }}" class="rounded-full border border-gray-300 bg-white/80 px-3.5 py-2 text-sm text-gray-600 shadow-sm shadow-gray-950/5 transition-colors hover:border-primary-300 hover:text-primary-700 dark:border-gray-700 dark:bg-gray-900/70 dark:text-gray-300 dark:hover:border-primary-700 dark:hover:text-primary-200">{{ i }}</a>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+  {% else %}
+    <p class="text-gray-500 dark:text-gray-400">
+      The configured folder does not contain posts, or the blog folder is not set correctly in the theme settings.
+    </p>
+  {% endif %}
+
+</main>

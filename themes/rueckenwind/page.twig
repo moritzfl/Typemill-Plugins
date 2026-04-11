@@ -1,0 +1,175 @@
+{% set published = metatabs.meta.manualdate ? metatabs.meta.manualdate : metatabs.meta.modified %}
+{% set theme = settings.themes.rueckenwind %}
+
+<div class="flex flex-1">
+
+  {# ── Main content ──────────────────────────────────────────────── #}
+  <main class="flex-1 min-w-0 max-w-4xl px-4 py-8 sm:px-6 lg:px-10 xl:px-14">
+
+    {# Breadcrumb #}
+    <nav id="breadcrumb" aria-label="Breadcrumb" class="mb-6">
+      {% include 'partials/breadcrumb.twig' %}
+    </nav>
+
+    <article class="prose w-full">
+
+      <h1 class="mt-0 text-3xl font-semibold leading-tight text-gray-950 dark:text-white sm:text-4xl">
+        {{ title }}
+      </h1>
+
+      {# ── Top meta bar ──────────────────────────────────────────── #}
+      {% set showDateTop   = 'top' in theme.datePosition|default([]) %}
+      {% set showAuthorTop = 'top' in theme.authorPosition|default([]) %}
+      {% set showEditTop   = 'top' in theme.gitPosition|default([]) and theme.gitLink %}
+      {% set showPrintTop  = 'top' in theme.printPosition|default([]) %}
+      {% if showDateTop or showAuthorTop or showEditTop or showPrintTop %}
+        <div class="not-prose mt-4 mb-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200/80 bg-gray-50/80 px-4 py-3 text-sm text-gray-500 shadow-sm shadow-gray-950/5 dark:border-gray-800/80 dark:bg-gray-900/70 dark:text-gray-400">
+          <div class="flex flex-wrap items-center gap-4">
+            {% if showDateTop %}
+              <time pubdate datetime="{{ published }}" class="flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                {{ theme.dateIntro|default('') }} {{ published|date(theme.dateFormat|default('d.m.Y')) }}
+              </time>
+            {% endif %}
+            {% if showAuthorTop %}
+              <span class="flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                {{ theme.authorIntro|default('') }} {{ metatabs.meta.author|default(settings.author) }}
+              </span>
+            {% endif %}
+          </div>
+          <div class="flex items-center gap-3">
+            {% if showEditTop %}
+              <a href="{{ theme.gitLink }}{{ item.path }}" title="{{ theme.editText|default('Edit') }}"
+                 class="flex items-center gap-1 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                <span>{{ theme.editText|default('Edit') }}</span>
+              </a>
+            {% endif %}
+            {% if showPrintTop %}
+              <button onclick="window.print()" title="{{ theme.printText|default('Print') }}"
+                      class="flex items-center gap-1 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+                <span>{{ theme.printText|default('Print') }}</span>
+              </button>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      {# ── Page body ─────────────────────────────────────────────── #}
+      {{ content }}
+
+      {# ── Bottom meta bar ───────────────────────────────────────── #}
+      {% set showDateBot   = 'bottom' in theme.datePosition|default([]) %}
+      {% set showAuthorBot = 'bottom' in theme.authorPosition|default([]) %}
+      {% set showEditBot   = 'bottom' in theme.gitPosition|default([]) and theme.gitLink %}
+      {% set showPrintBot  = 'bottom' in theme.printPosition|default([]) %}
+      {% if showDateBot or showAuthorBot or showEditBot or showPrintBot %}
+        <div class="not-prose mt-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200/80 bg-gray-50/80 px-4 py-3 text-sm text-gray-500 shadow-sm shadow-gray-950/5 dark:border-gray-800/80 dark:bg-gray-900/70 dark:text-gray-400">
+          <div class="flex flex-wrap items-center gap-4">
+            {% if showDateBot %}
+              <time pubdate datetime="{{ published }}" class="flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                {{ theme.dateIntro|default('') }} {{ published|date(theme.dateFormat|default('d.m.Y')) }}
+              </time>
+            {% endif %}
+            {% if showAuthorBot %}
+              <span class="flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                {{ theme.authorIntro|default('') }} {{ metatabs.meta.author|default(settings.author) }}
+              </span>
+            {% endif %}
+          </div>
+          <div class="flex items-center gap-3">
+            {% if showEditBot %}
+              <a href="{{ theme.gitLink }}{{ item.path }}" title="{{ theme.editText|default('Edit') }}"
+                 class="flex items-center gap-1 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                <span>{{ theme.editText|default('Edit') }}</span>
+              </a>
+            {% endif %}
+            {% if showPrintBot %}
+              <button onclick="window.print()" title="{{ theme.printText|default('Print') }}"
+                      class="flex items-center gap-1 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+                <span>{{ theme.printText|default('Print') }}</span>
+              </button>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+    </article>
+
+    {# ── Folder sub-content ────────────────────────────────────────── #}
+    {% if item.elementType == 'folder' and metatabs.meta.glossary %}
+      <nav class="mt-10">
+        {% include 'partials/navigationGlossary.twig' with {'glossary': item.folderContent} %}
+      </nav>
+    {% elseif item.elementType == 'folder' and item.contains == 'pages' %}
+      <nav class="mt-10">
+        {% include 'partials/navigationFlat.twig' with {'flatnavi': item.folderContent} %}
+      </nav>
+    {% elseif item.elementType == 'folder' and item.contains == 'posts' %}
+      <div class="mt-10">
+        {% include 'partials/posts.twig' %}
+      </div>
+    {% endif %}
+
+    {# ── Prev / Next navigation ────────────────────────────────────── #}
+    {% if item.prevItem or item.nextItem %}
+      <div id="prevnext" class="mt-12 grid grid-cols-2 gap-4 border-t border-gray-200/80 pt-6 dark:border-gray-800/80">
+
+        <div>
+          {% if item.prevItem %}
+            <a href="{{ item.prevItem.urlRel }}"
+               class="group flex items-start gap-3 rounded-2xl border border-gray-200/80 bg-white/80 p-4 shadow-sm shadow-gray-950/5 ring-1 ring-gray-950/5 transition-all hover:border-primary-300 hover:bg-primary-50 hover:shadow-lg hover:shadow-primary-500/10 dark:border-gray-800/80 dark:bg-gray-900/70 dark:ring-white/10 dark:hover:border-primary-700 dark:hover:bg-primary-900/20">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mt-0.5 shrink-0 text-gray-400 group-hover:text-primary-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+              </svg>
+              <div>
+                <div class="text-xs text-gray-400 dark:text-gray-500 mb-0.5">{{ theme.previous|default('Previous') }}</div>
+                <div class="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-2">{{ item.prevItem.name }}</div>
+              </div>
+            </a>
+          {% endif %}
+        </div>
+
+        <div>
+          {% if item.nextItem %}
+            <a href="{{ item.nextItem.urlRel }}"
+               class="group ml-auto flex w-full items-start gap-3 rounded-2xl border border-gray-200/80 bg-white/80 p-4 text-right shadow-sm shadow-gray-950/5 ring-1 ring-gray-950/5 transition-all hover:border-primary-300 hover:bg-primary-50 hover:shadow-lg hover:shadow-primary-500/10 dark:border-gray-800/80 dark:bg-gray-900/70 dark:ring-white/10 dark:hover:border-primary-700 dark:hover:bg-primary-900/20">
+              <div class="flex-1">
+                <div class="text-xs text-gray-400 dark:text-gray-500 mb-0.5">{{ theme.next|default('Next') }}</div>
+                <div class="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-2">{{ item.nextItem.name }}</div>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mt-0.5 shrink-0 text-gray-400 group-hover:text-primary-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+          {% endif %}
+        </div>
+
+      </div>
+    {% endif %}
+
+  </main>
+
+</div>

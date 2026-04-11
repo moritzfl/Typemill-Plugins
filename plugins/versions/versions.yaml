@@ -1,0 +1,30 @@
+name: Versions
+version: 1.0.0
+description: Store restorable page versions, including deleted pages in a recycle bin.
+author: Moritz
+homepage: https://github.com/moritzfl/Typemill-Plugins
+license: MIT
+
+settings:
+  retention_days: 30
+  group_hours: 24
+  max_versions: 50
+
+forms:
+  fields:
+    retention_days:
+      type: number
+      label: Trash retention in days
+      description: Permanently delete deleted pages after this many days.
+    group_hours:
+      type: number
+      label: Group updates within hours
+      description: Draft edits by the same user within this time window update the latest stored version.
+    max_versions:
+      type: number
+      label: Maximum versions
+      description: Keep only the newest number of stored versions per page.
+
+metatabs:
+  Versions:
+    fields: []

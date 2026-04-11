@@ -1,0 +1,40 @@
+LINK_ICONS: Link-Icons
+LINKICONS_GITHUB_LABEL: Icon bei github.com-Links anzeigen
+LINKICONS_GITLAB_LABEL: Icon bei gitlab.com-Links anzeigen
+LINKICONS_DOCKER_LABEL: Icon bei hub.docker.com-Links anzeigen
+LINKICONS_CODEBERG_LABEL: Icon bei codeberg.org-Links anzeigen
+LINKICONS_WIKIPEDIA_LABEL: Icon bei wikipedia.org-Links anzeigen
+LINKICONS_XBOX_LABEL: Icon bei xbox.com-Links anzeigen
+LINKICONS_YOUTUBE_LABEL: Icon bei youtube.com-Links anzeigen
+LINKICONS_SNAPCRAFT_LABEL: Icon bei snapcraft.io-Links anzeigen
+LINKICONS_STEAM_LABEL: Icon bei Steam-Links anzeigen
+LINKICONS_APPSTORE_LABEL: Icon bei Apple App Store-Links anzeigen
+LINKICONS_LEMMY_LABEL: Icon bei Lemmy-Links anzeigen
+LINKICONS_GOOGLEPLAY_LABEL: Icon bei Google Play-Links anzeigen
+LINKICONS_FLATHUB_LABEL: Icon bei Flathub-Links anzeigen
+LINKICONS_MICROSOFTSTORE_LABEL: Icon bei Microsoft Store-Links anzeigen
+LINKICONS_NINTENDO_LABEL: Icon bei nintendo.com-Links anzeigen
+LINKICONS_PLAYSTATION_LABEL: Icon bei playstation.com-Links anzeigen
+LINKICONS_RSS_LABEL: Icon bei RSS/Atom-Feed-Links anzeigen
+LINKICONS_IMGUR_LABEL: Icon bei imgur.com-Links anzeigen
+LINKICONS_MASTODON_LABEL: Icon bei Mastodon-Profillinks anzeigen
+LINKICONS_PYPI_LABEL: Icon bei pypi.org-Links anzeigen
+LINKICONS_REDDIT_LABEL: Icon bei reddit.com-Links anzeigen
+LINKICONS_BLUESKY_LABEL: Icon bei bsky.app-Links anzeigen
+LINKICONS_DISCORD_LABEL: Icon bei Discord-Links anzeigen
+LINKICONS_FACEBOOK_LABEL: Icon bei facebook.com-Links anzeigen
+LINKICONS_INSTAGRAM_LABEL: Icon bei instagram.com-Links anzeigen
+LINKICONS_LINKEDIN_LABEL: Icon bei linkedin.com-Links anzeigen
+LINKICONS_PINTEREST_LABEL: Icon bei pinterest.com-Links anzeigen
+LINKICONS_THREADS_LABEL: Icon bei threads.net-Links anzeigen
+LINKICONS_TIKTOK_LABEL: Icon bei tiktok.com-Links anzeigen
+LINKICONS_TUMBLR_LABEL: Icon bei tumblr.com-Links anzeigen
+LINKICONS_TWITCH_LABEL: Icon bei twitch.tv-Links anzeigen
+LINKICONS_TELEGRAM_LABEL: Icon bei Telegram-Links anzeigen
+LINKICONS_TWITTER_LABEL: Icon bei Twitter/X-Links anzeigen
+LINKICONS_WHATSAPP_LABEL: Icon bei WhatsApp-Links anzeigen
+LINKICONS_EXTERNAL_ICON: Externe Links
+LINKICONS_EXTERNAL_LABEL: Globus-Icon bei allen anderen externen Links anzeigen
+LINKICONS_INTERNAL_ICON: Interne Links
+LINKICONS_INTERNAL_LABEL: Ketten-Icon bei allen anderen internen Links anzeigen
+LINKICONS_POSITION_LABEL: Icon-Position

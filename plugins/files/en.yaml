@@ -1,0 +1,40 @@
+FILES: Files
+FILES_TITLE: Files
+FILES_SUBTITLE: Upload and manage files in the media/files folder.
+FILES_DROP_HINT: Drop files here or click to browse
+FILES_DROP_TYPES: All file types accepted except server-side scripts
+FILES_UPLOADING: Uploading
+FILES_DONE: Done
+FILES_FAILED: Failed
+FILES_QUEUED: Queued
+FILES_FILTER_PLACEHOLDER: Filter files
+FILES_COL_FILE: File
+FILES_COL_SIZE: Size
+FILES_COL_DATE: Date
+FILES_COL_ACTIONS: Actions
+FILES_SINGULAR: file
+FILES_PLURAL: files
+FILES_COPY_PATH: Copy Path
+FILES_COPY_URL: Copy URL
+FILES_DOWNLOAD: Download
+FILES_NO_MATCH: No files match your filter.
+FILES_EMPTY: No files uploaded yet.
+FILES_EMPTY_HINT: Drop files above to get started.
+FILES_LOADING: Loading files
+FILES_DELETE_TITLE: Delete file?
+FILES_DELETE_CONFIRM: Are you sure you want to delete
+FILES_DELETE_WARNING: This cannot be undone.
+FILES_CANCEL: Cancel
+FILES_DELETE: Delete
+FILES_MSG_DELETED: File deleted.
+FILES_MSG_DELETE_ERROR: Could not delete file.
+FILES_MSG_UPLOAD_FAILED: Upload failed.
+FILES_MSG_LOAD_ERROR: Could not load files.
+FILES_MSG_FILE_MISSING: File or filename is missing.
+FILES_MSG_TYPE_NOT_ALLOWED: This file type is not allowed for security reasons.
+FILES_MSG_FILE_EMPTY: File is empty.
+FILES_MSG_TOO_LARGE: File exceeds the maximum allowed size.
+FILES_MSG_STORE_ERROR: Could not store the file.
+FILES_MSG_PUBLISH_ERROR: Could not publish the file.
+FILES_MSG_UPLOAD_SUCCESS: File uploaded successfully.
+FILES_MSG_FILENAME_MISSING: Filename is missing.

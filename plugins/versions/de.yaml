@@ -1,0 +1,90 @@
+VERSIONS: Versionen
+VERSIONS_TITLE: Versionen
+VERSIONS_SUBTITLE: Plugin-Einstellungen und Papierkorb für gelöschte Seiten.
+VERSIONS_REFRESH: Aktualisieren
+VERSIONS_SETTINGS: Einstellungen
+VERSIONS_RETENTION_DAYS: Aufbewahrung in Tagen
+VERSIONS_GROUP_HOURS: Aktualisierungen nach Stunden gruppieren
+VERSIONS_MAX_VERSIONS: Maximale Anzahl gespeicherter Versionen
+VERSIONS_SAVE_SETTINGS: Einstellungen speichern
+VERSIONS_RECYCLE_BIN: Papierkorb
+VERSIONS_RECYCLE_BIN_SUBTITLE: Gelöschte Seiten bleiben hier, bis du sie wiederherstellst oder endgültig löschst.
+VERSIONS_LOADING_TRASH: Papierkorb wird geladen
+VERSIONS_TRASH_EMPTY: Der Papierkorb ist leer.
+VERSIONS_SINGULAR: Eintrag
+VERSIONS_PLURAL: Einträge
+VERSIONS_FILTER_PLACEHOLDER: Seiten filtern
+VERSIONS_NO_MATCH: Keine gelöschten Seiten entsprechen deinem Filter.
+VERSIONS_COL_PAGE: Seite
+VERSIONS_COL_DELETED: Gelöscht
+VERSIONS_COL_ACTIONS: Aktionen
+VERSIONS_DOWNLOAD: Herunterladen
+VERSIONS_PREVIEW: Vorschau
+VERSIONS_PREVIEW_MARKDOWN: Markdown-Vorschau
+VERSIONS_PREVIEW_TEXT: Text
+VERSIONS_PREVIEW_RENDERED: Gerendert
+VERSIONS_LOADING_PREVIEW: Vorschau wird geladen
+VERSIONS_CLOSE: Schließen
+VERSIONS_DELETED_META: Gelöscht von %user% am %date%
+VERSIONS_RESTORE: Wiederherstellen
+VERSIONS_RESTORE_DELETED_PAGE: Gelöschte Seite wiederherstellen
+VERSIONS_RESTORE_DELETED_PAGE_HELP: Dadurch wird die ausgewählte Seite aus dem Papierkorb wiederhergestellt.
+VERSIONS_RESTORE_CONFLICT: Am ursprünglichen Speicherort existiert bereits eine Seite. Beim Wiederherstellen werden übereinstimmende Dateien überschrieben.
+VERSIONS_RESTORE_AND_REPLACE: Wiederherstellen und ersetzen
+VERSIONS_DELETE_TRASH_ENTRY: Papierkorbeintrag löschen
+VERSIONS_DELETE_TRASH_ENTRY_HELP: Dadurch wird die gelöschte Seite dauerhaft aus dem Papierkorb entfernt.
+VERSIONS_DELETE_PERMANENTLY: Endgültig löschen
+VERSIONS_EMPTY_TRASH_TITLE: Papierkorb leeren
+VERSIONS_EMPTY_TRASH: Papierkorb leeren
+VERSIONS_EMPTY_TRASH_HELP: Dadurch werden alle aktuell im Papierkorb gespeicherten gelöschten Seiten dauerhaft entfernt.
+VERSIONS_CANCEL: Abbrechen
+VERSIONS_MSG_LOAD_ERROR: Versionsdaten konnten nicht geladen werden.
+VERSIONS_MSG_SETTINGS_SAVED: Einstellungen wurden gespeichert.
+VERSIONS_MSG_SETTINGS_SAVE_ERROR: Einstellungen konnten nicht gespeichert werden.
+VERSIONS_MSG_PAGE_RESTORED: Seite erfolgreich wiederhergestellt.
+VERSIONS_MSG_PAGE_RESTORE_ERROR: Seite konnte nicht wiederhergestellt werden.
+VERSIONS_MSG_TRASH_ENTRY_DELETED: Papierkorbeintrag gelöscht.
+VERSIONS_MSG_TRASH_ENTRY_DELETE_ERROR: Papierkorbeintrag konnte nicht gelöscht werden.
+VERSIONS_MSG_TRASH_EMPTIED: Papierkorb wurde geleert.
+VERSIONS_MSG_TRASH_EMPTY_ERROR: Papierkorb konnte nicht geleert werden.
+VERSIONS_MSG_PAGE_ID_MISSING: Seiten-ID fehlt.
+VERSIONS_MSG_RESTORE_DATA_INCOMPLETE: Daten zum Wiederherstellen sind unvollständig.
+VERSIONS_MSG_PREVIEW_ERROR: Vorschau konnte nicht geladen werden.
+VERSIONS_MSG_DOWNLOAD_ERROR: Download konnte nicht erstellt werden.
+VERSIONS_NO_CHANGES: Keine Änderungen
+INSPECT_CHANGES_COMPARE_EDITS_AND_RESTORE_EARLIER_VERSIONS: Änderungen prüfen, Bearbeitungen vergleichen und frühere Versionen wiederherstellen.
+REFRESH: Aktualisieren
+LOADING_VERSIONS: Versionen werden geladen
+NO_VERSIONS_STORED_YET: Es wurden noch keine Versionen gespeichert.
+COMPARED_WITH: Verglichen mit
+RESTORE_THIS_VERSION: Diese Version wiederherstellen
+RESTORE_VERSION: Version wiederherstellen
+THE_CURRENT_DRAFT_OR_PUBLISHED_STATE_WILL_BE_REPLACED_WITH_THIS_VERSION: Der aktuelle Entwurf oder Veröffentlichungsstand wird durch diese Version ersetzt.
+RESTORE: Wiederherstellen
+CANCEL: Abbrechen
+VERSIONS_COULD_NOT_BE_LOADED: Versionen konnten nicht geladen werden.
+VERSION_DETAILS_COULD_NOT_BE_LOADED: Versionsdetails konnten nicht geladen werden.
+VERSION_COULD_NOT_BE_RESTORED: Version konnte nicht wiederhergestellt werden.
+VERSION_RESTORED_SUCCESSFULLY: Version erfolgreich wiederhergestellt.
+TRASH_HAS_BEEN_EMPTIED: Papierkorb wurde geleert.
+TRASH_ENTRY_DELETED: Papierkorbeintrag gelöscht.
+PAGE_RESTORED_SUCCESSFULLY: Seite erfolgreich wiederhergestellt.
+SETTINGS_COULD_NOT_BE_SAVED: Einstellungen konnten nicht gespeichert werden.
+SHOW_UNCHANGED_LINES: Unveränderte Zeilen anzeigen
+COLLAPSE_UNCHANGED: Unveränderte einklappen
+EXPAND_UNCHANGED: Unveränderte ausklappen
+VERSIONS_COMPARE: Mit aktueller Version vergleichen
+VERSIONS_SELECTED_VERSION: Ausgewählte Version
+VERSIONS_CURRENT_VERSION: Aktuelle Version
+VERSIONS_READ_ONLY: schreibgeschützt
+VERSIONS_EDITABLE: bearbeitbar
+VERSIONS_COMPARE_AND_RESTORE: Vergleichen und Wiederherstellen
+VERSIONS_SAVE_AS_DRAFT: Bearbeitete Version als Entwurf speichern
+VERSIONS_RESTORE_LEFT: Ausgewählte Version als Entwurf wiederherstellen
+VERSIONS_LEFT_SIDE: Linke Seite
+VERSIONS_RIGHT_SIDE: Rechte Seite
+VERSIONS_CONFIRM_WILL_BE_SAVED: → wird als Entwurf gespeichert
+VERSIONS_CONFIRM_WARNING: Dies überschreibt den aktuellen Entwurf und kann nicht rückgängig gemacht werden.
+VERSIONS_CONFIRM: Bestätigen
+VERSIONS_SAVING: Wird gespeichert
+VERSIONS_SAVED: Gespeichert

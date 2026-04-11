@@ -1,0 +1,91 @@
+VERSIONS: Versions
+VERSIONS_TITLE: Versions
+VERSIONS_SUBTITLE: Plugin settings and recycle bin for deleted pages.
+VERSIONS_REFRESH: Refresh
+VERSIONS_SETTINGS: Settings
+VERSIONS_RETENTION_DAYS: Retention in days
+VERSIONS_GROUP_HOURS: Group updates after hours
+VERSIONS_MAX_VERSIONS: Maximum stored versions
+VERSIONS_SAVE_SETTINGS: Save settings
+VERSIONS_RECYCLE_BIN: Recycle Bin
+VERSIONS_RECYCLE_BIN_SUBTITLE: Deleted pages stay here until you restore or permanently remove them.
+VERSIONS_LOADING_TRASH: Loading recycle bin
+VERSIONS_TRASH_EMPTY: Trash is empty.
+VERSIONS_SINGULAR: Entry
+VERSIONS_PLURAL: Entries
+VERSIONS_FILTER_PLACEHOLDER: Filter pages
+VERSIONS_NO_MATCH: No deleted pages match your filter.
+VERSIONS_COL_PAGE: Page
+VERSIONS_COL_DELETED: Deleted
+VERSIONS_COL_ACTIONS: Actions
+VERSIONS_DOWNLOAD: Download
+VERSIONS_PREVIEW: Preview
+VERSIONS_PREVIEW_MARKDOWN: Markdown preview
+VERSIONS_PREVIEW_TEXT: Text
+VERSIONS_PREVIEW_RENDERED: Rendered
+VERSIONS_LOADING_PREVIEW: Loading preview
+VERSIONS_CLOSE: Close
+VERSIONS_DELETED_META: Deleted by %user% on %date%
+VERSIONS_RESTORE: Restore
+VERSIONS_RESTORE_DELETED_PAGE: Restore deleted page
+VERSIONS_RESTORE_DELETED_PAGE_HELP: This will restore the selected page from the recycle bin.
+VERSIONS_RESTORE_CONFLICT: A page already exists at the original location. Restoring will overwrite matching files.
+VERSIONS_RESTORE_AND_REPLACE: Restore and replace
+VERSIONS_DELETE_TRASH_ENTRY: Delete trash entry
+VERSIONS_DELETE_TRASH_ENTRY_HELP: This permanently removes the deleted page from the recycle bin.
+VERSIONS_DELETE_PERMANENTLY: Delete permanently
+VERSIONS_EMPTY_TRASH_TITLE: Empty trash
+VERSIONS_EMPTY_TRASH: Empty trash
+VERSIONS_EMPTY_TRASH_HELP: This permanently removes all deleted pages currently stored in the recycle bin.
+VERSIONS_CANCEL: Cancel
+VERSIONS_MSG_LOAD_ERROR: Versions data could not be loaded.
+VERSIONS_MSG_SETTINGS_SAVED: Settings have been saved.
+VERSIONS_MSG_SETTINGS_SAVE_ERROR: Settings could not be saved.
+VERSIONS_MSG_PAGE_RESTORED: Page restored successfully.
+VERSIONS_MSG_PAGE_RESTORE_ERROR: Page could not be restored.
+VERSIONS_MSG_TRASH_ENTRY_DELETED: Trash entry deleted.
+VERSIONS_MSG_TRASH_ENTRY_DELETE_ERROR: Trash entry could not be deleted.
+VERSIONS_MSG_TRASH_EMPTIED: Trash has been emptied.
+VERSIONS_MSG_TRASH_EMPTY_ERROR: Trash could not be emptied.
+VERSIONS_MSG_PAGE_ID_MISSING: Page ID is missing.
+VERSIONS_MSG_RESTORE_DATA_INCOMPLETE: Restore data is incomplete.
+VERSIONS_MSG_PREVIEW_ERROR: Preview could not be loaded.
+VERSIONS_MSG_DOWNLOAD_ERROR: Download could not be created.
+VERSIONS_NO_CHANGES: No changes
+INSPECT_CHANGES_COMPARE_EDITS_AND_RESTORE_EARLIER_VERSIONS: Inspect changes, compare edits, and restore earlier versions.
+REFRESH: Refresh
+LOADING_VERSIONS: Loading versions
+NO_VERSIONS_STORED_YET: No versions stored yet.
+COMPARED_WITH: Compared with
+RESTORE_THIS_VERSION: Restore this version
+RESTORE_VERSION: Restore version
+THE_CURRENT_DRAFT_OR_PUBLISHED_STATE_WILL_BE_REPLACED_WITH_THIS_VERSION: The current draft or published state will be replaced with this version.
+RESTORE: Restore
+CANCEL: Cancel
+VERSIONS_COULD_NOT_BE_LOADED: Versions could not be loaded.
+VERSION_DETAILS_COULD_NOT_BE_LOADED: Version details could not be loaded.
+VERSION_COULD_NOT_BE_RESTORED: Version could not be restored.
+VERSION_RESTORED_SUCCESSFULLY: Version restored successfully.
+TRASH_HAS_BEEN_EMPTIED: Trash has been emptied.
+TRASH_ENTRY_DELETED: Trash entry deleted.
+PAGE_RESTORED_SUCCESSFULLY: Page restored successfully.
+SETTINGS_COULD_NOT_BE_SAVED: Settings could not be saved.
+NO_VERSIONS: No versions
+SHOW_UNCHANGED_LINES: Show unchanged lines
+COLLAPSE_UNCHANGED: Collapse unchanged
+EXPAND_UNCHANGED: Expand unchanged
+VERSIONS_COMPARE: Compare with current
+VERSIONS_SELECTED_VERSION: Selected version
+VERSIONS_CURRENT_VERSION: Current version
+VERSIONS_READ_ONLY: read-only
+VERSIONS_EDITABLE: editable
+VERSIONS_COMPARE_AND_RESTORE: Compare and Restore
+VERSIONS_SAVE_AS_DRAFT: Save edited version as draft
+VERSIONS_RESTORE_LEFT: Restore selected version as draft
+VERSIONS_LEFT_SIDE: Left side
+VERSIONS_RIGHT_SIDE: Right side
+VERSIONS_CONFIRM_WILL_BE_SAVED: → will be saved as draft
+VERSIONS_CONFIRM_WARNING: This will overwrite the current draft and cannot be undone.
+VERSIONS_CONFIRM: Confirm
+VERSIONS_SAVING: Saving
+VERSIONS_SAVED: Saved

@@ -1,0 +1,20 @@
+name: HTML Developer Mode
+version: 1.0.0
+description: Embed raw HTML, CSS, and JavaScript in Typemill content using fenced code blocks with the "rawhtml" language tag.
+author: Moritz
+url: https://github.com/moritzfl/Typemill-Plugins
+license: MIT
+
+settings:
+  csp_domains: ''
+
+forms:
+  fields:
+
+    csp_domains:
+      type: textarea
+      label: Allowed External Domains (CSP)
+      placeholder: "https://img.shields.io\nhttps://cdn.jsdelivr.net"
+      description: "htmldeveloper.csp_domains_help"
+
+

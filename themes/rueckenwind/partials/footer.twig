@@ -1,0 +1,44 @@
+{% set theme = settings.themes.rueckenwind %}
+
+{% if theme.footercolumns is not empty %}
+<footer class="mt-auto border-t border-gray-200/80 bg-gray-50/80 backdrop-blur-sm dark:border-gray-800/80 dark:bg-gray-900/70">
+
+  <div class="mx-auto max-w-screen-2xl px-4 py-10 sm:px-6 lg:px-10">
+
+    {# Footer columns #}
+    <div class="mb-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      {% for column, key in theme.footercolumns %}
+        {% if theme[key] %}
+          <div class="prose prose-footer rounded-2xl border border-gray-200/80 bg-white/80 p-5 text-gray-600 shadow-sm shadow-gray-950/5 dark:border-gray-800/80 dark:bg-gray-950/60 dark:text-gray-400">
+            {{ markdown(theme[key]) }}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <div class="border-t border-gray-200/80 pt-6 dark:border-gray-700/80">
+{% else %}
+<footer class="mt-auto border-t border-gray-200/80 bg-gray-50/80 backdrop-blur-sm dark:border-gray-800/80 dark:bg-gray-900/70">
+  <div class="mx-auto max-w-screen-2xl px-4 py-6 sm:px-6 lg:px-10">
+    <div>
+{% endif %}
+
+      {# Copyright line #}
+      {% if theme.copyrightline %}
+        <div class="text-xs text-gray-500 dark:text-gray-400">
+          {{ markdown(theme.copyrightlinetext) }}
+        </div>
+      {% else %}
+        {% set nowYear = "now"|date("Y") %}
+        {% set copyrightYears = (settings.year is empty or settings.year == nowYear) ? nowYear : settings.year ~ ' – ' ~ nowYear %}
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+          {{ settings.copyright|e }} {{ translate('by') }} {{ settings.author }}, {{ copyrightYears }}.
+          {{ translate('All Rights Reserved') }}.
+          {{ translate('Built with') }}
+          <a href="https://typemill.net" class="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 underline underline-offset-2 transition-colors">Typemill</a>.
+        </p>
+      {% endif %}
+
+    </div>
+  </div>
+</footer>

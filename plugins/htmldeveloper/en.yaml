@@ -1,0 +1,3 @@
+HTML_DEVELOPER_MODE: HTML Developer Mode
+ALLOWED_EXTERNAL_DOMAINS_CSP: Allowed External Domains (CSP)
+HTMLDEVELOPER_CSP_DOMAINS_HELP: "One domain per line (or comma-separated). Add 'https:' to allow all external HTTPS resources at once, or list specific origins for a tighter policy."

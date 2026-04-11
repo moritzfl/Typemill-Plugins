@@ -1,0 +1,221 @@
+name: Rückenwind
+version: 1.0.0
+description: 'A clean, documentation-focused theme built with Tailwind CSS. Inspired by the Typhoon Grav theme and the Cyanine Typemill theme. Supports automatic dark mode based on system preferences.'
+author: moritz
+license: MIT
+
+settings:
+  heroTitle: ''
+  heroSubtitle: ''
+  heroBtnLink: ''
+  heroBtnLabel: ''
+  blogimage: true
+  blogintro: false
+  blog: false
+  blogfolder: '/blog'
+  accentColor: ''
+  accentColorDark: ''
+  customcss: ''
+  gitLink: ''
+  editText: 'Edit'
+  printText: 'Print'
+  chapnum: false
+  footer1: ''
+  footer2: ''
+  footer3: ''
+  next: 'Next'
+  previous: 'Previous'
+
+forms:
+  fields:
+
+    fieldsetHero:
+      type: fieldset
+      legend: 'Homepage Hero'
+      fields:
+        heroTitle:
+          type: text
+          label: 'Hero title'
+          placeholder: 'My Website'
+          description: 'Large heading shown in the hero. Defaults to site title if left blank.'
+          css: 'lg:w-full'
+        heroSubtitle:
+          type: text
+          label: 'Hero subtitle / tagline'
+          placeholder: 'Documentation, guides, and more.'
+          css: 'lg:w-full'
+        heroBtnLabel:
+          type: text
+          label: 'Hero button label'
+          placeholder: 'Get started'
+          css: 'lg:w-half'
+        heroBtnLink:
+          type: text
+          label: 'Hero button link'
+          placeholder: '/docs'
+          css: 'lg:w-half'
+
+    fieldsetBlog:
+      type: fieldset
+      legend: 'Blog / Posts'
+      fields:
+        blog:
+          type: checkbox
+          label: 'Blog homepage'
+          checkboxlabel: 'Use the homepage as a blog post listing (disables hero)'
+        blogimage:
+          type: checkbox
+          label: 'Hero images in post lists'
+          checkboxlabel: 'Show hero images above post excerpts'
+        blogintro:
+          type: checkbox
+          label: 'Page intro on blog homepage'
+          checkboxlabel: 'Show the homepage title and content above the post list'
+        blogfolder:
+          type: text
+          label: 'Blog folder (for blog homepage)'
+          placeholder: '/blog'
+          description: 'Relative path to the folder containing posts, used when the homepage is set to blog mode.'
+          css: 'lg:w-full'
+
+    fieldsetNavLabels:
+      type: fieldset
+      legend: 'Navigation'
+      fields:
+        chapnum:
+          type: checkbox
+          label: 'Chapter numbers'
+          checkboxlabel: 'Show chapter numbers in the navigation'
+        previous:
+          type: text
+          label: 'Label for previous link'
+          placeholder: 'Previous'
+          css: 'lg:w-half'
+        next:
+          type: text
+          label: 'Label for next link'
+          placeholder: 'Next'
+          css: 'lg:w-half'
+
+    fieldsetEdit:
+      type: fieldset
+      legend: 'Edit & Print'
+      fields:
+        gitPosition:
+          type: checkboxlist
+          label: 'Show edit link (top / bottom)'
+          options:
+            top: Top
+            bottom: Bottom
+        gitLink:
+          type: text
+          label: 'Base URL of content repository'
+          placeholder: 'https://github.com/you/repo/blob/main/content'
+          css: 'lg:w-full'
+        editText:
+          type: text
+          label: 'Edit link label'
+          placeholder: 'Edit'
+          css: 'lg:w-half'
+        printPosition:
+          type: checkboxlist
+          label: 'Show print button (top / bottom)'
+          options:
+            top: Top
+            bottom: Bottom
+        printText:
+          type: text
+          label: 'Print button label'
+          placeholder: 'Print'
+          css: 'lg:w-half'
+
+    fieldsetAuthor:
+      type: fieldset
+      legend: 'Article Author'
+      fields:
+        authorPosition:
+          type: checkboxlist
+          label: 'Show author (top / bottom)'
+          options:
+            top: Top
+            bottom: Bottom
+        authorIntro:
+          type: text
+          label: 'Author intro text'
+          placeholder: 'Author'
+          css: 'lg:w-half'
+
+    fieldsetDate:
+      type: fieldset
+      legend: 'Article Date'
+      fields:
+        datePosition:
+          type: checkboxlist
+          label: 'Show date (top / bottom)'
+          options:
+            top: Top
+            bottom: Bottom
+        dateIntro:
+          type: text
+          label: 'Date intro text'
+          placeholder: 'Updated'
+          css: 'lg:w-half'
+        dateFormat:
+          type: select
+          label: 'Date format'
+          css: 'lg:w-half'
+          options:
+            'm/d/Y': '01/20/2020'
+            'd.m.Y': '20.01.2020'
+
+    fieldsetFooter:
+      type: fieldset
+      legend: 'Footer Columns'
+      fields:
+        footercolumns:
+          type: checkboxlist
+          label: 'Active footer columns'
+          options:
+            footer1: 'Column 1'
+            footer2: 'Column 2'
+            footer3: 'Column 3'
+        footer1:
+          type: textarea
+          label: 'Footer column 1 (Markdown)'
+        footer2:
+          type: textarea
+          label: 'Footer column 2 (Markdown)'
+        footer3:
+          type: textarea
+          label: 'Footer column 3 (Markdown)'
+
+    fieldsetColors:
+      type: fieldset
+      legend: 'Colors'
+      fields:
+        accentColor:
+          type: text
+          label: 'Accent color (buttons, links, active nav)'
+          placeholder: '#3893F8'
+          description: 'Any CSS color value. Leave blank for the default blue.'
+          css: 'lg:w-half'
+        accentColorDark:
+          type: text
+          label: 'Accent color — dark variant (hover states)'
+          placeholder: '#2563eb'
+          css: 'lg:w-half'
+        customcss:
+          type: textarea
+          label: 'Custom CSS'
+          description: 'Injected verbatim into a &lt;style&gt; tag. Use this for fine-grained overrides.'
+
+    fieldsetCopyright:
+      type: fieldset
+      legend: 'Copyright Line'
+      fields:
+        copyrightline:
+          type: checkbox
+          checkboxlabel: 'Override the default copyright line'
+        copyrightlinetext:
+          type: textarea
+          label: 'Custom copyright text (Markdown)'

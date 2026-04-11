@@ -1,0 +1,208 @@
+name: Link Icons
+version: 1.0.0
+description: Automatically prepends a small icon to links pointing to GitHub, GitLab, or Docker Hub and other services.
+author: moritz
+license: MIT
+
+settings:
+  appstore: true
+  bluesky: true
+  codeberg: true
+  discord: true
+  docker: true
+  facebook: true
+  flathub: true
+  github: true
+  gitlab: true
+  googleplay: true
+  imgur: true
+  instagram: true
+  lemmy: true
+  linkedin: true
+  mastodon: true
+  microsoftstore: true
+  nintendo: true
+  pinterest: true
+  playstation: true
+  pypi: true
+  reddit: true
+  rss: true
+  snapcraft: true
+  steam: true
+  threads: true
+  tiktok: true
+  telegram: true
+  tumblr: true
+  twitch: true
+  twitter: true
+  whatsapp: true
+  wikipedia: true
+  xbox: true
+  youtube: true
+  external: false
+  internal: false
+  position: before
+
+forms:
+  fields:
+
+    icons:
+      type: fieldset
+      legend: 'Active Icons'
+      fields:
+        appstore:
+          type: checkbox
+          label: 'Apple App Store'
+          checkboxlabel: 'linkicons.appstore_label'
+        bluesky:
+          type: checkbox
+          label: 'Bluesky'
+          checkboxlabel: 'linkicons.bluesky_label'
+        codeberg:
+          type: checkbox
+          label: 'Codeberg'
+          checkboxlabel: 'linkicons.codeberg_label'
+        discord:
+          type: checkbox
+          label: 'Discord'
+          checkboxlabel: 'linkicons.discord_label'
+        docker:
+          type: checkbox
+          label: 'Docker Hub'
+          checkboxlabel: 'linkicons.docker_label'
+        facebook:
+          type: checkbox
+          label: 'Facebook'
+          checkboxlabel: 'linkicons.facebook_label'
+        flathub:
+          type: checkbox
+          label: 'Flathub'
+          checkboxlabel: 'linkicons.flathub_label'
+        github:
+          type: checkbox
+          label: 'GitHub'
+          checkboxlabel: 'linkicons.github_label'
+        gitlab:
+          type: checkbox
+          label: 'GitLab'
+          checkboxlabel: 'linkicons.gitlab_label'
+        googleplay:
+          type: checkbox
+          label: 'Google Play'
+          checkboxlabel: 'linkicons.googleplay_label'
+        imgur:
+          type: checkbox
+          label: 'Imgur'
+          checkboxlabel: 'linkicons.imgur_label'
+        instagram:
+          type: checkbox
+          label: 'Instagram'
+          checkboxlabel: 'linkicons.instagram_label'
+        lemmy:
+          type: checkbox
+          label: 'Lemmy'
+          checkboxlabel: 'linkicons.lemmy_label'
+        linkedin:
+          type: checkbox
+          label: 'LinkedIn'
+          checkboxlabel: 'linkicons.linkedin_label'
+        mastodon:
+          type: checkbox
+          label: 'Mastodon'
+          checkboxlabel: 'linkicons.mastodon_label'
+        microsoftstore:
+          type: checkbox
+          label: 'Microsoft Store'
+          checkboxlabel: 'linkicons.microsoftstore_label'
+        nintendo:
+          type: checkbox
+          label: 'Nintendo'
+          checkboxlabel: 'linkicons.nintendo_label'
+        pinterest:
+          type: checkbox
+          label: 'Pinterest'
+          checkboxlabel: 'linkicons.pinterest_label'
+        playstation:
+          type: checkbox
+          label: 'PlayStation'
+          checkboxlabel: 'linkicons.playstation_label'
+        pypi:
+          type: checkbox
+          label: 'PyPI'
+          checkboxlabel: 'linkicons.pypi_label'
+        reddit:
+          type: checkbox
+          label: 'Reddit'
+          checkboxlabel: 'linkicons.reddit_label'
+        rss:
+          type: checkbox
+          label: 'RSS / Atom'
+          checkboxlabel: 'linkicons.rss_label'
+        snapcraft:
+          type: checkbox
+          label: 'Snapcraft'
+          checkboxlabel: 'linkicons.snapcraft_label'
+        steam:
+          type: checkbox
+          label: 'Steam'
+          checkboxlabel: 'linkicons.steam_label'
+        threads:
+          type: checkbox
+          label: 'Threads'
+          checkboxlabel: 'linkicons.threads_label'
+        tiktok:
+          type: checkbox
+          label: 'TikTok'
+          checkboxlabel: 'linkicons.tiktok_label'
+        telegram:
+          type: checkbox
+          label: 'Telegram'
+          checkboxlabel: 'linkicons.telegram_label'
+        tumblr:
+          type: checkbox
+          label: 'Tumblr'
+          checkboxlabel: 'linkicons.tumblr_label'
+        twitch:
+          type: checkbox
+          label: 'Twitch'
+          checkboxlabel: 'linkicons.twitch_label'
+        twitter:
+          type: checkbox
+          label: 'Twitter'
+          checkboxlabel: 'linkicons.twitter_label'
+        whatsapp:
+          type: checkbox
+          label: 'WhatsApp'
+          checkboxlabel: 'linkicons.whatsapp_label'
+        wikipedia:
+          type: checkbox
+          label: 'Wikipedia'
+          checkboxlabel: 'linkicons.wikipedia_label'
+        xbox:
+          type: checkbox
+          label: 'Xbox'
+          checkboxlabel: 'linkicons.xbox_label'
+        youtube:
+          type: checkbox
+          label: 'YouTube'
+          checkboxlabel: 'linkicons.youtube_label'
+
+    fallbacks:
+      type: fieldset
+      legend: 'Fallback Icons'
+      fields:
+        external:
+          type: checkbox
+          label: 'linkicons.external_icon'
+          checkboxlabel: 'linkicons.external_label'
+        internal:
+          type: checkbox
+          label: 'linkicons.internal_icon'
+          checkboxlabel: 'linkicons.internal_label'
+
+    position:
+      type: select
+      label: 'linkicons.position_label'
+      options:
+        before: 'Before link text'
+        after: 'After link text'

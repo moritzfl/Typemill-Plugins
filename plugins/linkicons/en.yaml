@@ -1,0 +1,40 @@
+LINK_ICONS: Link Icons
+LINKICONS_GITHUB_LABEL: Add icon to github.com links
+LINKICONS_GITLAB_LABEL: Add icon to gitlab.com links
+LINKICONS_DOCKER_LABEL: Add icon to hub.docker.com links
+LINKICONS_CODEBERG_LABEL: Add icon to codeberg.org links
+LINKICONS_WIKIPEDIA_LABEL: Add icon to wikipedia.org links
+LINKICONS_XBOX_LABEL: Add icon to xbox.com links
+LINKICONS_YOUTUBE_LABEL: Add icon to youtube.com links
+LINKICONS_SNAPCRAFT_LABEL: Add icon to snapcraft.io links
+LINKICONS_STEAM_LABEL: Add icon to Steam links
+LINKICONS_APPSTORE_LABEL: Add icon to Apple App Store links
+LINKICONS_LEMMY_LABEL: Add icon to Lemmy links
+LINKICONS_GOOGLEPLAY_LABEL: Add icon to Google Play links
+LINKICONS_FLATHUB_LABEL: Add icon to Flathub links
+LINKICONS_MICROSOFTSTORE_LABEL: Add icon to Microsoft Store links
+LINKICONS_NINTENDO_LABEL: Add icon to nintendo.com links
+LINKICONS_PLAYSTATION_LABEL: Add icon to playstation.com links
+LINKICONS_RSS_LABEL: Add icon to RSS/Atom feed links
+LINKICONS_IMGUR_LABEL: Add icon to imgur.com links
+LINKICONS_MASTODON_LABEL: Add icon to Mastodon profile links
+LINKICONS_PYPI_LABEL: Add icon to pypi.org links
+LINKICONS_REDDIT_LABEL: Add icon to reddit.com links
+LINKICONS_BLUESKY_LABEL: Add icon to bsky.app links
+LINKICONS_DISCORD_LABEL: Add icon to Discord links
+LINKICONS_FACEBOOK_LABEL: Add icon to facebook.com links
+LINKICONS_INSTAGRAM_LABEL: Add icon to instagram.com links
+LINKICONS_LINKEDIN_LABEL: Add icon to linkedin.com links
+LINKICONS_PINTEREST_LABEL: Add icon to pinterest.com links
+LINKICONS_THREADS_LABEL: Add icon to threads.net links
+LINKICONS_TIKTOK_LABEL: Add icon to tiktok.com links
+LINKICONS_TUMBLR_LABEL: Add icon to tumblr.com links
+LINKICONS_TWITCH_LABEL: Add icon to twitch.tv links
+LINKICONS_TELEGRAM_LABEL: Add icon to Telegram links
+LINKICONS_TWITTER_LABEL: Add icon to Twitter/X links
+LINKICONS_WHATSAPP_LABEL: Add icon to WhatsApp links
+LINKICONS_EXTERNAL_ICON: External Links
+LINKICONS_EXTERNAL_LABEL: Add globe icon to all other external links
+LINKICONS_INTERNAL_ICON: Internal Links
+LINKICONS_INTERNAL_LABEL: Add chain icon to all other internal links
+LINKICONS_POSITION_LABEL: Icon position

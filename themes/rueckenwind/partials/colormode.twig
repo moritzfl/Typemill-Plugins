@@ -1,0 +1,42 @@
+<div class="flex items-center justify-center gap-1 rounded-full border border-gray-200/80 bg-white/85 p-1 shadow-sm shadow-gray-950/5 backdrop-blur dark:border-gray-700/80 dark:bg-gray-900/80" role="group" aria-label="Color mode">
+
+  {# Light #}
+  <button type="button"
+          data-theme-btn="light"
+          onclick="wfbSetTheme('light')"
+          aria-label="Light mode"
+          aria-pressed="false"
+          title="Light mode"
+          class="theme-btn flex size-10 items-center justify-center rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+    </svg>
+  </button>
+
+  {# Dark #}
+  <button type="button"
+          data-theme-btn="dark"
+          onclick="wfbSetTheme('dark')"
+          aria-label="Dark mode"
+          aria-pressed="false"
+          title="Dark mode"
+          class="theme-btn flex size-10 items-center justify-center rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+    </svg>
+  </button>
+
+  {# System #}
+  <button type="button"
+          data-theme-btn="system"
+          onclick="wfbSetTheme('system')"
+          aria-label="Follow system setting"
+          aria-pressed="false"
+          title="Follow system setting"
+          class="theme-btn flex size-10 items-center justify-center rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+    </svg>
+  </button>
+
+</div>

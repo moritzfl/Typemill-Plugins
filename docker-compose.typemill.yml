@@ -1,0 +1,16 @@
+services:
+  typemill:
+    build:
+      # Builds directly from the Typemill GitHub repo — no local checkout needed.
+      # Update the tag here when you want to test against a newer Typemill release.
+      context: https://github.com/typemill/typemill.git#v2.21.3
+    ports:
+      - "8080:80"
+    volumes:
+      - ./plugins:/var/www/html/plugins
+      - ./themes:/var/www/html/themes
+      - ./.docker/typemill/settings:/var/www/html/settings
+      - ./.docker/typemill/content:/var/www/html/content
+      - ./.docker/typemill/data:/var/www/html/data
+      - ./.docker/typemill/media:/var/www/html/media
+      - ./.docker/typemill/cache:/var/www/html/cache
