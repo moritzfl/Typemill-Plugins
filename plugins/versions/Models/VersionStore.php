@@ -211,22 +211,25 @@ class VersionStore
     {
         $record = $this->records->loadPageRecord($pageId);
         $versions = $record['versions'];
-        $selectedIndex = null;
-
-        foreach ($versions as $index => $entry) {
-            if (($entry['id'] ?? null) === $versionId) {
-                $selectedIndex = $index;
-                break;
-            }
-        }
+        $selectedIndex = $this->findVersionIndex($versions, $versionId);
 
         if ($selectedIndex === null) {
             return null;
         }
 
         $selected = $versions[$selectedIndex];
-        $previous = $selectedIndex > 0 ? $versions[$selectedIndex - 1] : null;
-        $diff = $this->diff->compare($previous['markdown'] ?? '', $selected['markdown'] ?? '');
+        $selectedContentIndex = $selected['event_only'] ?? false
+            ? $this->findPreviousContentVersionIndex($versions, $selectedIndex, true)
+            : $selectedIndex;
+        $previousContentIndex = ($selected['event_only'] ?? false)
+            ? $selectedContentIndex
+            : $this->findPreviousContentVersionIndex($versions, $selectedIndex, false);
+
+        $selectedMarkdown = $selectedContentIndex !== null
+            ? (string) ($versions[$selectedContentIndex]['markdown'] ?? '')
+            : '';
+        $previous = $previousContentIndex !== null ? $versions[$previousContentIndex] : null;
+        $diff = $this->diff->compare($previous['markdown'] ?? '', $selectedMarkdown);
 
         return [
             'version' => [
@@ -239,7 +242,7 @@ class VersionStore
                 'status' => $selected['status'] ?? null,
                 'title' => $selected['title'] ?? '',
                 'url' => $selected['url'] ?? '/',
-                'markdown' => $selected['markdown'] ?? '',
+                'markdown' => $selectedMarkdown,
                 'metadata' => $selected['metadata'] ?? [],
                 'restorable' => $selected['restorable'] ?? true,
                 'deleted_snapshot' => $selected['deleted_snapshot'] ?? false,
@@ -253,6 +256,30 @@ class VersionStore
             ],
             'diff' => $diff,
         ];
+    }
+
+    private function findVersionIndex(array $versions, string $versionId): ?int
+    {
+        foreach ($versions as $index => $entry) {
+            if (($entry['id'] ?? null) === $versionId) {
+                return $index;
+            }
+        }
+
+        return null;
+    }
+
+    private function findPreviousContentVersionIndex(array $versions, int $startIndex, bool $includeStart): ?int
+    {
+        $index = $includeStart ? $startIndex : $startIndex - 1;
+
+        for (; $index >= 0; $index--) {
+            if (!($versions[$index]['event_only'] ?? false)) {
+                return $index;
+            }
+        }
+
+        return null;
     }
 
     public function restoreVersionToCurrentPage(object $item, array $currentMetadata, string $versionId): array

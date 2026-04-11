@@ -166,7 +166,7 @@
                         <div class="tm-mergely-labels">
                             <div class="tm-mergely-label-cell">
                                 <select v-model="mergelyLeftVersionId">
-                                    <option v-for="v in versions" :key="v.id" :value="v.id">{{ formatVersionLabel(v) }} (+{{ v.diff_stats.added }} / -{{ v.diff_stats.removed }})</option>
+                                    <option v-for="v in selectableVersions" :key="v.id" :value="v.id">{{ formatVersionLabel(v) }} (+{{ v.diff_stats.added }} / -{{ v.diff_stats.removed }})</option>
                                 </select>
                             </div>
                             <span>{{ $filters.translate('versions.current_version') }} ({{ $filters.translate('versions.editable') }})</span>
@@ -268,6 +268,11 @@
             }
         },
         computed: {
+            selectableVersions() {
+                return this.versions.filter(function (version) {
+                    return !version.event_only;
+                });
+            },
             visibleDiffLines() {
                 if (!this.selectedDetail || !this.selectedDetail.diff || !Array.isArray(this.selectedDetail.diff.lines)) {
                     return [];
@@ -279,7 +284,7 @@
             },
             mergelyVersionLabel() {
                 var self = this;
-                var v = self.versions.find(function (v) { return v.id === self.mergelyLeftVersionId; });
+                var v = self.selectableVersions.find(function (v) { return v.id === self.mergelyLeftVersionId; });
                 return v ? self.formatVersionLabel(v) : '';
             }
         },
@@ -299,8 +304,11 @@
                     self.detailsCache = {};
                     self.versions = response.data.versions || [];
                     self.loading = false;
-                    if (self.versions.length > 0) {
-                        self.selectVersion(self.versions[0]);
+                    if (self.selectableVersions.length > 0) {
+                        self.selectVersion(self.selectableVersions[0]);
+                    } else {
+                        self.selectedVersion = null;
+                        self.selectedDetail = null;
                     }
                 })
                 .catch(function (error) {
@@ -328,6 +336,9 @@
             },
             selectVersion(version) {
                 var self = this;
+                if (!version || version.event_only) {
+                    return;
+                }
                 self.selectedVersion = version;
 
                 self.fetchVersionDetail(version.id)
@@ -361,6 +372,9 @@
             },
             openMergely(version) {
                 var self = this;
+                if (!version || version.event_only) {
+                    return;
+                }
 
                 self.mergelyLeftVersionId = version.id;
 
