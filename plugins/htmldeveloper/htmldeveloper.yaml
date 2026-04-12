@@ -2,7 +2,7 @@ name: HTML Developer Mode
 version: 1.0.0
 description: Embed raw HTML, CSS, and JavaScript in Typemill content using fenced code blocks with the "rawhtml" language tag.
 author: Moritz
-url: https://github.com/moritzfl/Typemill-Plugins
+homepage: https://github.com/moritzfl/Typemill-Plugins
 license: LGPL
 
 settings:
