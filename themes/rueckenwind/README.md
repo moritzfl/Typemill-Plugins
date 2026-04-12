@@ -26,7 +26,7 @@ The compiled stylesheet is included in this repo at `css/theme.css`, so normal t
 If you change the theme templates or source styles while developing the theme itself:
 
 ```bash
-cd /path/to/typemill-html-developer-mode
+cd /path/to/typemill-plugins
 npm install
 npm run build:rueckenwind
 ```
