@@ -3,7 +3,7 @@
 A clean [Typemill](https://typemill.net) theme built on Tailwind CSS 4.2. Inspired by the Typhoon Grav theme and the
 Cyanine Typemill theme.
 
-![rueckenwind-thumb.png](rueckenwind-thumb.png)
+![rueckenwind.png](rueckenwind.png)
 
 ## Features
 
