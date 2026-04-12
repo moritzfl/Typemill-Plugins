@@ -1,3 +1,15 @@
 SITE_FILES: Site Files
 SITEFILES_EXTRA_RULES_LABEL: Additional robots.txt rules
-SITEFILES_EXTRA_RULES_DESCRIPTION: Optional extra lines appended verbatim to robots.txt.
+SITEFILES_EXTRA_RULES_DESCRIPTION: Optional extra lines that should appear in robots.txt.
+SITEFILES_SITE_DESCRIPTION_LABEL: Description of the website
+SITEFILES_SITE_DESCRIPTION_DESCRIPTION: Used when no suitable description is available for previews and structured data.
+SITEFILES_DEFAULT_SHARE_IMAGE_LABEL: Standard preview image
+SITEFILES_DEFAULT_SHARE_IMAGE_DESCRIPTION: This image is used when no suitable image can be found for a page preview.
+SITEFILES_PUBLISHER_TYPE_LABEL: Who runs the website?
+SITEFILES_PUBLISHER_TYPE_DESCRIPTION: Choose whether the website should be described as an organization or as a person.
+SITEFILES_PUBLISHER_NAME_LABEL: Name of the website operator
+SITEFILES_PUBLISHER_NAME_DESCRIPTION: Optional name of the organization or person behind the website. If left empty, the site title is used.
+SITEFILES_PUBLISHER_LOGO_LABEL: Logo or portrait
+SITEFILES_PUBLISHER_LOGO_DESCRIPTION: Image for the structured data about the website operator. If left empty, the Typemill logo is used when available.
+SITEFILES_SAME_AS_LABEL: Official profiles and pages
+SITEFILES_SAME_AS_DESCRIPTION: Add one full web address per line, for example social profiles or company pages.

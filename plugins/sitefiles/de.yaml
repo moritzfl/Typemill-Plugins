@@ -1,3 +1,15 @@
 SITE_FILES: Site-Dateien
 SITEFILES_EXTRA_RULES_LABEL: Zusätzliche robots.txt-Regeln
-SITEFILES_EXTRA_RULES_DESCRIPTION: Optionale zusätzliche Zeilen, die unverändert an robots.txt angehängt werden.
+SITEFILES_EXTRA_RULES_DESCRIPTION: Optionale zusätzliche Zeilen, die in robots.txt erscheinen sollen.
+SITEFILES_SITE_DESCRIPTION_LABEL: Beschreibung der Website
+SITEFILES_SITE_DESCRIPTION_DESCRIPTION: Wird verwendet, wenn für Vorschauen und strukturierte Daten keine passende Beschreibung gefunden wird.
+SITEFILES_DEFAULT_SHARE_IMAGE_LABEL: Standardbild für Vorschauen
+SITEFILES_DEFAULT_SHARE_IMAGE_DESCRIPTION: Dieses Bild wird verwendet, wenn für eine Seite sonst kein passendes Vorschaubild gefunden wird.
+SITEFILES_PUBLISHER_TYPE_LABEL: Wer betreibt die Website?
+SITEFILES_PUBLISHER_TYPE_DESCRIPTION: Wähle aus, ob die Website als Organisation oder als Person beschrieben werden soll.
+SITEFILES_PUBLISHER_NAME_LABEL: Name des Website-Betreibers
+SITEFILES_PUBLISHER_NAME_DESCRIPTION: Optionaler Name der Organisation oder Person hinter der Website. Wenn das Feld leer bleibt, wird der Website-Titel verwendet.
+SITEFILES_PUBLISHER_LOGO_LABEL: Logo oder Portrait
+SITEFILES_PUBLISHER_LOGO_DESCRIPTION: Bild für die strukturierten Daten zum Betreiber der Website. Wenn das Feld leer bleibt, wird wenn möglich das Typemill-Logo verwendet.
+SITEFILES_SAME_AS_LABEL: Offizielle Profile und Seiten
+SITEFILES_SAME_AS_DESCRIPTION: Trage pro Zeile eine vollständige Webadresse ein, zum Beispiel ein soziales Profil oder eine Unternehmensseite.

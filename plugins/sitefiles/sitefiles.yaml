@@ -1,11 +1,17 @@
 name: Site Files
-version: 1.0.0
-description: Serve a public robots.txt and expose the sitemap at /sitemap.xml.
+version: 1.1.0
+description: Serve public site files and add metadata for link previews and structured page information.
 author: Moritz
 license: LGPL
 
 settings:
   extra_rules: ''
+  site_description: ''
+  default_share_image: ''
+  publisher_type: Organization
+  publisher_name: ''
+  publisher_logo: ''
+  same_as: ''
 
 forms:
   fields:
@@ -14,3 +20,31 @@ forms:
       label: 'sitefiles.extra_rules_label'
       placeholder: "Disallow: /private/\nCrawl-delay: 10"
       description: 'sitefiles.extra_rules_description'
+    site_description:
+      type: textarea
+      label: 'sitefiles.site_description_label'
+      description: 'sitefiles.site_description_description'
+    default_share_image:
+      type: image
+      label: 'sitefiles.default_share_image_label'
+      description: 'sitefiles.default_share_image_description'
+    publisher_type:
+      type: select
+      label: 'sitefiles.publisher_type_label'
+      description: 'sitefiles.publisher_type_description'
+      options:
+        Organization: Organization
+        Person: Person
+    publisher_name:
+      type: text
+      label: 'sitefiles.publisher_name_label'
+      description: 'sitefiles.publisher_name_description'
+    publisher_logo:
+      type: image
+      label: 'sitefiles.publisher_logo_label'
+      description: 'sitefiles.publisher_logo_description'
+    same_as:
+      type: textarea
+      label: 'sitefiles.same_as_label'
+      description: 'sitefiles.same_as_description'
+      placeholder: "https://example.com/about\nhttps://www.linkedin.com/company/example/"
