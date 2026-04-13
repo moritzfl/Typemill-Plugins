@@ -11,6 +11,7 @@ class linkicons extends Plugin
     public static function getSubscribedEvents()
     {
         return [
+            'onSettingsLoaded' => ['onSettingsLoaded', 0],
             'onHtmlLoaded' => ['onHtmlLoaded', 0],
         ];
     }
@@ -67,6 +68,57 @@ class linkicons extends Plugin
     ];
 
     private static $icons = [];
+
+    private static function getServiceSettingKeys(): array
+    {
+        return array_values(array_unique(array_merge(
+            array_values(self::DOMAINS),
+            array_keys(self::PATTERNS)
+        )));
+    }
+
+    private static function getDefaultSettings(): array
+    {
+        $defaults = [
+            'position' => 'before',
+            'external' => false,
+            'internal' => false,
+        ];
+
+        foreach (self::getServiceSettingKeys() as $key) {
+            $defaults[$key] = true;
+        }
+
+        return $defaults;
+    }
+
+    private static function normalizeSettings($settings): array
+    {
+        return array_merge(
+            self::getDefaultSettings(),
+            is_array($settings) ? $settings : []
+        );
+    }
+
+    public function onSettingsLoaded($event): void
+    {
+        $settings = $event->getData();
+
+        if (!is_array($settings)) {
+            return;
+        }
+
+        $pluginSettings = $settings['plugins']['linkicons'] ?? [];
+        $normalizedSettings = self::normalizeSettings($pluginSettings);
+
+        if ($pluginSettings === $normalizedSettings) {
+            return;
+        }
+
+        $settings['plugins']['linkicons'] = $normalizedSettings;
+        $this->container->set('settings', $settings);
+        $event->setData($settings);
+    }
 
     private static function normalizeHost(?string $host): ?string
     {
@@ -223,7 +275,7 @@ class linkicons extends Plugin
             return;
         }
 
-        $settings        = $this->getPluginSettings() ?: [];
+        $settings        = self::normalizeSettings($this->getPluginSettings());
         $enabledDomains  = [];
         $enabledPatterns = [];
         $fallbackExternal = !empty($settings['external']);
