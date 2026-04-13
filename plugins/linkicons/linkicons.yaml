@@ -86,6 +86,9 @@ settings:
   overcast: true
   castbox: true
   iheartradio: true
+  tel: true
+  mailto: true
+  address: true
   external: false
   internal: false
   position: before
@@ -417,6 +420,19 @@ forms:
           type: checkbox
           label: 'iHeartRadio'
           checkboxlabel: 'linkicons.iheartradio_label'
+
+        tel:
+          type: checkbox
+          label: 'Telephone'
+          checkboxlabel: 'linkicons.tel_label'
+        mailto:
+          type: checkbox
+          label: 'Email'
+          checkboxlabel: 'linkicons.mailto_label'
+        address:
+          type: checkbox
+          label: 'Maps & Addresses'
+          checkboxlabel: 'linkicons.address_label'
 
     fallbacks:
       type: fieldset

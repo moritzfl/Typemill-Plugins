@@ -125,6 +125,9 @@ See [Installation in the project README](../../README.md#installation).
 
 ### Other
 
+- **Telephone** (`tel:` links)
+- **Email** (`mailto:` links)
+- **Maps & Addresses** (`maps.google.com`, `google.com/maps/...`, `maps.apple.com`, `openstreetmap.org`, `geo:` URIs)
 - **RSS / Atom** (URLs ending in `.rss`, `.atom`, or containing `/feed`, `/rss`, `/atom`)
 - **External links** (any link pointing outside the current site)
 - **Internal links** (links pointing within the current site)
@@ -154,7 +157,7 @@ On render, matching links get an inline SVG icon added automatically.
 Most service icons are sourced from Simple Icons. No attribution is legally required.
 
 **[Material Symbols](https://fonts.google.com/icons) by Google — [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)**
-The fallback icons for external and internal links are derived from Material Symbols.
+The external link, internal link, telephone, email, and address/map icons are derived from Material Symbols.
 
 **[PyPI icon](https://icon-icons.com/de/symbol/pypi/132062) via icon-icons.com — [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)**
 The PyPI icon is sourced from icon-icons.com and requires attribution under Creative Commons Attribution 4.0.

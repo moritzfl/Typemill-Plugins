@@ -79,6 +79,9 @@ LINKICONS_POCKETCASTS_LABEL: Add icon to Pocket Casts links
 LINKICONS_OVERCAST_LABEL: Add icon to Overcast links
 LINKICONS_CASTBOX_LABEL: Add icon to Castbox links
 LINKICONS_IHEARTRADIO_LABEL: Add icon to iHeartRadio links
+LINKICONS_TEL_LABEL: Add icon to telephone links (tel:)
+LINKICONS_MAILTO_LABEL: Add icon to email links (mailto:)
+LINKICONS_ADDRESS_LABEL: Add icon to map and address links
 LINKICONS_EXTERNAL_ICON: External Links
 LINKICONS_EXTERNAL_LABEL: Add globe icon to all other external links
 LINKICONS_INTERNAL_ICON: Internal Links

@@ -106,6 +106,9 @@ class linkicons extends Plugin
         'overcast.fm'                  => 'overcast',
         'castbox.fm'                   => 'castbox',
         'iheart.com'                   => 'iheartradio',
+        'maps.google.com'              => 'address',
+        'maps.apple.com'               => 'address',
+        'openstreetmap.org'            => 'address',
     ];
 
     // Path-based matches that should override a broader domain icon
@@ -113,6 +116,7 @@ class linkicons extends Plugin
         'githubsponsors' => '/\/\/(?:[\w.-]+\.)?github\.com\/sponsors(?:\/|$)/i',
         'chromewebstore' => '/\/\/chrome\.google\.com\/webstore(?:\/|$)/i',
         'firefoxaddons'  => '/\/\/addons\.mozilla\.org\/(?:[^\/]+\/)?firefox\/addon(?:s)?\/[^\/?#]+/i',
+        'address'        => '/\/\/(?:[\w.-]+\.)?google\.com\/maps(?:\/|$)/i',
     ];
 
     // Pattern-based matching (regex against full URL)
@@ -123,6 +127,9 @@ class linkicons extends Plugin
         'joplin'    => '/\/\/[^\/]*joplin/i',
         'peertube'  => '/peertube|joinpeertube/i',
         'pixelfed'  => '/pixelfed/i',
+        'tel'       => '/^tel:/i',
+        'mailto'    => '/^mailto:/i',
+        'address'   => '/^geo:/i',
     ];
 
     private static $icons = [];

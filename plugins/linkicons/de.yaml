@@ -79,6 +79,9 @@ LINKICONS_POCKETCASTS_LABEL: Icon bei Pocket-Casts-Links anzeigen
 LINKICONS_OVERCAST_LABEL: Icon bei Overcast-Links anzeigen
 LINKICONS_CASTBOX_LABEL: Icon bei Castbox-Links anzeigen
 LINKICONS_IHEARTRADIO_LABEL: Icon bei iHeartRadio-Links anzeigen
+LINKICONS_TEL_LABEL: Icon bei Telefon-Links (tel:) anzeigen
+LINKICONS_MAILTO_LABEL: Icon bei E-Mail-Links (mailto:) anzeigen
+LINKICONS_ADDRESS_LABEL: Icon bei Karten- und Adress-Links anzeigen
 LINKICONS_EXTERNAL_ICON: Externe Links
 LINKICONS_EXTERNAL_LABEL: Globus-Icon bei allen anderen externen Links anzeigen
 LINKICONS_INTERNAL_ICON: Interne Links
