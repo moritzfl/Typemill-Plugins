@@ -627,13 +627,11 @@ class VersionStore
             }
 
             if (count($files) >= self::MAX_SNAPSHOT_FILES) {
-                error_log('[versions] Folder snapshot truncated: exceeded ' . self::MAX_SNAPSHOT_FILES . ' files in ' . $folderPath);
-                break;
+                throw new SnapshotTooLargeException('This folder exceeds the ' . self::MAX_SNAPSHOT_FILES . '-file limit for the recycle bin.');
             }
 
             if ($totalBytes + $file->getSize() > self::MAX_SNAPSHOT_BYTES) {
-                error_log('[versions] Folder snapshot truncated: exceeded ' . self::MAX_SNAPSHOT_BYTES . ' bytes in ' . $folderPath);
-                break;
+                throw new SnapshotTooLargeException('This folder exceeds the ' . (self::MAX_SNAPSHOT_BYTES / 1024 / 1024) . ' MB size limit for the recycle bin.');
             }
 
             $content = file_get_contents($file->getPathname());

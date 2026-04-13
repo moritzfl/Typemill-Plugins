@@ -498,26 +498,34 @@
         }
     });
 
-    const deleteArticleWithVersions = function () {
+    const deleteArticleWithVersions = function (forceDelete) {
+        var self = this;
         tmaxios.delete('/api/v1/versions/article', {
             data: {
                 url: data.urlinfo.route,
-                item_id: this.item.keyPath
+                item_id: self.item.keyPath,
+                force_delete: forceDelete || false
             }
         })
         .then(function (response) {
             window.location.replace(response.data.url);
         })
         .catch(function (error) {
-            this.showModal = false;
+            self.showModal = false;
+            if (error.response && error.response.status === 409 && error.response.data && error.response.data.too_large) {
+                if (window.confirm(error.response.data.message)) {
+                    deleteArticleWithVersions.call(self, true);
+                }
+                return;
+            }
             if (error.response) {
                 let message = handleErrorMessage(error);
                 if (message) {
-                    this.message = message;
-                    this.messageClass = 'bg-rose-500';
+                    self.message = message;
+                    self.messageClass = 'bg-rose-500';
                 }
             }
-        }.bind(this));
+        });
     };
 
     const attachDeleteArticleOverride = function () {

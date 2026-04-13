@@ -3,6 +3,7 @@
 namespace Plugins\versions;
 
 use Plugins\versions\Middleware\AssetTrashMiddleware;
+use Plugins\versions\Models\SnapshotTooLargeException;
 use Plugins\versions\Models\VersionPreviewRenderer;
 use Plugins\versions\Models\VersionStore;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -580,6 +581,22 @@ class versions extends Plugin
         }
 
         $store = $this->getStore();
+        $forceDelete = !empty($params['force_delete']);
+        $snapshotFiles = [];
+        $restorable = false;
+
+        if (!$forceDelete) {
+            try {
+                $snapshotFiles = $store->createSnapshotFiles($item);
+                $restorable = true;
+            } catch (SnapshotTooLargeException $e) {
+                return $this->jsonResponse($response, [
+                    'too_large' => true,
+                    'message' => $e->getMessage() . ' It will be permanently deleted without a backup. Do you want to proceed?',
+                ], 409);
+            }
+        }
+
         $store->storeVersion(
             $item,
             $metadata,
@@ -589,7 +606,8 @@ class versions extends Plugin
             'delete',
             [
                 'force_new' => true,
-                'snapshot_files' => $store->createSnapshotFiles($item),
+                'snapshot_files' => $snapshotFiles,
+                'restorable' => $restorable,
             ]
         );
 
