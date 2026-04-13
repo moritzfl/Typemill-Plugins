@@ -24,6 +24,7 @@ See [Installation in the project README](../../README.md#installation).
 
 - **App Store** (`apps.apple.com`)
 - **Google Play** (`play.google.com`)
+- **JetBrains Marketplace** (`plugins.jetbrains.com`)
 - **Microsoft Store** (`apps.microsoft.com`)
 - **Flathub** (`flathub.org`)
 - **Snapcraft** (`snapcraft.io`)

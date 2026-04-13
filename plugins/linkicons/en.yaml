@@ -11,6 +11,7 @@ LINKICONS_STEAM_LABEL: Add icon to Steam links
 LINKICONS_APPSTORE_LABEL: Add icon to Apple App Store links
 LINKICONS_LEMMY_LABEL: Add icon to Lemmy links
 LINKICONS_GOOGLEPLAY_LABEL: Add icon to Google Play links
+LINKICONS_JETBRAINSMARKETPLACE_LABEL: Add icon to JetBrains Marketplace links
 LINKICONS_FLATHUB_LABEL: Add icon to Flathub links
 LINKICONS_MICROSOFTSTORE_LABEL: Add icon to Microsoft Store links
 LINKICONS_NINTENDO_LABEL: Add icon to nintendo.com links

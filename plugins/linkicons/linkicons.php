@@ -21,6 +21,7 @@ class linkicons extends Plugin
         'github.com'             => 'github',
         'gitlab.com'             => 'gitlab',
         'hub.docker.com'         => 'docker',
+        'plugins.jetbrains.com'  => 'jetbrainsmarketplace',
         'codeberg.org'           => 'codeberg',
         'wikipedia.org'          => 'wikipedia',
         'youtube.com'            => 'youtube',

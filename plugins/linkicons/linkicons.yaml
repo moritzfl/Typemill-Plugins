@@ -18,6 +18,7 @@ settings:
   googleplay: true
   imgur: true
   instagram: true
+  jetbrainsmarketplace: true
   lemmy: true
   linkedin: true
   mastodon: true
@@ -92,6 +93,10 @@ forms:
           type: checkbox
           label: 'Google Play'
           checkboxlabel: 'linkicons.googleplay_label'
+        jetbrainsmarketplace:
+          type: checkbox
+          label: 'JetBrains Marketplace'
+          checkboxlabel: 'linkicons.jetbrainsmarketplace_label'
         imgur:
           type: checkbox
           label: 'Imgur'

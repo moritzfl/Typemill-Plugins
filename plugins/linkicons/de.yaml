@@ -11,6 +11,7 @@ LINKICONS_STEAM_LABEL: Icon bei Steam-Links anzeigen
 LINKICONS_APPSTORE_LABEL: Icon bei Apple App Store-Links anzeigen
 LINKICONS_LEMMY_LABEL: Icon bei Lemmy-Links anzeigen
 LINKICONS_GOOGLEPLAY_LABEL: Icon bei Google Play-Links anzeigen
+LINKICONS_JETBRAINSMARKETPLACE_LABEL: Icon bei JetBrains-Marketplace-Links anzeigen
 LINKICONS_FLATHUB_LABEL: Icon bei Flathub-Links anzeigen
 LINKICONS_MICROSOFTSTORE_LABEL: Icon bei Microsoft Store-Links anzeigen
 LINKICONS_NINTENDO_LABEL: Icon bei nintendo.com-Links anzeigen
