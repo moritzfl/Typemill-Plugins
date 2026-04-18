@@ -5,23 +5,25 @@
 {% set homeHeroImageAlt = metatabs.meta.heroimagealt|default(homeHeroTitle) %}
 {% set showHomeHero = homeHeroImage or theme.heroTitle or theme.heroSubtitle or theme.heroBtnLabel or theme.heroBtnLink %}
 
-{% if showHomeHero %}
-  {% include 'partials/hero.twig' with {
-    hero_title: homeHeroTitle,
-    hero_description: homeHeroDescription,
-    hero_image: homeHeroImage,
-    hero_image_alt: homeHeroImageAlt,
-    hero_button_href: theme.heroBtnLink|default(''),
-    hero_button_label: theme.heroBtnLabel|default(''),
-    hero_class: 'border-b border-gray-200/80 px-4 py-6 sm:px-6 lg:px-10 dark:border-gray-800/80'
-  } %}
-{% endif %}
+<main id="main-content" class="flex-1 min-w-0">
+  {% if showHomeHero %}
+    {% include 'partials/hero.twig' with {
+      hero_title: homeHeroTitle,
+      hero_description: homeHeroDescription,
+      hero_image: homeHeroImage,
+      hero_image_alt: homeHeroImageAlt,
+      hero_button_href: theme.heroBtnLink|default(''),
+      hero_button_label: theme.heroBtnLabel|default(''),
+      hero_class: 'border-b border-gray-200/80 px-4 py-6 sm:px-6 lg:px-10 dark:border-gray-800/80'
+    } %}
+  {% endif %}
 
-{# ── Home page content (Markdown body) ────────────────────────────── #}
-{% if content %}
-  <div class="mx-auto max-w-screen-xl px-4 py-12 sm:px-6 lg:px-10">
-    <article class="prose max-w-3xl mx-auto">
-      {{ content }}
-    </article>
-  </div>
-{% endif %}
+  {# ── Home page content (Markdown body) ────────────────────────────── #}
+  {% if content %}
+    <div class="mx-auto max-w-screen-xl px-4 py-12 sm:px-6 lg:px-10">
+      <article class="prose max-w-3xl mx-auto">
+        {{ content }}
+      </article>
+    </div>
+  {% endif %}
+</main>

@@ -4,6 +4,25 @@
 @source "../*.twig";
 @source "../partials/*.twig";
 
+/*
+ * IDE/static-analysis fallback only.
+ * Real accent values are injected at render time in layout.twig.
+ * Keep these defaults here so editors can resolve the custom properties
+ * without flagging false-positive warnings.
+ */
+:root {
+  --rw-accent-500: #3893F8;
+  --rw-accent-600: #2563eb;
+  --rw-accent-50: #eff6ff;
+  --rw-accent-100: #dbeafe;
+  --rw-accent-200: #bfdbfe;
+  --rw-accent-300: #93c5fd;
+  --rw-accent-400: #60a5fa;
+  --rw-accent-700: #1d4ed8;
+  --rw-accent-800: #1e40af;
+  --rw-accent-900: #1e3a8a;
+}
+
 @theme inline {
   --font-sans: "Avenir Next", "Segoe UI Variable", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "SFMono-Regular", "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, monospace;
@@ -33,10 +52,6 @@
     @apply font-sans;
   }
 
-  :root {
-    scrollbar-gutter: stable;
-  }
-
   ::selection {
     background: color-mix(in srgb, var(--color-primary-200) 72%, transparent);
     color: var(--color-gray-950);
@@ -45,6 +60,17 @@
   .dark ::selection {
     background: color-mix(in srgb, var(--color-primary-700) 60%, transparent);
     color: var(--color-white);
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  summary:focus-visible,
+  [role="button"]:focus-visible {
+    outline: 2px solid var(--color-primary-500);
+    outline-offset: 3px;
   }
 }
 
@@ -265,7 +291,17 @@
     scrollbar-color: var(--color-gray-300) transparent;
   }
 
+  .content-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-gray-300) transparent;
+    background: transparent;
+  }
+
   .dark .sidebar-scroll {
+    scrollbar-color: var(--color-gray-700) transparent;
+  }
+
+  .dark .content-scroll {
     scrollbar-color: var(--color-gray-700) transparent;
   }
 
@@ -273,7 +309,15 @@
     width: 6px;
   }
 
+  .content-scroll::-webkit-scrollbar {
+    width: 10px;
+  }
+
   .sidebar-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .content-scroll::-webkit-scrollbar-track {
     background: transparent;
   }
 
@@ -282,8 +326,21 @@
     border-radius: 999px;
   }
 
+  .content-scroll::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--color-gray-300) 88%, transparent);
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-clip: padding-box;
+  }
+
   .dark .sidebar-scroll::-webkit-scrollbar-thumb {
     background: color-mix(in srgb, var(--color-gray-700) 92%, transparent);
+  }
+
+  .dark .content-scroll::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--color-gray-700) 94%, transparent);
+    border: 3px solid transparent;
+    background-clip: padding-box;
   }
 
   .theme-btn {
@@ -314,6 +371,26 @@
       0 14px 28px -24px rgba(0, 0, 0, 0.8);
   }
 
+  .skip-link {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 100;
+    border-radius: 999px;
+    background: var(--color-primary-600);
+    color: var(--color-white);
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transform: translateY(-200%);
+    transition: transform 0.18s ease;
+    box-shadow: 0 12px 30px -18px color-mix(in srgb, var(--color-primary-700) 75%, transparent);
+  }
+
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
+
   .searchContainer input {
     color: var(--color-gray-800) !important;
     background-color: white !important;
@@ -338,4 +415,3 @@
     max-width: none;
   }
 }
-

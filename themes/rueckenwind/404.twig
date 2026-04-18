@@ -4,8 +4,10 @@
 
 {% block sidebar_wrapper %}{% endblock %}
 
+{% block mobile_nav_toggle %}{% endblock %}
+
 {% block content %}
-<div class="flex flex-1 items-center justify-center px-6 py-24">
+<main id="main-content" class="flex flex-1 items-center justify-center px-6 py-24">
   <div class="max-w-md rounded-3xl border border-gray-200/80 bg-white/85 px-8 py-10 text-center shadow-xl shadow-gray-950/8 ring-1 ring-gray-950/5 dark:border-gray-800/80 dark:bg-gray-900/80 dark:ring-white/10">
 
     <div class="mb-4 select-none text-8xl font-black leading-none text-primary-500 dark:text-primary-400">
@@ -29,5 +31,5 @@
     </a>
 
   </div>
-</div>
+</main>
 {% endblock %}

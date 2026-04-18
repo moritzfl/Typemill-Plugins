@@ -1,4 +1,5 @@
 {% set theme = settings.themes.rueckenwind %}
+{% set showSidebarNav = showSidebarNav|default(true) %}
 <!DOCTYPE html>
 <html lang="{{ settings.langattr | default('en') }}" class="scroll-smooth scheme-light dark:scheme-dark">
 <head>
@@ -16,7 +17,8 @@
 
   <meta charset="UTF-8">
   <title>{% block title %}{% endblock %}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
   <meta name="description" content="{{ metatabs.meta.description }}" />
   <meta name="author" content="{{ metatabs.meta.author }}" />
   <meta name="generator" content="TYPEMILL" />
@@ -47,6 +49,8 @@
 </head>
 <body class="flex h-screen min-h-screen flex-col overflow-hidden bg-white text-gray-800 antialiased dark:bg-gray-950 dark:text-gray-100">
 
+  <a href="#main-content" class="skip-link">Skip to content</a>
+
   {# ── Admin bar ─────────────────────────────────────────────────── #}
   {% if is_loggedin() %}
   <div class="fixed top-0 right-0 z-50 rounded-bl-xl bg-primary-600 px-3 py-1 text-[11px] font-medium text-white shadow-lg shadow-primary-600/20">
@@ -56,7 +60,7 @@
 
   {# ── Top navigation bar ────────────────────────────────────────── #}
   <header id="topbar" class="sticky top-0 z-40 flex h-14 items-center border-b border-gray-200/80 bg-white/80 shadow-sm shadow-gray-950/5 backdrop-blur-xl dark:border-gray-800/80 dark:bg-gray-950/75">
-    <div class="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-4">
+    <div class="flex w-full items-center justify-between gap-4 px-4 sm:px-6">
 
       <a href="{{ base_url }}" class="flex shrink-0 items-center gap-2.5 text-lg font-semibold tracking-tight text-gray-900 transition-colors hover:text-primary-600 dark:text-white dark:hover:text-primary-300">
         {% if logo %}
@@ -67,9 +71,12 @@
       </a>
 
       {# Mobile sidebar toggle #}
+      {% block mobile_nav_toggle %}
       <button id="mobile-menu-btn"
+              type="button"
               aria-label="Toggle navigation"
               aria-expanded="false"
+              aria-controls="sidebar"
               class="rounded-full border border-gray-200 bg-white/80 p-2 text-gray-500 shadow-sm shadow-gray-950/5 transition-colors hover:text-gray-900 dark:border-gray-800 dark:bg-gray-900/80 dark:text-gray-400 dark:hover:text-white lg:hidden">
         <svg id="menu-icon-open" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
@@ -78,12 +85,13 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
         </svg>
       </button>
+      {% endblock %}
 
     </div>
   </header>
 
   {# ── Page content ──────────────────────────────────────────────── #}
-  <div class="flex flex-1 overflow-hidden min-h-0 w-full max-w-screen-2xl mx-auto">
+  <div class="flex min-h-0 w-full flex-1 overflow-hidden">
 
     {# ── Sidebar ───────────────────────────────────────────────────── #}
     {% block sidebar_wrapper %}
@@ -125,7 +133,7 @@
     {% endblock %}
 
     {# ── Main slot + footer, scrolls together ──────────────────────── #}
-    <div class="flex-1 min-w-0 overflow-y-auto flex flex-col">
+    <div class="content-scroll flex-1 min-w-0 overflow-y-auto flex flex-col">
       {% block content %}{% endblock %}
       {% include 'partials/footer.twig' %}
     </div>
@@ -189,7 +197,7 @@
         });
       }
 
-      // Expose for onclick handlers in the partial
+      // Expose theme setter for optional external integrations
       window.wfbSetTheme = wfbSetTheme;
 
       // Wire up system preference listener
@@ -211,6 +219,18 @@
         var initialTheme = wfbCurrentTheme();
         wfbApply(initialTheme);
         wfbUpdateButtons(initialTheme);
+
+        document.querySelectorAll('[data-theme-target]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            wfbSetTheme(btn.dataset.themeTarget);
+          });
+        });
+
+        document.querySelectorAll('[data-print-page]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            window.print();
+          });
+        });
       });
 
       // ── Mobile sidebar toggle (right-side drawer) ─────────────────
@@ -220,8 +240,8 @@
       const iconOpen  = document.getElementById('menu-icon-open');
       const iconClose = document.getElementById('menu-icon-close');
 
-      const MOBILE_OPEN  = ['fixed', 'top-14', 'right-0', 'bottom-0', 'z-30', 'flex', 'flex-col', 'border-l', 'border-gray-200', 'bg-white/95', 'backdrop-blur-xl', 'shadow-2xl', 'shadow-gray-950/20', 'dark:border-gray-800', 'dark:bg-gray-950/95'];
-      const MOBILE_CLOSE = ['border-l', 'border-gray-200', 'bg-white/95', 'backdrop-blur-xl', 'shadow-2xl', 'shadow-gray-950/20', 'dark:border-gray-800', 'dark:bg-gray-950/95'];
+      const MOBILE_OPEN  = ['fixed', 'top-14', 'right-0', 'bottom-0', 'z-30', 'flex', 'border-l', 'border-gray-200', 'bg-white/95', 'backdrop-blur-xl', 'shadow-2xl', 'shadow-gray-950/20', 'dark:border-gray-800', 'dark:bg-gray-950/95'];
+      const DESKTOP_MEDIA = window.matchMedia('(min-width: 1024px)');
 
       function openMobileMenu() {
         MOBILE_OPEN.forEach(function (c) { sidebar.classList.add(c); });
@@ -234,11 +254,17 @@
 
       function closeMobileMenu() {
         sidebar.classList.add('hidden');
-        MOBILE_CLOSE.forEach(function (c) { sidebar.classList.remove(c); });
+        MOBILE_OPEN.forEach(function (c) { sidebar.classList.remove(c); });
         backdrop.classList.add('hidden');
         btn.setAttribute('aria-expanded', 'false');
         iconOpen.classList.remove('hidden');
         iconClose.classList.add('hidden');
+      }
+
+      function syncMenuToViewport() {
+        if (DESKTOP_MEDIA.matches) {
+          closeMobileMenu();
+        }
       }
 
       if (btn && sidebar && backdrop && iconOpen && iconClose) {
@@ -253,6 +279,15 @@
             if (window.innerWidth < 1024) closeMobileMenu();
           });
         });
+
+        if (DESKTOP_MEDIA.addEventListener) {
+          DESKTOP_MEDIA.addEventListener('change', syncMenuToViewport);
+        } else if (DESKTOP_MEDIA.addListener) {
+          DESKTOP_MEDIA.addListener(syncMenuToViewport);
+        }
+
+        window.addEventListener('resize', syncMenuToViewport);
+        syncMenuToViewport();
       }
     })();
 
@@ -260,7 +295,8 @@
     document.querySelectorAll('[data-nav-toggle]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var li  = btn.closest('li');
-        var ul  = li.querySelector('ul');
+        var controls = btn.getAttribute('aria-controls');
+        var ul  = controls ? document.getElementById(controls) : li.querySelector('ul');
         if (!ul) return;
         var open = btn.getAttribute('aria-expanded') === 'true';
         btn.setAttribute('aria-expanded', open ? 'false' : 'true');

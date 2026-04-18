@@ -4,7 +4,7 @@
 {% set blogHeroImageAlt = metatabs.meta.heroimagealt|default(title) %}
 {% set blogHeroDescription = blogHeroImage ? metatabs.meta.description|default('') : '' %}
 
-<main class="flex-1 min-w-0 max-w-4xl px-4 py-8 sm:px-6 lg:px-10 xl:px-14">
+<main id="main-content" class="flex-1 min-w-0 max-w-4xl px-4 py-8 sm:px-6 lg:px-10 xl:px-14">
 
   {% if blogHeroImage %}
     {% include 'partials/hero.twig' with {
@@ -39,7 +39,8 @@
     <ul class="space-y-8">
       {% for element in pagelist.folderContent|slice(offset, pagesize) %}
         {% set post = getPageMeta(settings, element) %}
-        {% set date = element.order[0:4] ~ '-' ~ element.order[4:2] ~ '-' ~ element.order[6:2] %}
+        {% set orderDate = element.order is defined and element.order matches '/^\d{8}$/' ? element.order[0:4] ~ '-' ~ element.order[4:2] ~ '-' ~ element.order[6:2] : '' %}
+        {% set date = post.meta.manualdate|default(post.meta.modified|default(orderDate)) %}
 
         <li class="group overflow-hidden rounded-2xl border border-gray-200/80 bg-white/80 shadow-sm shadow-gray-950/5 ring-1 ring-gray-950/5 transition-all hover:border-primary-300 hover:shadow-lg hover:shadow-primary-500/10 dark:border-gray-800/80 dark:bg-gray-900/70 dark:ring-white/10 dark:hover:border-primary-700">
 
@@ -58,7 +59,9 @@
               </h2>
             </a>
             <div class="flex items-center gap-3 text-sm text-gray-400 dark:text-gray-500 mb-3">
-              <time datetime="{{ date }}">{{ date|date('d.m.Y') }}</time>
+              {% if date %}
+                <time datetime="{{ date }}">{{ date|date('d.m.Y') }}</time>
+              {% endif %}
               {% if post.meta.author|default(post.meta.owner) %}
                 <span>&middot;</span>
                 <span>{{ post.meta.author|default(post.meta.owner)|e }}</span>

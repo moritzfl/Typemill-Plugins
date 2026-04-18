@@ -4,6 +4,7 @@
     {% set depth = element.keyPathArray|length %}
     {% set hasChildren = element.elementType == 'folder' and element.folderContent|length > 0 and element.contains == 'pages' %}
     {% set expanded = element.active or element.activeParent %}
+    {% set submenuId = 'nav-subtree-' ~ (element.keyPathArray|join('-')) %}
 
     <li>
       <div class="flex items-center gap-0.5">
@@ -39,6 +40,7 @@
           <button type="button"
                   data-nav-toggle
                   aria-expanded="{{ expanded ? 'true' : 'false' }}"
+                  aria-controls="{{ submenuId }}"
                   aria-label="Toggle {{ element.name }}"
                   class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-white/80 hover:text-gray-700 dark:hover:bg-gray-900/80 dark:hover:text-gray-200">
             <svg data-icon-plus xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 {{ expanded ? 'hidden' : '' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -51,9 +53,9 @@
         {%- endif -%}
 
       </div>
-
+      
       {%- if hasChildren -%}
-        <ul class="{{ expanded ? '' : 'hidden' }} mt-1 ml-2 space-y-0.5 border-l border-gray-200/80 pl-2 dark:border-gray-700/80">
+        <ul id="{{ submenuId }}" class="{{ expanded ? '' : 'hidden' }} mt-1 ml-2 space-y-0.5 border-l border-gray-200/80 pl-2 dark:border-gray-700/80">
           {{ m.nav_items(element.folderContent) }}
         </ul>
       {%- endif -%}
