@@ -320,16 +320,39 @@
         return true;
       }
 
+      var svgBwCache = new Map();
+
       function checkImg(img) {
         var src = img.getAttribute('src');
         if (!src || !/\.svg(\?|$)/i.test(src)) return;
         var a = document.createElement('a');
         a.href = src;
         if (a.hostname && a.hostname !== location.hostname) return;
+
+        if (img.dataset.svgInvert === 'bw' || img.dataset.svgInvert === 'true') {
+          img.classList.add('svg-bw-invert');
+          return;
+        }
+
+        if (img.dataset.svgInvert === 'color' || img.dataset.svgInvert === 'false') {
+          return;
+        }
+
+        if (svgBwCache.has(src)) {
+          if (svgBwCache.get(src)) img.classList.add('svg-bw-invert');
+          return;
+        }
+
         fetch(src, {credentials: 'same-origin'})
           .then(function (r) { return r.ok ? r.text() : Promise.reject(); })
-          .then(function (text) { if (isBwSvg(text)) img.classList.add('svg-bw-invert'); })
-          .catch(function () {});
+          .then(function (text) {
+            var invertable = isBwSvg(text);
+            svgBwCache.set(src, invertable);
+            if (invertable) img.classList.add('svg-bw-invert');
+          })
+          .catch(function () {
+            svgBwCache.set(src, false);
+          });
       }
 
       document.addEventListener('DOMContentLoaded', function () {

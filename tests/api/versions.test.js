@@ -8,6 +8,11 @@ const USERNAME  = process.env.TM_USER
 const PASSWORD  = process.env.TM_PASSWORD
 
 const configured = Boolean(USERNAME && PASSWORD)
+const requireConfiguredAuth = process.env.CI === 'true' || process.env.REQUIRE_TM_AUTH === 'true'
+
+if (requireConfiguredAuth && !configured) {
+    throw new Error('TM_USER and TM_PASSWORD are required for authenticated API tests in CI.')
+}
 
 // ---------------------------------------------------------------------------
 // Access control — these endpoints must refuse unauthenticated calls.

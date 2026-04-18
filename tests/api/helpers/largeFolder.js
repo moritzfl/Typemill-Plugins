@@ -29,6 +29,32 @@ const CTR_PATH      = `/var/www/html/content/${FOLDER_NAME}`
 
 export const LARGE_FOLDER_URL = '/test-large-folder'   // URL Typemill exposes
 
+function ensureTypemillContainerRunning() {
+    try {
+        const state = execSync(
+            `docker compose -f "${COMPOSE_FILE}" ps --status running --services typemill`,
+            { stdio: ['pipe', 'pipe', 'pipe'] }
+        ).toString().trim()
+
+        if (state !== 'typemill') {
+            throw new Error('typemill container is not running')
+        }
+    } catch (error) {
+        throw new Error(`Typemill Docker container is not ready: ${error.message}`)
+    }
+}
+
+function execInTypemill(command, options = {}) {
+    ensureTypemillContainerRunning()
+
+    try {
+        return execSync(command, { stdio: ['pipe', 'pipe', 'pipe'], ...options })
+    } catch (error) {
+        const stderr = error.stderr ? error.stderr.toString().trim() : error.message
+        throw new Error(`Typemill Docker command failed: ${stderr}`)
+    }
+}
+
 /**
  * Creates the fixture inside the container via docker exec.
  * PHP is piped via stdin (docker exec -T) to avoid shell quoting issues.
@@ -46,9 +72,9 @@ export function createLargeFolder() {
         `echo count(glob($dir . '/*'));`,
     ].join(' ')
 
-    const count = execSync(
+    const count = execInTypemill(
         `docker compose -f "${COMPOSE_FILE}" exec -T typemill php`,
-        { input: `<?php ${php}`, stdio: ['pipe', 'pipe', 'pipe'] }
+        { input: `<?php ${php}` }
     ).toString().trim()
 
     if (parseInt(count) < 502) {
@@ -64,9 +90,8 @@ export function createLargeFolder() {
  */
 export function cleanupLargeFolder() {
     try {
-        execSync(
+        execInTypemill(
             `docker compose -f "${COMPOSE_FILE}" exec -T typemill rm -rf "${CTR_PATH}"`,
-            { stdio: 'pipe' }
         )
     } catch {
         // Folder may already be gone — that is fine.

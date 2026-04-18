@@ -763,7 +763,17 @@ class versions extends Plugin
 
     private function jsonResponse(Response $response, array $payload, int $status = 200): Response
     {
-        $response->getBody()->write(json_encode($payload));
+        try {
+            $json = json_encode($payload, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            error_log('[versions] Failed to encode JSON response: ' . $e->getMessage());
+            $status = 500;
+            $json = json_encode([
+                'message' => 'Internal server error.',
+            ], JSON_THROW_ON_ERROR);
+        }
+
+        $response->getBody()->write($json);
 
         return $response->withHeader('Content-Type', 'application/json')->withStatus($status);
     }

@@ -580,41 +580,40 @@ class VersionStore
             error_log('[versions] Failed to remove temp placeholder file: ' . $tempPath);
         }
 
-        $zip = new \ZipArchive();
-        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
-            return null;
-        }
-
-        $addedFiles = 0;
-        foreach ($downloadFiles as $file) {
-            if ($zip->addFromString($file['path'], $file['content'])) {
-                $addedFiles++;
+        try {
+            $zip = new \ZipArchive();
+            if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+                return null;
             }
-        }
 
-        $zip->close();
+            $addedFiles = 0;
+            foreach ($downloadFiles as $file) {
+                if ($zip->addFromString($file['path'], $file['content'])) {
+                    $addedFiles++;
+                }
+            }
 
-        if ($addedFiles === 0 || !file_exists($zipPath)) {
+            $zip->close();
+
+            if ($addedFiles === 0 || !file_exists($zipPath)) {
+                return null;
+            }
+
+            $zipContent = file_get_contents($zipPath);
+            if ($zipContent === false) {
+                return null;
+            }
+
+            return [
+                'filename' => $baseName . '.zip',
+                'content' => $zipContent,
+                'mime_type' => 'application/octet-stream',
+            ];
+        } finally {
             if (file_exists($zipPath) && !unlink($zipPath)) {
-                error_log('[versions] Failed to remove empty zip file: ' . $zipPath);
+                error_log('[versions] Failed to remove zip temp file: ' . $zipPath);
             }
-            return null;
         }
-
-        $zipContent = file_get_contents($zipPath);
-        if (!unlink($zipPath)) {
-            error_log('[versions] Failed to remove zip temp file: ' . $zipPath);
-        }
-
-        if ($zipContent === false) {
-            return null;
-        }
-
-        return [
-            'filename' => $baseName . '.zip',
-            'content' => $zipContent,
-            'mime_type' => 'application/octet-stream',
-        ];
     }
 
     public function readCurrentMarkdown(object $item): string
