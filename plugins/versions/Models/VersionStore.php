@@ -15,6 +15,8 @@ class VersionStore
     private LineDiff $diff;
     private VersionRecordRepository $records;
     private AssetVersionStore $assetVersions;
+    private PageSnapshotService $snapshots;
+    private TrashDownloadService $downloads;
 
     public function __construct()
     {
@@ -22,6 +24,8 @@ class VersionStore
         $this->diff = new LineDiff();
         $this->records = new VersionRecordRepository($this->storage, 'versions');
         $this->assetVersions = new AssetVersionStore($this->storage, $this->records, $this->diff);
+        $this->snapshots = new PageSnapshotService($this->storage);
+        $this->downloads = new TrashDownloadService($this->assetVersions);
     }
 
     public function getSettings(array $pluginSettings = []): array
@@ -486,11 +490,7 @@ class VersionStore
 
     public function createSnapshotFiles(object $item): array
     {
-        if (($item->elementType ?? 'file') === 'folder') {
-            return $this->snapshotFolderFiles($item->path ?? '');
-        }
-
-        return $this->snapshotPageFiles($item->pathWithoutType ?? '');
+        return $this->snapshots->createSnapshotFiles($item);
     }
 
     public function getTrashVersionDetail(string $recordId, string $versionId, string $recordType = 'page'): ?array
@@ -511,109 +511,7 @@ class VersionStore
             : $this->records->loadPageRecord($recordId);
         $version = $this->findVersion($record, $versionId);
 
-        if (!$version || empty($version['snapshot_files'])) {
-            return null;
-        }
-
-        $downloadFiles = [];
-        foreach ($version['snapshot_files'] as $file) {
-            $path = ltrim(str_replace('\\', '/', (string) ($file['path'] ?? '')), '/');
-            if ($path === '') {
-                continue;
-            }
-
-            $content = isset($file['content_base64'])
-                ? base64_decode($file['content_base64'], true)
-                : ($file['content'] ?? '');
-
-            if ($content === false || $content === null) {
-                continue;
-            }
-
-            $downloadFiles[] = [
-                'path' => $path,
-                'content' => $content,
-                'location' => $file['location'] ?? null,
-            ];
-        }
-
-        if (count($downloadFiles) === 0) {
-            return null;
-        }
-
-        if ($recordType === 'asset') {
-            $assetFile = $this->assetVersions->selectPrimaryDownloadFile($downloadFiles, $version);
-            if ($assetFile) {
-                $filename = basename($assetFile['path']);
-
-                return [
-                    'filename' => $filename,
-                    'content' => $assetFile['content'],
-                    'mime_type' => 'application/octet-stream',
-                ];
-            }
-        }
-
-        if (count($downloadFiles) === 1) {
-            $singleFile = $downloadFiles[0];
-            $filename = basename($singleFile['path']);
-
-            return [
-                'filename' => $filename,
-                'content' => $singleFile['content'],
-                'mime_type' => 'application/octet-stream',
-            ];
-        }
-
-        if (!class_exists(\ZipArchive::class)) {
-            return null;
-        }
-
-        $baseName = $this->sanitizeArchiveName($version['title'] ?? $recordId);
-        $tempPath = tempnam(sys_get_temp_dir(), 'tm_versions_');
-        if ($tempPath === false) {
-            return null;
-        }
-
-        $zipPath = $tempPath . '.zip';
-        if (!unlink($tempPath)) {
-            error_log('[versions] Failed to remove temp placeholder file: ' . $tempPath);
-        }
-
-        try {
-            $zip = new \ZipArchive();
-            if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
-                return null;
-            }
-
-            $addedFiles = 0;
-            foreach ($downloadFiles as $file) {
-                if ($zip->addFromString($file['path'], $file['content'])) {
-                    $addedFiles++;
-                }
-            }
-
-            $zip->close();
-
-            if ($addedFiles === 0 || !file_exists($zipPath)) {
-                return null;
-            }
-
-            $zipContent = file_get_contents($zipPath);
-            if ($zipContent === false) {
-                return null;
-            }
-
-            return [
-                'filename' => $baseName . '.zip',
-                'content' => $zipContent,
-                'mime_type' => 'application/octet-stream',
-            ];
-        } finally {
-            if (file_exists($zipPath) && !unlink($zipPath)) {
-                error_log('[versions] Failed to remove zip temp file: ' . $zipPath);
-            }
-        }
+        return $version ? $this->downloads->createPackage($recordId, $recordType, $version) : null;
     }
 
     public function readCurrentMarkdown(object $item): string
@@ -622,82 +520,6 @@ class VersionStore
         $markdownArray = $content->getDraftMarkdown($item);
 
         return $content->markdownArrayToText($markdownArray);
-    }
-
-    private function snapshotPageFiles(string $pathWithoutType): array
-    {
-        $files = [];
-        foreach (['md', 'txt', 'yaml'] as $extension) {
-            $relativePath = $pathWithoutType . '.' . $extension;
-            $content = $this->storage->getFile('contentFolder', '', $relativePath);
-            if ($content !== false) {
-                $files[] = [
-                    'location' => 'contentFolder',
-                    'path' => $relativePath,
-                    'content' => $content,
-                ];
-            }
-        }
-
-        return $files;
-    }
-
-    private function snapshotFolderFiles(string $folderPath): array
-    {
-        $basePath = rtrim($this->storage->getFolderPath('contentFolder'), DIRECTORY_SEPARATOR);
-        $fullPath = $basePath . DIRECTORY_SEPARATOR . trim($folderPath, DIRECTORY_SEPARATOR);
-
-        if (!is_dir($fullPath)) {
-            return [];
-        }
-
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($fullPath, \FilesystemIterator::SKIP_DOTS)
-        );
-
-        $files = [];
-        $totalBytes = 0;
-        foreach ($iterator as $file) {
-            if (!$file->isFile()) {
-                continue;
-            }
-
-            if (count($files) >= self::MAX_SNAPSHOT_FILES) {
-                throw new SnapshotTooLargeException('This folder exceeds the ' . self::MAX_SNAPSHOT_FILES . '-file limit for the recycle bin.');
-            }
-
-            if ($totalBytes + $file->getSize() > self::MAX_SNAPSHOT_BYTES) {
-                throw new SnapshotTooLargeException('This folder exceeds the ' . (self::MAX_SNAPSHOT_BYTES / 1024 / 1024) . ' MB size limit for the recycle bin.');
-            }
-
-            $content = file_get_contents($file->getPathname());
-            if ($content === false) {
-                continue;
-            }
-
-            $totalBytes += strlen($content);
-            $path = str_replace($basePath . DIRECTORY_SEPARATOR, '', $file->getPathname());
-            $files[] = [
-                'location' => 'contentFolder',
-                'path' => str_replace('\\', '/', $path),
-                'content' => $content,
-            ];
-        }
-
-        return $files;
-    }
-
-    private function findSnapshotConflicts(array $snapshotFiles): array
-    {
-        $conflicts = [];
-        foreach ($snapshotFiles as $file) {
-            $location = $file['location'] ?? 'contentFolder';
-            if ($this->storage->checkFile($location, '', $file['path'])) {
-                $conflicts[] = $file['path'];
-            }
-        }
-
-        return $conflicts;
     }
 
     private function findVersion(array $record, string $versionId): ?array
@@ -790,6 +612,26 @@ class VersionStore
             : $resolvedBasePath . DIRECTORY_SEPARATOR . $trimmedPath;
     }
 
+    private function snapshotPageFiles(string $pathWithoutType): array
+    {
+        return $this->snapshots->snapshotPageFiles($pathWithoutType);
+    }
+
+    private function snapshotFolderFiles(string $folderPath): array
+    {
+        return $this->snapshots->snapshotFolderFiles($folderPath);
+    }
+
+    private function findSnapshotConflicts(array $snapshotFiles): array
+    {
+        return $this->snapshots->findSnapshotConflicts($snapshotFiles);
+    }
+
+    private function sanitizeArchiveName(string $value): string
+    {
+        return $this->downloads->sanitizeArchiveName($value);
+    }
+
     private function shouldMergeIntoLastVersion(array $versions, string $username, int $groupHours): bool
     {
         $last = end($versions);
@@ -864,19 +706,6 @@ class VersionStore
         }
 
         return $value;
-    }
-
-    private function sanitizeArchiveName(string $value): string
-    {
-        $value = trim($value);
-        if ($value === '') {
-            return 'trash-entry';
-        }
-
-        $value = preg_replace('/[^A-Za-z0-9._-]+/', '-', $value) ?? 'trash-entry';
-        $value = trim($value, '-.');
-
-        return $value !== '' ? $value : 'trash-entry';
     }
 
 }
