@@ -82,20 +82,21 @@ const app = Vue.createApp({
 
                     const config = (typeof filesConfig !== 'undefined') ? filesConfig : {};
                     const typemillMax = config.maxFileUploads ? this.parseIniSize(config.maxFileUploads) : null;
-                    const uploadMax   = this.parseIniSize(config.uploadMaxFilesize);
-                    const postMax     = this.parseIniSize(config.postMaxSize);
 
                     if (typemillMax && file.size > typemillMax) {
                         return { key: 'files.msg_too_large', limit: this.formatSize(typemillMax) };
                     }
-                    if (uploadMax && file.size > uploadMax) {
-                        return { key: 'files.msg_php_upload_limit', limit: this.formatSize(uploadMax) };
-                    }
-                    // Base64 encoding inflates the payload by ~37 % plus JSON overhead.
-                    if (postMax && (file.size * 1.37 + 100) > postMax) {
-                        return { key: 'files.msg_php_post_limit', limit: this.formatSize(postMax) };
-                    }
                     return null;
+                },
+
+                shouldChunkUpload(file) {
+                    const config = (typeof filesConfig !== 'undefined') ? filesConfig : {};
+                    const postMax = this.parseIniSize(config.postMaxSize);
+                    // Use chunked upload if the base64-encoded file would exceed post_max_size.
+                    if (postMax && (file.size * 1.37 + 100) > postMax) {
+                        return true;
+                    }
+                    return false;
                 },
 
                 uploadFiles(fileList) {
@@ -106,7 +107,8 @@ const app = Vue.createApp({
                             file: f,
                             status: err ? 'error' : 'queued',
                             error: err ? err.key : '',
-                            errorLimit: err ? err.limit : ''
+                            errorLimit: err ? err.limit : '',
+                            progress: ''
                         };
                     });
                     this.uploadQueue = queue;
@@ -146,6 +148,18 @@ const app = Vue.createApp({
 
                     item.status = 'uploading';
 
+                    if (self.shouldChunkUpload(item.file)) {
+                        self.uploadChunked(item, function(success) {
+                            if (success) {
+                                item.status = 'done';
+                            } else {
+                                item.status = 'error';
+                            }
+                            self.processQueue(index + 1);
+                        });
+                        return;
+                    }
+
                     var reader = new FileReader();
                     reader.onload = function(e) {
                         tmaxios.post('/api/v1/file', {
@@ -168,8 +182,6 @@ const app = Vue.createApp({
                                 msg = 'files.msg_upload_failed';
                             }
                             item.error = msg;
-                            // If server rejected with a size-related message but client-side
-                            // pre-flight missed it, add the relevant limit as a hint.
                             var cfg = (typeof filesConfig !== 'undefined') ? filesConfig : {};
                             if (!item.errorLimit) {
                                 if (msg === 'files.msg_too_large' && cfg.maxFileUploads) {
@@ -189,6 +201,95 @@ const app = Vue.createApp({
                         self.processQueue(index + 1);
                     };
                     reader.readAsDataURL(item.file);
+                },
+
+                uploadChunked(item, callback) {
+                    var CHUNK_SIZE = 1024 * 1024; // 1 MB raw chunks
+                    var file = item.file;
+                    var totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+                    var uploadId = 'chunk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+                    var self = this;
+
+                    function readChunk(idx) {
+                        if (idx >= totalChunks) {
+                            // All chunks sent, finalize
+                            tmaxios.post('/api/v1/files/finalize', {
+                                uploadId: uploadId,
+                                filename: item.name,
+                                total: totalChunks
+                            })
+                            .then(function() {
+                                item.progress = '';
+                                callback(true);
+                            })
+                            .catch(function(error) {
+                                var msg = error.response?.data?.message;
+                                if (!msg && error.response?.status === 413) {
+                                    msg = 'files.msg_php_upload_limit';
+                                } else if (!msg && (error.response?.status >= 500 || !error.response)) {
+                                    msg = 'files.msg_php_server_error';
+                                } else if (!msg) {
+                                    msg = 'files.msg_upload_failed';
+                                }
+                                item.error = msg;
+                                var cfg = (typeof filesConfig !== 'undefined') ? filesConfig : {};
+                                if (!item.errorLimit) {
+                                    if (msg === 'files.msg_too_large' && cfg.maxFileUploads) {
+                                        item.errorLimit = self.formatSize(self.parseIniSize(cfg.maxFileUploads));
+                                    } else if (msg === 'files.msg_php_upload_limit' && cfg.uploadMaxFilesize) {
+                                        item.errorLimit = self.formatSize(self.parseIniSize(cfg.uploadMaxFilesize));
+                                    } else if (msg === 'files.msg_php_post_limit' && cfg.postMaxSize) {
+                                        item.errorLimit = self.formatSize(self.parseIniSize(cfg.postMaxSize));
+                                    }
+                                }
+                                item.progress = '';
+                                callback(false);
+                            });
+                            return;
+                        }
+
+                        var start = idx * CHUNK_SIZE;
+                        var end = Math.min(start + CHUNK_SIZE, file.size);
+                        var blob = file.slice(start, end);
+
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            var dataUrl = e.target.result;
+                            var base64 = dataUrl.split(',')[1];
+                            item.progress = (idx + 1) + '/' + totalChunks;
+
+                            tmaxios.post('/api/v1/files/chunk', {
+                                uploadId: uploadId,
+                                index: idx,
+                                total: totalChunks,
+                                data: base64
+                            })
+                            .then(function() {
+                                readChunk(idx + 1);
+                            })
+                            .catch(function(error) {
+                                var msg = error.response?.data?.message;
+                                if (!msg && error.response?.status === 413) {
+                                    msg = 'files.msg_php_upload_limit';
+                                } else if (!msg && (error.response?.status >= 500 || !error.response)) {
+                                    msg = 'files.msg_php_server_error';
+                                } else if (!msg) {
+                                    msg = 'files.msg_upload_failed';
+                                }
+                                item.error = msg;
+                                item.progress = '';
+                                callback(false);
+                            });
+                        };
+                        reader.onerror = function() {
+                            item.error = 'files.msg_upload_failed';
+                            item.progress = '';
+                            callback(false);
+                        };
+                        reader.readAsDataURL(blob);
+                    }
+
+                    readChunk(0);
                 },
 
                 confirmDelete(file) {

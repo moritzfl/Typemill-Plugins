@@ -32,7 +32,9 @@
                 class="bg-stone-100 dark:bg-stone-700 border-2 border-white dark:border-stone-600 px-3 py-2">
                 <div class="flex items-center gap-3">
                     <span class="flex-1 text-sm truncate">{{ item.name }}</span>
-                    <span v-if="item.status === 'uploading'" class="text-xs text-teal-600 font-medium">{{ $filters.translate('files.uploading') }}...</span>
+                    <span v-if="item.status === 'uploading'" class="text-xs text-teal-600 font-medium">
+                        {{ $filters.translate('files.uploading') }}<span v-if="item.progress"> {{ item.progress }}</span>...
+                    </span>
                     <span v-else-if="item.status === 'done'" class="text-xs text-teal-600 font-medium">{{ $filters.translate('files.done') }}</span>
                     <button v-else-if="item.status === 'error'"
                         @click="errorTarget = item"
