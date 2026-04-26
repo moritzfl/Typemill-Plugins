@@ -204,9 +204,34 @@ class files extends Plugin
             ], 500);
         }
 
+        $this->cleanupOldTmpFiles();
+
         return $this->jsonResponse($response, [
             'message' => 'files.msg_upload_success',
         ]);
+    }
+
+    private function cleanupOldTmpFiles(): void
+    {
+        $tmpDir = $this->getTmpDir();
+        if (!is_dir($tmpDir)) {
+            return;
+        }
+        $maxAge = 86400; // 24 hours
+        $now = time();
+        $entries = scandir($tmpDir);
+        if ($entries === false) {
+            return;
+        }
+        foreach ($entries as $entry) {
+            if ($entry === '.' || $entry === '..') {
+                continue;
+            }
+            $path = $tmpDir . '/' . $entry;
+            if (is_file($path) && ($now - filemtime($path)) > $maxAge) {
+                unlink($path);
+            }
+        }
     }
 
     private function getProjectRoot(): string
