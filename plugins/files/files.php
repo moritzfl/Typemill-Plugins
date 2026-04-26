@@ -48,9 +48,17 @@ class files extends Plugin
 
         if (trim($this->route, '/') == 'tm/files') {
             $navi['Files']['active'] = true;
+            $settings = $this->getSettings();
+            $config = [
+                'maxFileUploads'      => $settings['maxfileuploads'] ?? null,
+                'uploadMaxFilesize'   => ini_get('upload_max_filesize') ?: null,
+                'postMaxSize'         => ini_get('post_max_size') ?: null,
+                'maxFileUploadsCount' => ini_get('max_file_uploads') ?: null,
+            ];
+            $configJs = 'const filesConfig = ' . json_encode($config) . ';';
             $template = file_get_contents(__DIR__ . '/js/systemfiles.html');
             $js       = file_get_contents(__DIR__ . '/js/systemfiles.js');
-            $this->addInlineJS('const filesTemplate = ' . json_encode($template) . '; ' . $js);
+            $this->addInlineJS($configJs . ' const filesTemplate = ' . json_encode($template) . '; ' . $js);
         }
 
         $navidata->setData($navi);

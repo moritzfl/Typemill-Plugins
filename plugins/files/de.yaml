@@ -3,6 +3,7 @@ FILES_TITLE: Dateien
 FILES_SUBTITLE: Dateien im Ordner media/files hochladen und verwalten.
 FILES_DROP_HINT: Dateien hier ablegen oder klicken zum Auswählen
 FILES_DROP_TYPES: Alle Dateitypen erlaubt (außer serverseitige Skripte)
+FILES_CLEAR_QUEUE: Liste leeren
 FILES_UPLOADING: Wird hochgeladen
 FILES_DONE: Fertig
 FILES_FAILED: Fehlgeschlagen
@@ -25,6 +26,8 @@ FILES_DELETE_TITLE: Datei löschen?
 FILES_DELETE_CONFIRM: Soll diese Datei wirklich gelöscht werden
 FILES_DELETE_WARNING: Diese Aktion kann nicht rückgängig gemacht werden.
 FILES_CANCEL: Abbrechen
+FILES_CLOSE: Schließen
+FILES_ERROR_TITLE: Upload-Fehler
 FILES_DELETE: Löschen
 FILES_MSG_DELETED: Datei gelöscht.
 FILES_MSG_DELETE_ERROR: Datei konnte nicht gelöscht werden.
@@ -33,7 +36,10 @@ FILES_MSG_LOAD_ERROR: Dateiliste konnte nicht geladen werden.
 FILES_MSG_FILE_MISSING: Datei oder Dateiname fehlt.
 FILES_MSG_TYPE_NOT_ALLOWED: Dieser Dateityp ist aus Sicherheitsgründen nicht erlaubt.
 FILES_MSG_FILE_EMPTY: Datei ist leer.
-FILES_MSG_TOO_LARGE: Datei überschreitet die maximale erlaubte Größe.
+FILES_MSG_TOO_LARGE: Datei überschreitet die maximal erlaubte Größe in Typemill.
+FILES_MSG_PHP_UPLOAD_LIMIT: Datei überschreitet das PHP-Upload-Limit (upload_max_filesize).
+FILES_MSG_PHP_POST_LIMIT: Datei überschreitet das PHP-POST-Limit (post_max_size).
+FILES_MSG_PHP_SERVER_ERROR: Upload aufgrund eines Server-Limits fehlgeschlagen. Prüfen Sie Ihre PHP-Einstellungen.
 FILES_MSG_STORE_ERROR: Datei konnte nicht gespeichert werden.
 FILES_MSG_PUBLISH_ERROR: Datei konnte nicht veröffentlicht werden.
 FILES_MSG_UPLOAD_SUCCESS: Datei erfolgreich hochgeladen.
