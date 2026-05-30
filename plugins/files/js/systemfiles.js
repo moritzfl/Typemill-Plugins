@@ -85,12 +85,12 @@ filesStyle.textContent = `
 .tm-files-row--draggable:active{cursor:grabbing}
 .tm-files-row--drop-target td{background:#ccfbf1!important}
 .dark .tm-files-row--drop-target td{background:rgba(19,78,74,.55)!important}
-.tm-files-transfer-list{max-height:16rem;overflow:auto;border:1px solid #e7e5e4;margin:0 0 1rem;padding:0;list-style:none}
-.dark .tm-files-transfer-list{border-color:#44403c}
-.tm-files-transfer-item{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.65rem .9rem;border-bottom:1px solid #f5f5f4;font-size:.875rem}
-.dark .tm-files-transfer-item{border-color:#292524}
-.tm-files-transfer-item:last-child{border-bottom:0}
-.tm-files-transfer-item button.tm-files-btn{min-height:2rem;padding:0 .75rem;font-size:.75rem}
+.tm-files-panel--transfer{margin-top:.5rem;border:1px solid #e7e5e4;background:#fff}
+.dark .tm-files-panel--transfer{border-color:#44403c;background:#292524}
+.tm-files-panel--transfer .tm-files-toolbar{padding:.65rem 1rem}
+.tm-files-panel--transfer .tm-files-content{max-height:20rem;overflow:auto}
+.tm-files-panel--transfer .tm-files-table-wrap{padding:0 1rem .75rem}
+.tm-files-panel--transfer .tm-files-table{min-width:0}
 .tm-files-name-cell{display:inline-flex;align-items:center;gap:.75rem;min-width:0;max-width:100%}
 .tm-files-name-cell__label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tm-files-list-icon{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;flex-shrink:0;border-radius:4px;color:#78716c;background:#e7e5e4}
@@ -156,6 +156,7 @@ const app = Vue.createApp({
                     transferModal: null,
                     transferBrowsePath: '',
                     transferParentPath: null,
+                    transferBreadcrumbs: [],
                     transferFolders: [],
                     transferLoading: false,
                     uploadQueue:  [],
@@ -194,6 +195,28 @@ const app = Vue.createApp({
                 },
                 showNoResults() {
                     return !this.loading && this.filteredEntryCount === 0 && !!this.searchQuery.trim();
+                },
+                transferSelectableFolders() {
+                    if (!this.transferModal) {
+                        return this.transferFolders;
+                    }
+                    if (this.transferModal.mode !== 'move' || this.transferModal.entryType !== 'folder') {
+                        return this.transferFolders;
+                    }
+                    var sourcePath = this.transferModal.entry.path || '';
+                    return this.transferFolders.filter(function (folder) {
+                        return folder.path !== sourcePath && folder.path.indexOf(sourcePath + '/') !== 0;
+                    });
+                },
+                transferShowEmpty() {
+                    return !this.transferLoading
+                        && this.transferSelectableFolders.length === 0
+                        && this.transferParentPath === null;
+                },
+                transferShowFolderEmpty() {
+                    return !this.transferLoading
+                        && !!this.transferBrowsePath
+                        && this.transferSelectableFolders.length === 0;
                 },
             },
 
@@ -484,6 +507,7 @@ const app = Vue.createApp({
                     };
                     this.transferBrowsePath = this.currentPath;
                     this.transferParentPath = this.parentPath;
+                    this.transferBreadcrumbs = [];
                     this.transferFolders = [];
                     this.loadTransferBrowse();
                 },
@@ -492,6 +516,7 @@ const app = Vue.createApp({
                     this.transferModal = null;
                     this.transferBrowsePath = '';
                     this.transferParentPath = null;
+                    this.transferBreadcrumbs = [];
                     this.transferFolders = [];
                     this.transferLoading = false;
                 },
@@ -504,6 +529,7 @@ const app = Vue.createApp({
                             var data = response.data || {};
                             self.transferBrowsePath = data.path || '';
                             self.transferParentPath = data.parent;
+                            self.transferBreadcrumbs = data.breadcrumbs || [];
                             self.transferFolders = data.folders || [];
                             self.transferLoading = false;
                         })
@@ -513,24 +539,24 @@ const app = Vue.createApp({
                         });
                 },
 
-                transferBrowseUp() {
+                transferNavigateTo(path) {
+                    this.transferBrowsePath = path || '';
+                    this.loadTransferBrowse();
+                },
+
+                transferGoUp() {
                     if (this.transferParentPath === null) {
                         return;
                     }
-                    this.transferBrowsePath = this.transferParentPath;
-                    this.loadTransferBrowse();
+                    this.transferNavigateTo(this.transferParentPath);
                 },
 
-                transferBrowseInto(folder) {
-                    this.transferBrowsePath = folder.path;
-                    this.loadTransferBrowse();
+                transferOnFolderRowClick(folder) {
+                    this.transferNavigateTo(folder.path);
                 },
 
-                transferDestinationLabel() {
-                    if (!this.transferBrowsePath) {
-                        return this.$filters.translate('files.breadcrumb_root');
-                    }
-                    return this.transferBrowsePath;
+                transferCrumbLabel(crumb) {
+                    return this.crumbLabel(crumb);
                 },
 
                 canConfirmTransfer() {

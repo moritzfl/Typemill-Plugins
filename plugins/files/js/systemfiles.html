@@ -314,34 +314,113 @@
 
         <!-- Transfer modal -->
         <div v-if="transferModal" class="fixed inset-0 bg-stone-700/90 flex items-center justify-center z-50" @click.self="closeTransferModal">
-            <div class="bg-white dark:bg-stone-600 border border-teal-500 dark:border-stone-200 shadow-lg w-11/12 md:max-w-lg mx-auto">
+            <div class="bg-white dark:bg-stone-600 border border-teal-500 dark:border-stone-200 shadow-lg w-11/12 md:max-w-3xl mx-auto">
                 <div class="p-6 text-left">
-                    <h3 class="text-xl font-bold text-stone-900 dark:text-stone-200 mb-2">
+                    <h3 class="text-xl font-bold text-stone-900 dark:text-stone-200 mb-1">
                         {{ transferModal.mode === 'copy' ? $filters.translate('files.copy_to_title') : $filters.translate('files.move_to_title') }}
                     </h3>
                     <p class="text-sm text-stone-600 dark:text-stone-300 mb-4 break-all">
                         {{ transferModal.entry.name }}
                     </p>
-                    <div class="flex items-center gap-2 mb-3">
-                        <button
-                            v-if="transferParentPath !== null"
-                            type="button"
-                            class="tm-files-btn"
-                            @click="transferBrowseUp()"
-                        >{{ $filters.translate('files.go_up') }}</button>
-                        <span class="text-sm font-mono text-stone-600 dark:text-stone-300 truncate">{{ transferDestinationLabel() }}</span>
-                    </div>
-                    <div v-if="transferLoading" class="text-sm text-stone-500 dark:text-stone-400 mb-4">{{ $filters.translate('files.loading') }}...</div>
-                    <ul v-else class="tm-files-transfer-list">
-                        <li v-if="transferFolders.length === 0" class="tm-files-transfer-item text-stone-500 dark:text-stone-400">
-                            {{ $filters.translate('files.transfer_no_subfolders') }}
-                        </li>
-                        <li v-for="folder in transferFolders" :key="'transfer-' + folder.path" class="tm-files-transfer-item">
-                            <span class="truncate">{{ folder.name }}</span>
-                            <button type="button" class="tm-files-btn" @click="transferBrowseInto(folder)">{{ $filters.translate('files.action_open') }}</button>
-                        </li>
-                    </ul>
-                    <div class="flex justify-end gap-2">
+
+                    <section class="tm-files-panel tm-files-panel--transfer">
+                        <div class="tm-files-toolbar">
+                            <button
+                                v-if="transferParentPath !== null"
+                                type="button"
+                                @click="transferGoUp()"
+                                class="tm-files-icon-btn"
+                                :title="$filters.translate('files.go_up')"
+                            >
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                            </button>
+
+                            <nav class="tm-files-breadcrumbs">
+                                <template v-for="(crumb, idx) in transferBreadcrumbs" :key="'transfer-crumb-' + crumb.path">
+                                    <button
+                                        v-if="idx < transferBreadcrumbs.length - 1"
+                                        type="button"
+                                        @click="transferNavigateTo(crumb.path)"
+                                        class="tm-files-crumb"
+                                    >
+                                        {{ transferCrumbLabel(crumb) }}
+                                    </button>
+                                    <span v-else class="tm-files-crumb tm-files-crumb--current truncate max-w-[12rem] sm:max-w-[24rem]">
+                                        {{ transferCrumbLabel(crumb) }}
+                                    </span>
+                                    <svg v-if="idx < transferBreadcrumbs.length - 1" class="tm-files-crumb-sep" fill="currentColor" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                                </template>
+                            </nav>
+                        </div>
+
+                        <div class="tm-files-content">
+                            <div v-if="transferLoading" class="tm-files-loading">
+                                <div class="tm-files-spinner"></div>
+                                <p>{{ $filters.translate('files.loading') }}...</p>
+                            </div>
+
+                            <div v-else-if="transferShowEmpty" class="tm-files-empty">
+                                <svg class="w-16 h-16 text-stone-300 dark:text-stone-600" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                                </svg>
+                                <p class="text-lg font-medium text-stone-700 dark:text-stone-200">{{ $filters.translate('files.transfer_no_subfolders') }}</p>
+                            </div>
+
+                            <div v-else class="tm-files-table-wrap">
+                                <table class="tm-files-table">
+                                    <thead>
+                                        <tr>
+                                            <th>{{ $filters.translate('files.col_name') }}</th>
+                                            <th class="tm-files-col--num">{{ $filters.translate('files.col_size') }}</th>
+                                            <th class="tm-files-col--num">{{ $filters.translate('files.col_date') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr
+                                            v-if="transferParentPath !== null"
+                                            class="tm-files-row tm-files-row--clickable"
+                                            @click="transferGoUp()"
+                                        >
+                                            <td>
+                                                <span class="tm-files-name-cell text-teal-700 dark:text-teal-400 font-medium">
+                                                    <span class="tm-files-list-icon tm-files-list-icon--up">
+                                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                                                    </span>
+                                                    <span class="tm-files-name-cell__label">{{ $filters.translate('files.go_up') }}</span>
+                                                </span>
+                                            </td>
+                                            <td class="tm-files-col--num">—</td>
+                                            <td class="tm-files-col--num">—</td>
+                                        </tr>
+                                        <tr
+                                            v-for="folder in transferSelectableFolders"
+                                            :key="'transfer-folder-' + folder.path"
+                                            class="tm-files-row tm-files-row--clickable"
+                                            @click="transferOnFolderRowClick(folder)"
+                                        >
+                                            <td>
+                                                <span class="tm-files-name-cell">
+                                                    <span class="tm-files-list-icon tm-files-list-icon--folder">
+                                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                                                    </span>
+                                                    <span class="tm-files-name-cell__label font-medium">{{ folder.name }}</span>
+                                                </span>
+                                            </td>
+                                            <td class="tm-files-col--num">—</td>
+                                            <td class="tm-files-col--num">—</td>
+                                        </tr>
+                                        <tr v-if="transferShowFolderEmpty && transferParentPath === null">
+                                            <td colspan="3" class="text-center text-stone-500 dark:text-stone-400 py-8">
+                                                {{ $filters.translate('files.transfer_no_subfolders') }}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="flex justify-end gap-2 mt-4">
                         <button type="button" @click="closeTransferModal()" class="tm-files-btn">{{ $filters.translate('files.cancel') }}</button>
                         <button
                             type="button"
