@@ -59,6 +59,12 @@ class MarkdownPreviewRenderer
         $filename = (string) ($payload['preview_filename'] ?? '');
         $markdown = trim((string) ($payload['markdown'] ?? ''));
 
+        if ($previewKind === 'folder') {
+            $payload['rendered_html'] = '';
+
+            return $payload;
+        }
+
         if ($previewKind === 'text') {
             if ($this->support->isMarkdownPath($filename)) {
                 $payload['rendered_html'] = $this->renderMarkdown($markdown);

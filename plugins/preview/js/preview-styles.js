@@ -18,6 +18,8 @@ previewStyle.textContent = `
 .tm-preview-rendered img,.tm-preview-rendered video,.tm-preview-rendered audio{max-width:100%}
 .tm-preview-media{display:flex;align-items:center;justify-content:center;max-height:60vh;overflow:auto}
 .tm-preview-media img,.tm-preview-media video,.tm-preview-media audio,.tm-preview-media embed,.tm-preview-media iframe{max-width:100%;max-height:60vh}
+.tm-preview-folder-list table{border-collapse:collapse}
+.tm-preview-folder-list th,.tm-preview-folder-list td{vertical-align:top}
 .tm-preview-rendered table{width:100%;border-collapse:collapse}
 .tm-preview-rendered th,.tm-preview-rendered td{padding:.5rem;border:1px solid rgba(120,113,108,.35)}
 `;

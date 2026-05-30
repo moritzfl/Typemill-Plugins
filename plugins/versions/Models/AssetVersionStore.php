@@ -141,6 +141,10 @@ class AssetVersionStore
 
         $displayTitle = basename($relativePath) ?: $relativePath;
 
+        $base = rtrim($this->storage->getFolderPath('fileFolder'), DIRECTORY_SEPARATOR);
+        $absolute = $base . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+        $elementType = is_dir($absolute) ? 'folder' : 'file';
+
         $record = $this->records->loadAssetRecord($recordId);
         $label = $this->resolveLabel($assetType);
         $isoNow = gmdate('c');
@@ -164,6 +168,7 @@ class AssetVersionStore
                 'asset_type' => $assetType,
                 'name' => $relativePath,
                 'label' => $label,
+                'element_type' => $elementType,
             ],
             'snapshot_files' => $snapshotFiles,
             'restorable' => true,
@@ -278,9 +283,11 @@ class AssetVersionStore
                 'restorable' => $version['restorable'] ?? true,
                 'deleted_snapshot' => $version['deleted_snapshot'] ?? true,
                 'previewable' => $preview['previewable'],
-                'preview_kind' => $preview['kind'],
+                'preview_kind' => $preview['kind'] ?? null,
                 'preview_mime' => $preview['mime_type'] ?? null,
                 'preview_filename' => $preview['filename'] ?? null,
+                'preview_files' => $preview['files'] ?? null,
+                'preview_file_count' => $preview['file_count'] ?? null,
             ],
             'compare_to' => [
                 'label' => 'deleted asset',
@@ -384,6 +391,13 @@ class AssetVersionStore
             return ['previewable' => false];
         }
 
+        $trashPreview = $this->getTrashPreviewResolver();
+        if ($trashPreview !== null && $trashPreview->isFolderDeletion($version)) {
+            return $trashPreview->resolveFolder(
+                $trashPreview->buildSnapshotDescriptors($version['snapshot_files'] ?? [])
+            );
+        }
+
         $downloadFiles = $this->collectSnapshotContents($version);
         if ($downloadFiles === []) {
             return ['previewable' => false];
@@ -444,6 +458,15 @@ class AssetVersionStore
         }
 
         return \Plugins\preview\PreviewIntegration::support();
+    }
+
+    private function getTrashPreviewResolver(): ?\Plugins\preview\Models\TrashPreviewResolver
+    {
+        if (!class_exists(\Plugins\preview\PreviewIntegration::class)) {
+            return null;
+        }
+
+        return \Plugins\preview\PreviewIntegration::trashPreviewResolver();
     }
 
     private function readSnapshotFileContent(array $file): ?string

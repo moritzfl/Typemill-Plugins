@@ -6,3 +6,7 @@ PREVIEW_TEXT: Text
 PREVIEW_RENDERED: Rendered
 PREVIEW_LOADING: Loading preview
 PREVIEW_CLOSE: Close
+PREVIEW_FOLDER_FILES: Included files
+PREVIEW_FOLDER_EMPTY: No files were captured in this snapshot.
+PREVIEW_PATH: Path
+PREVIEW_SIZE: Size

@@ -41,6 +41,29 @@ const TypemillPreviewMixin = {
             return kind === 'page' || kind === 'text';
         },
 
+        previewFolderFiles() {
+            return (this.previewDetail && this.previewDetail.preview_files) || [];
+        },
+
+        formatPreviewFileSize(size) {
+            if (size === null || size === undefined || size === '') {
+                return '—';
+            }
+
+            var bytes = Number(size);
+            if (!Number.isFinite(bytes) || bytes < 0) {
+                return '—';
+            }
+            if (bytes < 1024) {
+                return bytes + ' B';
+            }
+            if (bytes < 1024 * 1024) {
+                return (bytes / 1024).toFixed(1) + ' KB';
+            }
+
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        },
+
         previewMediaKind() {
             return (this.previewDetail && this.previewDetail.preview_kind) || '';
         },
@@ -114,6 +137,10 @@ const TypemillPreviewMixin = {
                 });
 
                 var kind = self.previewDetail.preview_kind || 'page';
+                if (kind === 'folder') {
+                    self.previewMode = 'folder';
+                    return;
+                }
                 if (self.isMediaPreviewKind(kind)) {
                     return self.loadMediaPreview({
                         url: '/api/v1/versions/trash/preview',

@@ -41,6 +41,21 @@ FILES_COPY_PATH: Pfad kopieren
 FILES_COPY_URL: URL kopieren
 FILES_DOWNLOAD: Herunterladen
 FILES_PREVIEW: Vorschau
+FILES_MOVE_TO: Verschieben nach…
+FILES_COPY_TO: Kopieren nach…
+FILES_MOVE_TO_TITLE: In Ordner verschieben
+FILES_COPY_TO_TITLE: In Ordner kopieren
+FILES_MOVE_HERE: Hierher verschieben
+FILES_COPY_HERE: Hierher kopieren
+FILES_TRANSFER_NO_SUBFOLDERS: Keine Unterordner vorhanden.
+FILES_MSG_MOVED: Eintrag verschoben.
+FILES_MSG_COPIED: Eintrag kopiert.
+FILES_MSG_TRANSFER_ERROR: Eintrag konnte nicht verschoben oder kopiert werden.
+FILES_MSG_TRANSFER_EXISTS: Im Zielordner existiert bereits ein Eintrag mit diesem Namen.
+FILES_MSG_TRANSFER_INVALID: Ungültige Quelle oder Ziel.
+FILES_MSG_TRANSFER_NOT_FOUND: Quelle nicht gefunden.
+FILES_MSG_TRANSFER_SAME_LOCATION: Eintrag befindet sich bereits in diesem Ordner.
+FILES_MSG_TRANSFER_INTO_SELF: Ein Ordner kann nicht in sich selbst verschoben oder kopiert werden.
 FILES_NO_MATCH: Keine Dateien entsprechen der Suche.
 FILES_EMPTY: Noch keine Dateien hochgeladen.
 FILES_EMPTY_HINT: Dateien hier ablegen oder auf „Dateien hochladen“ klicken.

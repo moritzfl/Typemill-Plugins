@@ -222,6 +222,66 @@ class FileManager
         return $this->deleteDirectoryRecursive($absolute);
     }
 
+    public function transferEntry(string $sourcePath, string $destinationFolderPath, bool $copy): ?string
+    {
+        $sourcePath = $this->normalizeRelativePath($sourcePath);
+        $destinationFolderPath = $this->normalizeRelativePath($destinationFolderPath);
+        if ($destinationFolderPath === null) {
+            return 'files.msg_folder_invalid';
+        }
+
+        if ($sourcePath === null || $sourcePath === '') {
+            return 'files.msg_transfer_invalid';
+        }
+
+        if ($sourcePath === self::TMP_DIR_NAME || str_starts_with($sourcePath, self::TMP_DIR_NAME . '/')) {
+            return 'files.msg_transfer_invalid';
+        }
+
+        $sourceAbsolute = $this->resolveExistingPath($sourcePath);
+        if ($sourceAbsolute === null) {
+            return 'files.msg_transfer_not_found';
+        }
+
+        $destinationDirectory = $this->resolveDirectoryForWrite($destinationFolderPath);
+        if ($destinationDirectory === null) {
+            return 'files.msg_folder_parent_missing';
+        }
+
+        $sourceParent = $this->parentPath($sourcePath) ?? '';
+        if (!$copy && $sourceParent === $destinationFolderPath) {
+            return 'files.msg_transfer_same_location';
+        }
+
+        if (is_dir($sourceAbsolute)) {
+            $normalizedSource = rtrim($sourceAbsolute, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+            $normalizedDestination = rtrim($destinationDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+            if ($normalizedSource === $normalizedDestination || str_starts_with($normalizedDestination, $normalizedSource)) {
+                return 'files.msg_transfer_into_self';
+            }
+        }
+
+        $basename = basename(str_replace('\\', '/', $sourcePath));
+        $targetAbsolute = $destinationDirectory . DIRECTORY_SEPARATOR . $basename;
+        if (file_exists($targetAbsolute)) {
+            return 'files.msg_transfer_exists';
+        }
+
+        if ($copy) {
+            if (is_file($sourceAbsolute)) {
+                return copy($sourceAbsolute, $targetAbsolute) ? null : 'files.msg_transfer_error';
+            }
+
+            if (!is_dir($sourceAbsolute)) {
+                return 'files.msg_transfer_not_found';
+            }
+
+            return $this->copyDirectoryRecursive($sourceAbsolute, $targetAbsolute) ? null : 'files.msg_transfer_error';
+        }
+
+        return rename($sourceAbsolute, $targetAbsolute) ? null : 'files.msg_transfer_error';
+    }
+
     public function getFileDownload(string $relativePath): ?array
     {
         $absolute = $this->resolveExistingPath($relativePath);
@@ -419,6 +479,39 @@ class FileManager
             $zipPath = $zipPrefix . '/' . str_replace(DIRECTORY_SEPARATOR, '/', $relative);
             $zip->addFile($absolutePath, $zipPath);
         }
+    }
+
+    private function copyDirectoryRecursive(string $source, string $destination): bool
+    {
+        if (!mkdir($destination, 0755) && !is_dir($destination)) {
+            return false;
+        }
+
+        $items = scandir($source);
+        if ($items === false) {
+            return false;
+        }
+
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+
+            $from = $source . DIRECTORY_SEPARATOR . $item;
+            $to = $destination . DIRECTORY_SEPARATOR . $item;
+            if (is_dir($from)) {
+                if (!$this->copyDirectoryRecursive($from, $to)) {
+                    return false;
+                }
+                continue;
+            }
+
+            if (!is_file($from) || !copy($from, $to)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function sanitizeArchiveName(string $value): string

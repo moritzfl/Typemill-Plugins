@@ -135,6 +135,14 @@ class files extends Plugin
                 'privilege'  => 'update'
             ],
             [
+                'httpMethod' => 'post',
+                'route'      => '/api/v1/files/transfer',
+                'name'       => 'files.transfer',
+                'class'      => 'Plugins\files\files:transferEntry',
+                'resource'   => 'system',
+                'privilege'  => 'update'
+            ],
+            [
                 'httpMethod' => 'get',
                 'route'      => '/api/v1/files/download',
                 'name'       => 'files.download',
@@ -405,6 +413,30 @@ class files extends Plugin
 
         return $this->jsonResponse($response, [
             'message' => 'files.msg_deleted',
+        ]);
+    }
+
+    public function transferEntry(Request $request, Response $response, $args)
+    {
+        $params = $request->getParsedBody();
+        if (!is_array($params)) {
+            $params = [];
+        }
+
+        $sourcePath = (string) ($params['source_path'] ?? $params['path'] ?? '');
+        $destinationPath = (string) ($params['destination_path'] ?? $params['destination'] ?? '');
+        $mode = strtolower((string) ($params['mode'] ?? 'move'));
+        $copy = $mode === 'copy';
+
+        $error = $this->getManager()->transferEntry($sourcePath, $destinationPath, $copy);
+        if ($error !== null) {
+            $status = $error === 'files.msg_transfer_exists' ? 409 : 400;
+
+            return $this->jsonResponse($response, ['message' => $error], $status);
+        }
+
+        return $this->jsonResponse($response, [
+            'message' => $copy ? 'files.msg_copied' : 'files.msg_moved',
         ]);
     }
 

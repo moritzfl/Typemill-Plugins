@@ -41,6 +41,21 @@ FILES_COPY_PATH: Copy Path
 FILES_COPY_URL: Copy URL
 FILES_DOWNLOAD: Download
 FILES_PREVIEW: Preview
+FILES_MOVE_TO: Move to…
+FILES_COPY_TO: Copy to…
+FILES_MOVE_TO_TITLE: Move to folder
+FILES_COPY_TO_TITLE: Copy to folder
+FILES_MOVE_HERE: Move here
+FILES_COPY_HERE: Copy here
+FILES_TRANSFER_NO_SUBFOLDERS: No subfolders here.
+FILES_MSG_MOVED: Item moved.
+FILES_MSG_COPIED: Item copied.
+FILES_MSG_TRANSFER_ERROR: Could not move or copy item.
+FILES_MSG_TRANSFER_EXISTS: An item with this name already exists in the destination folder.
+FILES_MSG_TRANSFER_INVALID: Invalid source or destination.
+FILES_MSG_TRANSFER_NOT_FOUND: Source item not found.
+FILES_MSG_TRANSFER_SAME_LOCATION: Item is already in this folder.
+FILES_MSG_TRANSFER_INTO_SELF: Cannot move or copy a folder into itself.
 FILES_NO_MATCH: No files match your filter.
 FILES_EMPTY: No files uploaded yet.
 FILES_EMPTY_HINT: Drop files anywhere here or click Upload files.

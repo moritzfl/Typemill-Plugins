@@ -6,3 +6,7 @@ PREVIEW_TEXT: Text
 PREVIEW_RENDERED: Gerendert
 PREVIEW_LOADING: Vorschau wird geladen
 PREVIEW_CLOSE: Schließen
+PREVIEW_FOLDER_FILES: Enthaltene Dateien
+PREVIEW_FOLDER_EMPTY: In diesem Snapshot wurden keine Dateien erfasst.
+PREVIEW_PATH: Pfad
+PREVIEW_SIZE: Größe

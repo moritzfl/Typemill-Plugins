@@ -58,11 +58,18 @@ class MediaFilesTrashTest extends TestCase
 
         $this->assertTrue($result['success']);
 
+        $entries = $store->listDeletedEntries();
         $detail = $store->getVersionDetail((string) $result['record_id'], (string) $result['version_id']);
         $this->assertNotNull($detail);
         $record = $this->loadRecord((string) $result['record_id']);
         $version = $record['versions'][0];
         $this->assertCount(2, $version['snapshot_files']);
+        $this->assertSame('folder', $version['metadata']['element_type']);
+        $this->assertTrue($entries[0]['previewable'] ?? false);
+        $this->assertSame('folder', $detail['version']['preview_kind']);
+        $this->assertSame(2, $detail['version']['preview_file_count']);
+        $this->assertSame('bundle/a.txt', $detail['version']['preview_files'][0]['path']);
+        $this->assertSame('bundle/sub/b.txt', $detail['version']['preview_files'][1]['path']);
     }
 
     public function testRejectsInvalidPath(): void

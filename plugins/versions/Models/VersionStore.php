@@ -371,6 +371,21 @@ class VersionStore
                 continue;
             }
 
+            $deletedVersion = $this->findVersion($record, (string) ($record['deleted']['version_id'] ?? ''));
+            $previewable = false;
+            if (class_exists(\Plugins\preview\PreviewIntegration::class)
+                && \Plugins\preview\PreviewIntegration::isAvailable()) {
+                if ($deletedVersion && ($deletedVersion['item_type'] ?? '') === 'folder') {
+                    $trashPreview = \Plugins\preview\PreviewIntegration::trashPreviewResolver();
+                    $previewable = $trashPreview !== null
+                        && $trashPreview->resolveFolder(
+                            $trashPreview->buildSnapshotDescriptors($deletedVersion['snapshot_files'] ?? [])
+                        )['previewable'];
+                } else {
+                    $previewable = true;
+                }
+            }
+
             $entries[] = [
                 'record_type' => 'page',
                 'record_id' => $record['deleted']['pageid'],
@@ -383,8 +398,7 @@ class VersionStore
                 'deleted_at' => $record['deleted']['deleted_at'],
                 'username' => $record['deleted']['username'],
                 'user_label' => $record['deleted']['user_label'],
-                'previewable' => class_exists(\Plugins\preview\PreviewIntegration::class)
-                    && \Plugins\preview\PreviewIntegration::isAvailable(),
+                'previewable' => $previewable,
             ];
         }
 
@@ -554,7 +568,60 @@ class VersionStore
             return $this->assetVersions->getVersionDetail($recordId, $versionId);
         }
 
-        return $this->getVersionDetailByPageId($recordId, $versionId);
+        $detail = $this->getVersionDetailByPageId($recordId, $versionId);
+        if (!$detail) {
+            return null;
+        }
+
+        $record = $this->records->loadPageRecord($recordId);
+        $version = $this->findVersion($record, $versionId);
+        if (!$version) {
+            return $detail;
+        }
+
+        return $this->applyTrashPreviewMeta($detail, $version);
+    }
+
+    private function applyTrashPreviewMeta(array $detail, array $version): array
+    {
+        if (!class_exists(\Plugins\preview\PreviewIntegration::class)
+            || !\Plugins\preview\PreviewIntegration::isAvailable()
+            || !isset($detail['version']) || !is_array($detail['version'])) {
+            $detail['version']['previewable'] = false;
+
+            return $detail;
+        }
+
+        $trashPreview = \Plugins\preview\PreviewIntegration::trashPreviewResolver();
+        if ($trashPreview === null) {
+            $detail['version']['previewable'] = false;
+
+            return $detail;
+        }
+
+        if ($trashPreview->isFolderDeletion($version)) {
+            $preview = $trashPreview->resolveFolder(
+                $trashPreview->buildSnapshotDescriptors($version['snapshot_files'] ?? [])
+            );
+            $detail['version']['previewable'] = $preview['previewable'];
+            $detail['version']['preview_kind'] = $preview['kind'] ?? null;
+            $detail['version']['preview_files'] = $preview['files'] ?? null;
+            $detail['version']['preview_file_count'] = $preview['file_count'] ?? null;
+
+            if ($preview['previewable'] ?? false) {
+                $detail['version']['markdown'] = sprintf(
+                    '%d file(s) captured in this folder snapshot.',
+                    $preview['file_count'] ?? count($preview['files'] ?? [])
+                );
+            }
+
+            return $detail;
+        }
+
+        $detail['version']['previewable'] = true;
+        $detail['version']['preview_kind'] = 'page';
+
+        return $detail;
     }
 
     public function createTrashDownloadPackage(string $recordId, string $versionId, string $recordType = 'page'): ?array

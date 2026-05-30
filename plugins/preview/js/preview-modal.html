@@ -12,6 +12,28 @@
                 </div>
             </div>
             <div v-if="previewLoading" class="text-stone-700 dark:text-stone-200 text-sm mb-6">{{ $filters.translate('preview.loading') }}...</div>
+            <div v-else-if="previewMode === 'folder'" class="mb-6 tm-preview-folder-list">
+                <p class="text-sm text-stone-600 dark:text-stone-300 mb-3">{{ $filters.translate('preview.folder_files') }} ({{ previewDetail ? (previewDetail.preview_file_count || previewFolderFiles().length) : 0 }})</p>
+                <div style="max-height:60vh" class="overflow-auto border border-stone-300 dark:border-stone-400">
+                    <table class="w-full text-sm">
+                        <thead class="bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-200">
+                            <tr>
+                                <th class="text-left px-3 py-2 font-semibold">{{ $filters.translate('preview.path') }}</th>
+                                <th class="text-right px-3 py-2 font-semibold w-28">{{ $filters.translate('preview.size') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="file in previewFolderFiles()" :key="file.path" class="border-t border-stone-200 dark:border-stone-500">
+                                <td class="px-3 py-2 text-stone-900 dark:text-stone-100 font-mono break-all">{{ file.path }}</td>
+                                <td class="px-3 py-2 text-right text-stone-600 dark:text-stone-300 whitespace-nowrap">{{ formatPreviewFileSize(file.size) }}</td>
+                            </tr>
+                            <tr v-if="previewFolderFiles().length === 0">
+                                <td colspan="2" class="px-3 py-4 text-stone-600 dark:text-stone-300">{{ $filters.translate('preview.folder_empty') }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             <pre v-else-if="previewMode === 'text'" style="max-height:60vh" class="mb-6 overflow-auto p-4 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-200 text-sm whitespace-pre-wrap break-words font-mono">{{ previewDetail ? previewDetail.markdown : '' }}</pre>
             <div v-else-if="previewMode === 'media'" class="mb-6 tm-preview-media">
                 <img v-if="previewMediaKind() === 'image' && previewMediaUrl" :src="previewMediaUrl" :alt="previewDetail ? previewDetail.title : ''" />

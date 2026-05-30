@@ -81,6 +81,16 @@ filesStyle.textContent = `
 .tm-files-row--clickable{cursor:pointer}
 .tm-files-row--clickable:hover td{background:#fafaf9}
 .dark .tm-files-row--clickable:hover td{background:#1c1917}
+.tm-files-row--draggable{cursor:grab}
+.tm-files-row--draggable:active{cursor:grabbing}
+.tm-files-row--drop-target td{background:#ccfbf1!important}
+.dark .tm-files-row--drop-target td{background:rgba(19,78,74,.55)!important}
+.tm-files-transfer-list{max-height:16rem;overflow:auto;border:1px solid #e7e5e4;margin:0 0 1rem;padding:0;list-style:none}
+.dark .tm-files-transfer-list{border-color:#44403c}
+.tm-files-transfer-item{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.65rem .9rem;border-bottom:1px solid #f5f5f4;font-size:.875rem}
+.dark .tm-files-transfer-item{border-color:#292524}
+.tm-files-transfer-item:last-child{border-bottom:0}
+.tm-files-transfer-item button.tm-files-btn{min-height:2rem;padding:0 .75rem;font-size:.75rem}
 .tm-files-name-cell{display:inline-flex;align-items:center;gap:.75rem;min-width:0;max-width:100%}
 .tm-files-name-cell__label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tm-files-list-icon{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;flex-shrink:0;border-radius:4px;color:#78716c;background:#e7e5e4}
@@ -104,6 +114,7 @@ if (typeof previewModalTemplate !== 'undefined' && filesTemplate.indexOf('<!--TY
 }
 
 const filesPreviewMixins = typeof TypemillPreviewMixin !== 'undefined' ? [TypemillPreviewMixin] : [];
+const INTERNAL_DRAG_TYPE = 'application/x-typemill-files-entry';
 
 const FILE_ICON_PATHS = {
     generic: 'M14,2H6a2,2 0 0,0-2,2v16a2,2 0 0,0 2,2h12a2,2 0 0,0 2-2V8l-6-6zm-1 2l5 5h-5V4z',
@@ -137,8 +148,16 @@ const app = Vue.createApp({
                     files:        [],
                     loading:      true,
                     previewAvailable: typeof TypemillPreviewMixin !== 'undefined',
-                    isDragging:   false,
-                    dragDepth:    0,
+                    isUploadDragging: false,
+                    uploadDragDepth: 0,
+                    internalDragEntry: null,
+                    dropTargetPath: null,
+                    suppressFolderClick: false,
+                    transferModal: null,
+                    transferBrowsePath: '',
+                    transferParentPath: null,
+                    transferFolders: [],
+                    transferLoading: false,
                     uploadQueue:  [],
                     message:      '',
                     messageClass: '',
@@ -194,7 +213,7 @@ const app = Vue.createApp({
 
             mounted() {
                 this.loadBrowse();
-                this._onWindowDragEnd = this.resetDragState.bind(this);
+                this._onWindowDragEnd = this.resetUploadDragState.bind(this);
                 window.addEventListener('dragend', this._onWindowDragEnd);
                 window.addEventListener('drop', this._onWindowDragEnd);
                 this._onDocumentClick = this.closeActionMenu.bind(this);
@@ -310,6 +329,10 @@ const app = Vue.createApp({
                     if (type === 'folder') {
                         if (action === 'open') {
                             this.navigateTo(entry.path);
+                        } else if (action === 'move') {
+                            this.openTransferModal(entry, 'folder', 'move');
+                        } else if (action === 'copyTo') {
+                            this.openTransferModal(entry, 'folder', 'copy');
                         } else if (action === 'zip') {
                             this.downloadFolderZip(entry);
                         } else if (action === 'copyPath') {
@@ -323,6 +346,10 @@ const app = Vue.createApp({
                     }
                     if (action === 'download') {
                         this.downloadFile(entry);
+                    } else if (action === 'move') {
+                        this.openTransferModal(entry, 'file', 'move');
+                    } else if (action === 'copyTo') {
+                        this.openTransferModal(entry, 'file', 'copy');
                     } else if (action === 'preview') {
                         if (typeof this.openFilePreview === 'function') {
                             this.openFilePreview(entry);
@@ -371,9 +398,9 @@ const app = Vue.createApp({
                     event.target.value = '';
                 },
 
-                resetDragState() {
-                    this.dragDepth = 0;
-                    this.isDragging = false;
+                resetUploadDragState() {
+                    this.uploadDragDepth = 0;
+                    this.isUploadDragging = false;
                 },
 
                 isExternalFileDrag(event) {
@@ -382,7 +409,181 @@ const app = Vue.createApp({
                         return false;
                     }
                     var types = Array.from(dt.types);
+                    if (types.indexOf(INTERNAL_DRAG_TYPE) !== -1) {
+                        return false;
+                    }
                     return types.indexOf('Files') !== -1;
+                },
+
+                isInternalEntryDrag(event) {
+                    var dt = event.dataTransfer;
+                    if (!dt || !dt.types) {
+                        return !!this.internalDragEntry;
+                    }
+                    return Array.from(dt.types).indexOf(INTERNAL_DRAG_TYPE) !== -1;
+                },
+
+                onEntryDragStart(event, entry, type) {
+                    this.internalDragEntry = {
+                        path: entry.path,
+                        type: type,
+                        name: entry.name,
+                    };
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData(
+                        INTERNAL_DRAG_TYPE,
+                        JSON.stringify(this.internalDragEntry)
+                    );
+                },
+
+                onEntryDragEnd() {
+                    this.internalDragEntry = null;
+                    this.dropTargetPath = null;
+                },
+
+                onFolderRowClick(folder) {
+                    if (this.suppressFolderClick) {
+                        this.suppressFolderClick = false;
+                        return;
+                    }
+                    this.navigateTo(folder.path);
+                },
+
+                onFolderDragOver(event, folderPath) {
+                    if (!this.internalDragEntry && !this.isInternalEntryDrag(event)) {
+                        return;
+                    }
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = 'move';
+                    this.dropTargetPath = folderPath;
+                },
+
+                onFolderDragLeave(event, folderPath) {
+                    if (this.dropTargetPath === folderPath) {
+                        this.dropTargetPath = null;
+                    }
+                },
+
+                onFolderDrop(event, folderPath) {
+                    if (!this.internalDragEntry) {
+                        return;
+                    }
+                    event.preventDefault();
+                    event.stopPropagation();
+                    this.suppressFolderClick = true;
+                    var source = this.internalDragEntry;
+                    this.onEntryDragEnd();
+                    this.performTransfer(source.path, folderPath, false);
+                },
+
+                openTransferModal(entry, type, mode) {
+                    this.transferModal = {
+                        entry: entry,
+                        entryType: type,
+                        mode: mode,
+                    };
+                    this.transferBrowsePath = this.currentPath;
+                    this.transferParentPath = this.parentPath;
+                    this.transferFolders = [];
+                    this.loadTransferBrowse();
+                },
+
+                closeTransferModal() {
+                    this.transferModal = null;
+                    this.transferBrowsePath = '';
+                    this.transferParentPath = null;
+                    this.transferFolders = [];
+                    this.transferLoading = false;
+                },
+
+                loadTransferBrowse() {
+                    var self = this;
+                    this.transferLoading = true;
+                    tmaxios.get('/api/v1/files/browse', { params: { path: self.transferBrowsePath } })
+                        .then(function(response) {
+                            var data = response.data || {};
+                            self.transferBrowsePath = data.path || '';
+                            self.transferParentPath = data.parent;
+                            self.transferFolders = data.folders || [];
+                            self.transferLoading = false;
+                        })
+                        .catch(function() {
+                            self.transferLoading = false;
+                            self.showMessage('files.msg_load_error', 'error');
+                        });
+                },
+
+                transferBrowseUp() {
+                    if (this.transferParentPath === null) {
+                        return;
+                    }
+                    this.transferBrowsePath = this.transferParentPath;
+                    this.loadTransferBrowse();
+                },
+
+                transferBrowseInto(folder) {
+                    this.transferBrowsePath = folder.path;
+                    this.loadTransferBrowse();
+                },
+
+                transferDestinationLabel() {
+                    if (!this.transferBrowsePath) {
+                        return this.$filters.translate('files.breadcrumb_root');
+                    }
+                    return this.transferBrowsePath;
+                },
+
+                canConfirmTransfer() {
+                    if (!this.transferModal) {
+                        return false;
+                    }
+                    var sourcePath = this.transferModal.entry.path || '';
+                    var destinationPath = this.transferBrowsePath || '';
+                    var sourceParent = sourcePath.indexOf('/') === -1
+                        ? ''
+                        : sourcePath.slice(0, sourcePath.lastIndexOf('/'));
+                    if (this.transferModal.mode === 'move' && sourceParent === destinationPath) {
+                        return false;
+                    }
+                    if (this.transferModal.mode === 'move' && destinationPath === sourcePath) {
+                        return false;
+                    }
+                    if (this.transferModal.entryType === 'folder') {
+                        if (destinationPath === sourcePath || destinationPath.indexOf(sourcePath + '/') === 0) {
+                            return false;
+                        }
+                    }
+                    return true;
+                },
+
+                confirmTransfer() {
+                    if (!this.transferModal || !this.canConfirmTransfer()) {
+                        return;
+                    }
+                    var copy = this.transferModal.mode === 'copy';
+                    this.performTransfer(this.transferModal.entry.path, this.transferBrowsePath, copy);
+                    this.closeTransferModal();
+                },
+
+                performTransfer(sourcePath, destinationPath, copy) {
+                    var self = this;
+                    tmaxios.post('/api/v1/files/transfer', {
+                        source_path: sourcePath,
+                        destination_path: destinationPath,
+                        mode: copy ? 'copy' : 'move',
+                    })
+                    .then(function(response) {
+                        self.showMessage(
+                            (response.data && response.data.message)
+                                || (copy ? 'files.msg_copied' : 'files.msg_moved'),
+                            'success'
+                        );
+                        self.loadBrowse();
+                    })
+                    .catch(function(error) {
+                        var msg = error.response?.data?.message || 'files.msg_transfer_error';
+                        self.showMessage(msg, 'error');
+                    });
                 },
 
                 onDragEnter(event) {
@@ -390,8 +591,8 @@ const app = Vue.createApp({
                         return;
                     }
                     event.preventDefault();
-                    this.dragDepth += 1;
-                    this.isDragging = true;
+                    this.uploadDragDepth += 1;
+                    this.isUploadDragging = true;
                 },
 
                 onDragLeave(event) {
@@ -399,10 +600,10 @@ const app = Vue.createApp({
                         return;
                     }
                     event.preventDefault();
-                    this.dragDepth -= 1;
-                    if (this.dragDepth <= 0) {
-                        this.dragDepth = 0;
-                        this.isDragging = false;
+                    this.uploadDragDepth -= 1;
+                    if (this.uploadDragDepth <= 0) {
+                        this.uploadDragDepth = 0;
+                        this.isUploadDragging = false;
                     }
                 },
 
@@ -416,8 +617,8 @@ const app = Vue.createApp({
 
                 onDrop(event) {
                     event.preventDefault();
-                    this.dragDepth = 0;
-                    this.isDragging = false;
+                    this.uploadDragDepth = 0;
+                    this.isUploadDragging = false;
                     if (!this.isExternalFileDrag(event)) {
                         return;
                     }
