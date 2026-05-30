@@ -57,6 +57,25 @@
         .tm-mergely-confirm-text{font-size:.85rem;color:#78716c;margin-bottom:1.25rem}
         .dark .tm-mergely-confirm-text{color:#a8a29e}
         .tm-mergely-confirm-actions{display:flex;justify-content:flex-end;gap:.5rem}
+        .tm-export-dialog{position:fixed;inset:0;background:rgba(68,64,60,.92);display:flex;align-items:center;justify-content:center;z-index:50}
+        .tm-export-dialog-box{background:#fff;border:1px solid #14b8a6;padding:1.5rem 2rem;max-width:28rem;width:92%;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+        .dark .tm-export-dialog-box{background:#292524;border-color:#d6d3d1}
+        .tm-export-dialog-box h3{font-size:1.1rem;font-weight:700;color:#1c1917;margin-bottom:.75rem}
+        .dark .tm-export-dialog-box h3{color:#e7e5e4}
+        .tm-export-dialog-box p{font-size:.875rem;color:#78716c;margin-bottom:1.25rem;line-height:1.45}
+        .dark .tm-export-dialog-box p{color:#a8a29e}
+        .tm-export-dialog-actions{display:flex;flex-direction:column;gap:.5rem}
+        .tm-export-dialog-actions button{width:100%;padding:.65rem 1rem;font-size:.875rem;border:1px solid #d6d3d1;background:#e7e5e4;color:#1c1917;cursor:pointer;text-align:left;transition:background .1s,border-color .1s}
+        .dark .tm-export-dialog-actions button{border-color:#57534e;background:#44403c;color:#f5f5f4}
+        .tm-export-dialog-actions button:hover{background:#d6d3d1}
+        .dark .tm-export-dialog-actions button:hover{background:#57534e}
+        .tm-export-dialog-actions button.tm-export-dialog__primary{background:#0d9488;border-color:#0d9488;color:#fff;text-align:center;font-weight:600}
+        .tm-export-dialog-actions button.tm-export-dialog__primary:hover{background:#0f766e;border-color:#0f766e}
+        .tm-export-dialog-actions button.tm-export-dialog__secondary{background:#fff;border-color:#0d9488;color:#0f766e;text-align:center;font-weight:600}
+        .dark .tm-export-dialog-actions button.tm-export-dialog__secondary{background:#134e4a;border-color:#14b8a6;color:#ccfbf1}
+        .tm-export-dialog-actions button.tm-export-dialog__cancel{text-align:center;margin-top:.25rem;background:transparent;border-color:transparent;color:#78716c}
+        .dark .tm-export-dialog-actions button.tm-export-dialog__cancel{color:#a8a29e}
+        .tm-export-dialog-actions button:disabled{opacity:.55;cursor:not-allowed}
     `;
     document.head.appendChild(style);
 
@@ -71,7 +90,7 @@
                     </div>
                     <div class="flex gap-2">
                         <button
-                            @click.prevent="exportPageHistory"
+                            @click.prevent="openExportDialog"
                             class="px-3 py-2 border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-600 hover:bg-stone-300 dark:hover:bg-stone-500 text-stone-900 dark:text-stone-200 transition duration-100"
                         >
                             {{ $filters.translate('versions.export_page') }}
@@ -244,6 +263,39 @@
                     </div>
                 </div>
 
+                <div v-if="exportDialogOpen" class="tm-export-dialog" @click.self="closeExportDialog">
+                    <div class="tm-export-dialog-box" role="dialog" aria-modal="true">
+                        <h3>{{ $filters.translate('versions.export_dialog_title') }}</h3>
+                        <p>{{ $filters.translate('versions.export_dialog_help') }}</p>
+                        <div class="tm-export-dialog-actions">
+                            <button
+                                type="button"
+                                class="tm-export-dialog__primary"
+                                :disabled="exportInProgress"
+                                @click.prevent="exportCurrentPage"
+                            >
+                                {{ $filters.translate('versions.export_current_page') }}
+                            </button>
+                            <button
+                                type="button"
+                                class="tm-export-dialog__secondary"
+                                :disabled="exportInProgress"
+                                @click.prevent="exportEntireHistory"
+                            >
+                                {{ $filters.translate('versions.export_entire_history') }}
+                            </button>
+                            <button
+                                type="button"
+                                class="tm-export-dialog__cancel"
+                                :disabled="exportInProgress"
+                                @click.prevent="closeExportDialog"
+                            >
+                                {{ $filters.translate('versions.cancel') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </section>
         `,
         data() {
@@ -260,6 +312,8 @@
                 mergelyLeftVersionId: null,
                 mergelyConfirmAction: null,
                 mergelyAppEventCtor: null,
+                exportDialogOpen: false,
+                exportInProgress: false,
             };
         },
         watch: {
@@ -300,31 +354,70 @@
             this.loadVersions();
         },
         methods: {
-            exportPageHistory() {
+            openExportDialog() {
+                this.exportDialogOpen = true;
+            },
+
+            closeExportDialog() {
+                if (this.exportInProgress) {
+                    return;
+                }
+
+                this.exportDialogOpen = false;
+            },
+
+            exportCurrentPage() {
                 var self = this;
+                self.exportInProgress = true;
+                self.error = '';
 
                 tmaxios.get('/api/v1/versions/page/export', {
                     params: { url: data.urlinfo.route },
                     responseType: 'blob'
                 })
                 .then(function (response) {
-                    var blobUrl = URL.createObjectURL(response.data);
-                    var link = document.createElement('a');
-                    link.href = blobUrl;
-                    var disposition = response.headers['content-disposition'] || '';
-                    var match = disposition.match(/filename=\"?([^\";]+)\"?/i);
-                    link.download = (match && match[1]) ? match[1] : 'page-versions.json';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    setTimeout(function () {
-                        URL.revokeObjectURL(blobUrl);
-                    }, 1000);
+                    self.triggerExportDownload(response, 'page-versions.json');
+                    self.exportInProgress = false;
+                    self.exportDialogOpen = false;
                 })
                 .catch(function (error) {
+                    self.exportInProgress = false;
                     self.error = handleErrorMessage(error) || 'versions.msg_export_error';
                 });
             },
+
+            exportEntireHistory() {
+                var self = this;
+                self.exportInProgress = true;
+                self.error = '';
+
+                tmaxios.get('/api/v1/versions/export', { responseType: 'blob' })
+                .then(function (response) {
+                    self.triggerExportDownload(response, 'versions-export.zip');
+                    self.exportInProgress = false;
+                    self.exportDialogOpen = false;
+                })
+                .catch(function (error) {
+                    self.exportInProgress = false;
+                    self.error = handleErrorMessage(error) || 'versions.msg_export_error';
+                });
+            },
+
+            triggerExportDownload(response, fallbackName) {
+                var blobUrl = URL.createObjectURL(response.data);
+                var link = document.createElement('a');
+                link.href = blobUrl;
+                var disposition = response.headers['content-disposition'] || '';
+                var match = disposition.match(/filename=\"?([^\";]+)\"?/i);
+                link.download = (match && match[1]) ? match[1] : fallbackName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(function () {
+                    URL.revokeObjectURL(blobUrl);
+                }, 1000);
+            },
+
             loadVersions() {
                 var self = this;
                 self.loading = true;

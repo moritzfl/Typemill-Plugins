@@ -8,15 +8,15 @@ VERSIONS_GROUP_HOURS: Aktualisierungen nach Stunden gruppieren
 VERSIONS_MAX_VERSIONS: Maximale Anzahl gespeicherter Versionen
 VERSIONS_SAVE_SETTINGS: Einstellungen speichern
 VERSIONS_RECYCLE_BIN: Papierkorb
-VERSIONS_RECYCLE_BIN_SUBTITLE: Gelöschte Seiten bleiben hier, bis du sie wiederherstellst oder endgültig löschst.
+VERSIONS_RECYCLE_BIN_SUBTITLE: Gelöschte Einträge bleiben hier, bis du sie wiederherstellst oder endgültig löschst.
 VERSIONS_LOADING_TRASH: Papierkorb wird geladen
 VERSIONS_TRASH_EMPTY: Der Papierkorb ist leer.
 VERSIONS_TRASH_EMPTY_HINT: Gelöschte Seiten und Dateien erscheinen hier, nachdem du sie von der Website entfernt hast. Du kannst sie wiederherstellen oder endgültig löschen.
 VERSIONS_SINGULAR: Eintrag
 VERSIONS_PLURAL: Einträge
 VERSIONS_FILTER_PLACEHOLDER: Seiten filtern
-VERSIONS_SEARCH_PLACEHOLDER: Gelöschte Seiten durchsuchen…
-VERSIONS_NO_MATCH: Keine gelöschten Seiten entsprechen deiner Suche.
+VERSIONS_SEARCH_PLACEHOLDER: Gelöschte Einträge durchsuchen…
+VERSIONS_NO_MATCH: Keine gelöschten Einträge entsprechen deiner Suche.
 VERSIONS_COL_PAGE: Seite
 VERSIONS_COL_DELETED: Gelöscht
 VERSIONS_TYPE_PAGE: Seite
@@ -58,7 +58,12 @@ VERSIONS_MSG_RESTORE_DATA_INCOMPLETE: Daten zum Wiederherstellen sind unvollstä
 VERSIONS_MSG_PREVIEW_ERROR: Vorschau konnte nicht geladen werden.
 VERSIONS_MSG_DOWNLOAD_ERROR: Download konnte nicht erstellt werden.
 VERSIONS_EXPORT_ALL: Gesamten Verlauf exportieren
+VERSIONS_EXPORT_HISTORY: Verlauf exportieren
 VERSIONS_EXPORT_PAGE: Verlauf exportieren
+VERSIONS_EXPORT_DIALOG_TITLE: Versionsverlauf exportieren
+VERSIONS_EXPORT_DIALOG_HELP: Wählen Sie, was in die Exportdatei aufgenommen werden soll.
+VERSIONS_EXPORT_CURRENT_PAGE: Nur diese Seite
+VERSIONS_EXPORT_ENTIRE_HISTORY: Gesamter Verlauf
 VERSIONS_MSG_EXPORT_ERROR: Export konnte nicht erstellt werden.
 VERSIONS_NO_CHANGES: Keine Änderungen
 INSPECT_CHANGES_COMPARE_EDITS_AND_RESTORE_EARLIER_VERSIONS: Änderungen prüfen, Bearbeitungen vergleichen und frühere Versionen wiederherstellen.

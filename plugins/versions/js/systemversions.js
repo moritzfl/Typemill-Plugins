@@ -6,6 +6,7 @@ trashStyle.textContent = `
 .tm-trash-panel{overflow:visible}
 .tm-trash-toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem 1rem;min-height:3.25rem;padding:.75rem 1.25rem;border-bottom:1px solid #e7e5e4;background:#fafaf9}
 .dark .tm-trash-toolbar{border-color:#44403c;background:#1c1917}
+.tm-trash-toolbar__primary{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;flex-shrink:0}
 .tm-trash-toolbar__actions{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;flex-shrink:0}
 .tm-trash-subtoolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem 1.5rem;padding:.75rem 1.25rem;border-bottom:1px solid #f5f5f4;background:#fff}
 .dark .tm-trash-subtoolbar{border-color:#292524;background:#292524}
@@ -230,7 +231,7 @@ const app = Vue.createApp({
             this.restoreConflict = false;
         },
 
-        exportAll() {
+        exportHistory() {
             var self = this;
 
             tmaxios.get('/api/v1/versions/export', { responseType: 'blob' })
