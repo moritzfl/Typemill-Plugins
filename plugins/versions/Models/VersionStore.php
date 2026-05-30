@@ -375,13 +375,12 @@ class VersionStore
             $previewable = false;
             if (class_exists(\Plugins\preview\PreviewIntegration::class)
                 && \Plugins\preview\PreviewIntegration::isAvailable()) {
-                if ($deletedVersion && ($deletedVersion['item_type'] ?? '') === 'folder') {
-                    $trashPreview = \Plugins\preview\PreviewIntegration::trashPreviewResolver();
-                    $previewable = $trashPreview !== null
-                        && $trashPreview->resolveFolder(
-                            $trashPreview->buildSnapshotDescriptors($deletedVersion['snapshot_files'] ?? [])
-                        )['previewable'];
-                } else {
+                $trashPreview = \Plugins\preview\PreviewIntegration::trashPreviewResolver();
+                if ($deletedVersion && $trashPreview !== null && $trashPreview->isFolderDeletion($deletedVersion)) {
+                    $previewable = $trashPreview->resolveFolder(
+                        $trashPreview->buildSnapshotDescriptors($deletedVersion['snapshot_files'] ?? [])
+                    )['previewable'];
+                } elseif ($deletedVersion) {
                     $previewable = true;
                 }
             }
@@ -395,6 +394,7 @@ class VersionStore
                 'url' => $record['deleted']['url'],
                 'path' => $record['deleted']['path'],
                 'item_type' => $record['deleted']['item_type'],
+                'entry_kind' => TrashEntryKind::resolve($deletedVersion, 'page'),
                 'deleted_at' => $record['deleted']['deleted_at'],
                 'username' => $record['deleted']['username'],
                 'user_label' => $record['deleted']['user_label'],

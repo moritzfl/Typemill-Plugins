@@ -240,6 +240,7 @@ class AssetVersionStore
                 'path' => $record['deleted']['path'],
                 'item_type' => $record['deleted']['item_type'],
                 'asset_type' => $record['deleted']['asset_type'] ?? null,
+                'entry_kind' => TrashEntryKind::resolve($deletedVersion, 'asset'),
                 'deleted_at' => $record['deleted']['deleted_at'],
                 'username' => $record['deleted']['username'],
                 'user_label' => $record['deleted']['user_label'],

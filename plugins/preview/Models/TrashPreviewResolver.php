@@ -12,15 +12,23 @@ class TrashPreviewResolver
 
     public function isFolderDeletion(array $version): bool
     {
-        if (($version['item_type'] ?? '') === 'folder') {
-            return true;
-        }
-
         if (($version['metadata']['element_type'] ?? '') === 'folder') {
             return true;
         }
 
-        return $this->isMediaFilesFolderDeletion($version);
+        if ($this->isMediaFilesFolderDeletion($version)) {
+            return true;
+        }
+
+        if (($version['item_type'] ?? '') !== 'folder') {
+            return false;
+        }
+
+        if (isset($version['asset_type'])) {
+            return false;
+        }
+
+        return !$this->isSinglePageTrashSnapshot($version);
     }
 
     /**
@@ -129,5 +137,30 @@ class TrashPreviewResolver
         }
 
         return true;
+    }
+
+    private function isSinglePageTrashSnapshot(array $version): bool
+    {
+        $pathWithoutType = ltrim(str_replace('\\', '/', (string) ($version['path_without_type'] ?? '')), '/');
+
+        return $pathWithoutType !== '' && str_ends_with($pathWithoutType, '/index');
+    }
+
+    public function resolveEntryKind(array $version): string
+    {
+        $assetType = $version['asset_type'] ?? $version['metadata']['asset_type'] ?? null;
+        if ($assetType === 'image') {
+            return 'image';
+        }
+
+        if ($this->isFolderDeletion($version)) {
+            return 'folder';
+        }
+
+        if ($assetType === 'mediafiles' || isset($version['asset_type'])) {
+            return 'file';
+        }
+
+        return 'page';
     }
 }

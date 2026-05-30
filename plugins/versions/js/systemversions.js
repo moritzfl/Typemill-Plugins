@@ -63,7 +63,9 @@ trashStyle.textContent = `
 .dark .tm-trash-name-cell__url{color:#a8a29e}
 .tm-trash-list-icon{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;flex-shrink:0;border-radius:4px;color:#78716c;background:#e7e5e4}
 .tm-trash-list-icon--page{background:#fee2e2;color:#dc2626}
-.tm-trash-list-icon--asset{background:#dbeafe;color:#2563eb}
+.tm-trash-list-icon--folder{background:#ffedd5;color:#d97706}
+.tm-trash-list-icon--file{background:#e7e5e4;color:#44403c}
+.tm-trash-list-icon--image{background:#dbeafe;color:#2563eb}
 `;
 document.head.appendChild(trashStyle);
 
@@ -77,7 +79,9 @@ const trashPreviewMixins = typeof TypemillPreviewMixin !== 'undefined' ? [Typemi
 
 const TRASH_ICON_PATHS = {
     page: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zm-2 10H8v-2h3v2zm0-4H8V8h3v2z',
-    asset: 'M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z',
+    folder: 'M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z',
+    file: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4z',
+    image: 'M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z',
 };
 
 const app = Vue.createApp({
@@ -159,26 +163,36 @@ const app = Vue.createApp({
         },
 
         entryIconPath(entry) {
-            return entry.record_type === 'asset' ? TRASH_ICON_PATHS.asset : TRASH_ICON_PATHS.page;
+            var kind = this.entryKind(entry);
+            return TRASH_ICON_PATHS[kind] || TRASH_ICON_PATHS.file;
         },
 
         entryIconClass(entry) {
-            return entry.record_type === 'asset' ? 'tm-trash-list-icon--asset' : 'tm-trash-list-icon--page';
+            var kind = this.entryKind(entry);
+            return 'tm-trash-list-icon--' + kind;
+        },
+
+        entryKind(entry) {
+            if (entry.entry_kind) {
+                return entry.entry_kind;
+            }
+
+            if (entry.record_type === 'asset') {
+                return (entry.asset_type || '') === 'image' ? 'image' : 'file';
+            }
+
+            return (entry.item_type || '') === 'folder' ? 'folder' : 'page';
         },
 
         entryTypeLabel(entry) {
-            if (entry.record_type === 'asset') {
-                var type = entry.asset_type || 'asset';
-                if (type === 'mediafiles') {
-                    return 'FILE';
-                }
-                if (type === 'image') {
-                    return 'IMAGE';
-                }
-                return type.toUpperCase();
+            var kind = this.entryKind(entry);
+            var key = 'versions.type_' + kind;
+            var translated = this.$filters.translate(key);
+            if (translated !== key) {
+                return translated;
             }
 
-            return (entry.item_type || 'page').toUpperCase();
+            return kind.toUpperCase();
         },
 
         toggleActionMenu(key) {
