@@ -61,6 +61,8 @@ Disallow: /tm/
 Sitemap: https://yoursite.com/sitemap.xml
 ```
 
+`Disallow` paths come from the **Disallowed paths** plugin setting (one path per line). `/tm/` is the default. You can also paste lines in the form `Disallow: /private/` — the prefix is stripped automatically.
+
 The sitemap URL is derived from Typemill's current `baseurl`, so it follows the active site domain automatically.
 
 ## Configuration
@@ -69,7 +71,8 @@ The plugin provides the following settings:
 
 | Setting               | Purpose                                                                     |
 |-----------------------|-----------------------------------------------------------------------------|
-| `extra_rules`         | Appends additional raw lines to `robots.txt`                                |
+| `disallow_paths`      | Path prefixes for `Disallow` lines in `robots.txt` (one per line)           |
+| `extra_rules`         | Additional raw lines after the Disallow rules (e.g. `Crawl-delay`)          |
 | `site_description`    | Fallback site description for schema and social metadata                    |
 | `default_share_image` | Global fallback image for social previews                                   |
 | `publisher_type`      | Schema publisher type (`Organization` or `Person`)                          |
@@ -77,16 +80,21 @@ The plugin provides the following settings:
 | `publisher_logo`      | Optional logo or portrait for the schema publisher                          |
 | `same_as`             | One absolute URL per line for publisher profile links in `schema.org` data  |
 
+Example `disallow_paths` value:
+
+```text
+/tm/
+/private/
+/api/
+```
+
 Example `extra_rules` value:
 
 ```text
-Disallow: /private/
 Crawl-delay: 10
 ```
 
-Each non-empty line is appended verbatim below the default rules.
-
-The admin area path `/tm/` is always disallowed by the plugin.
+Each non-empty line in `extra_rules` is appended verbatim after the generated Disallow lines.
 
 ## Metadata Behavior
 
@@ -104,9 +112,12 @@ The plugin does not replace Typemill's sitemap generator. Instead it:
 
 1. Tries to read the existing sitemap from Typemill's cache folder.
 2. If the sitemap file is missing, it triggers Typemill's own sitemap generation once.
-3. Returns the XML at `/sitemap.xml`.
+3. Adds a `<lastmod>` element to each URL when the corresponding content files exist on disk.
+4. Returns the enriched XML at `/sitemap.xml`.
 
-This keeps the sitemap content aligned with Typemill core while making it available at a more standard public URL.
+`lastmod` is derived from the newest modification time among the page's `.md`, `.txt`, and `.yaml` files under `content/`. The site root URL uses the latest change across all indexed pages. Dates are emitted in `YYYY-MM-DD` format (UTC).
+
+This keeps the sitemap URL list aligned with Typemill core while exposing crawler-friendly metadata at a standard public URL.
 
 ## Notes
 

@@ -1,6 +1,8 @@
 SITE_FILES: Site-Dateien
+SITEFILES_DISALLOW_PATHS_LABEL: Gesperrte Pfade (robots.txt)
+SITEFILES_DISALLOW_PATHS_DESCRIPTION: Ein Pfad pro Zeile. Jede Zeile wird zu einer Disallow-Regel. Der Admin-Bereich /tm/ ist standardmäßig enthalten.
 SITEFILES_EXTRA_RULES_LABEL: Zusätzliche robots.txt-Regeln
-SITEFILES_EXTRA_RULES_DESCRIPTION: Optionale zusätzliche Zeilen, die in robots.txt erscheinen sollen.
+SITEFILES_EXTRA_RULES_DESCRIPTION: Optionale zusätzliche Zeilen nach den Disallow-Regeln (z. B. Crawl-delay).
 SITEFILES_SITE_DESCRIPTION_LABEL: Beschreibung der Website
 SITEFILES_SITE_DESCRIPTION_DESCRIPTION: Wird verwendet, wenn für Vorschauen und strukturierte Daten keine passende Beschreibung gefunden wird.
 SITEFILES_DEFAULT_SHARE_IMAGE_LABEL: Standardbild für Vorschauen

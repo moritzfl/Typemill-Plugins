@@ -75,8 +75,11 @@ class sitefiles extends Plugin
         $lines = [
             'User-agent: *',
             'Allow: /',
-            'Disallow: /tm/',
         ];
+
+        foreach ($this->parseDisallowPaths($settings) as $path) {
+            $lines[] = 'Disallow: ' . $path;
+        }
 
         $extraRules = trim((string) ($settings['extra_rules'] ?? ''));
         if ($extraRules !== '') {
@@ -121,6 +124,8 @@ class sitefiles extends Plugin
                 ->withStatus(404)
                 ->withHeader('Content-Type', 'text/plain; charset=UTF-8');
         }
+
+        $sitemap = $this->enrichSitemapWithLastmod((string) $sitemap);
 
         $response->getBody()->write($sitemap);
 
@@ -955,6 +960,226 @@ class sitefiles extends Plugin
         }
 
         return $baseurl . '/' . ltrim($path, '/');
+    }
+
+    /**
+     * @return list<string> Path prefixes for robots.txt Disallow lines (each starts with /).
+     */
+    private function parseDisallowPaths(array $settings): array
+    {
+        $raw = trim((string) ($settings['disallow_paths'] ?? ''));
+        if ($raw === '') {
+            $raw = '/tm/';
+        }
+
+        $paths = [];
+        foreach (preg_split('/\R+/', $raw) as $line) {
+            $line = trim($line);
+            if ($line === '') {
+                continue;
+            }
+
+            if (preg_match('/^Disallow:\s*(.+)$/i', $line, $matches)) {
+                $line = trim($matches[1]);
+            }
+
+            if ($line === '' || preg_match('/\.\.|[\s]/', $line)) {
+                continue;
+            }
+
+            if (!str_starts_with($line, '/')) {
+                $line = '/' . $line;
+            }
+
+            $paths[] = $line;
+        }
+
+        return array_values(array_unique($paths));
+    }
+
+    private function enrichSitemapWithLastmod(string $sitemapXml): string
+    {
+        $urlLastmod = $this->buildUrlLastmodMap();
+        if ($urlLastmod === []) {
+            return $sitemapXml;
+        }
+
+        $previous = libxml_use_internal_errors(true);
+        $dom = new \DOMDocument('1.0', 'UTF-8');
+        if (!$dom->loadXML($sitemapXml)) {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previous);
+
+            return $sitemapXml;
+        }
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        $xpath = new \DOMXPath($dom);
+        $xpath->registerNamespace('sm', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+
+        foreach ($xpath->query('//sm:url') ?: [] as $urlNode) {
+            if (!$urlNode instanceof \DOMElement) {
+                continue;
+            }
+
+            $locNodes = $xpath->query('sm:loc', $urlNode);
+            if ($locNodes->length === 0) {
+                continue;
+            }
+
+            $loc = trim($locNodes->item(0)->textContent);
+            $lastmod = $this->lookupUrlLastmod($urlLastmod, $loc);
+            if ($lastmod === null) {
+                continue;
+            }
+
+            $existing = $xpath->query('sm:lastmod', $urlNode);
+            if ($existing->length > 0) {
+                $existing->item(0)->textContent = $lastmod;
+                continue;
+            }
+
+            $namespace = $urlNode->namespaceURI ?: 'http://www.sitemaps.org/schemas/sitemap/0.9';
+            $lastmodNode = $dom->createElementNS($namespace, 'lastmod');
+            $lastmodNode->appendChild($dom->createTextNode($lastmod));
+            $urlNode->appendChild($lastmodNode);
+        }
+
+        $xml = $dom->saveXML();
+        return is_string($xml) ? $xml : $sitemapXml;
+    }
+
+    /**
+     * @return array<string, string> Normalized absolute URL => W3C lastmod string.
+     */
+    private function buildUrlLastmodMap(): array
+    {
+        $settings = $this->getSettings();
+        $urlinfo = $this->urlinfo();
+
+        $navigation = new Navigation();
+        $liveNavigation = $navigation->getLiveNavigation($urlinfo, $settings['langattr'] ?? '');
+        if (!$liveNavigation) {
+            return [];
+        }
+
+        $storage = new StorageWrapper('\Typemill\Models\Storage');
+        $contentRoot = rtrim($storage->getFolderPath('contentFolder'), DIRECTORY_SEPARATOR);
+
+        $map = [];
+        $maxLastmod = null;
+        $this->collectUrlLastmodFromNavigation($liveNavigation, $contentRoot, $map, $maxLastmod);
+
+        $baseurl = rtrim($urlinfo['baseurl'] ?? '', '/');
+        if ($baseurl !== '' && $maxLastmod !== null) {
+            $map[$this->normalizeSitemapLoc($baseurl)] = $maxLastmod;
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param array<string, string> $map
+     */
+    private function collectUrlLastmodFromNavigation($navigation, string $contentRoot, array &$map, ?string &$maxLastmod): void
+    {
+        foreach ($navigation as $item) {
+            if (($item->status ?? '') !== 'published' && ($item->status ?? '') !== 'modified') {
+                continue;
+            }
+
+            if (($item->elementType ?? '') === 'folder') {
+                if (isset($item->noindex) && $item->noindex === true) {
+                    if (!empty($item->folderContent)) {
+                        $this->collectUrlLastmodFromNavigation($item->folderContent, $contentRoot, $map, $maxLastmod);
+                    }
+                    continue;
+                }
+
+                $this->registerItemLastmod($item, $contentRoot, $map, $maxLastmod);
+
+                if (!empty($item->folderContent)) {
+                    $this->collectUrlLastmodFromNavigation($item->folderContent, $contentRoot, $map, $maxLastmod);
+                }
+
+                continue;
+            }
+
+            if (isset($item->noindex) && $item->noindex === true) {
+                continue;
+            }
+
+            $this->registerItemLastmod($item, $contentRoot, $map, $maxLastmod);
+        }
+    }
+
+    /**
+     * @param array<string, string> $map
+     */
+    private function registerItemLastmod($item, string $contentRoot, array &$map, ?string &$maxLastmod): void
+    {
+        $urlAbs = trim((string) ($item->urlAbs ?? ''));
+        if ($urlAbs === '') {
+            return;
+        }
+
+        $lastmod = $this->resolveItemLastmod($contentRoot, $item);
+        if ($lastmod === null) {
+            return;
+        }
+
+        $map[$this->normalizeSitemapLoc($urlAbs)] = $lastmod;
+
+        if ($maxLastmod === null || $lastmod > $maxLastmod) {
+            $maxLastmod = $lastmod;
+        }
+    }
+
+    private function resolveItemLastmod(string $contentRoot, $item): ?string
+    {
+        $pathWithoutType = trim((string) ($item->pathWithoutType ?? ''));
+        if ($pathWithoutType === '') {
+            return null;
+        }
+
+        $relativeBase = str_replace('/', DIRECTORY_SEPARATOR, $pathWithoutType);
+        $candidates = [
+            $contentRoot . DIRECTORY_SEPARATOR . $relativeBase . '.md',
+            $contentRoot . DIRECTORY_SEPARATOR . $relativeBase . '.txt',
+            $contentRoot . DIRECTORY_SEPARATOR . $relativeBase . '.yaml',
+        ];
+
+        $maxMtime = 0;
+        foreach ($candidates as $file) {
+            if (is_file($file)) {
+                $maxMtime = max($maxMtime, (int) filemtime($file));
+            }
+        }
+
+        if ($maxMtime <= 0) {
+            return null;
+        }
+
+        return gmdate('Y-m-d', $maxMtime);
+    }
+
+    /**
+     * @param array<string, string> $urlLastmod
+     */
+    private function lookupUrlLastmod(array $urlLastmod, string $loc): ?string
+    {
+        $normalized = $this->normalizeSitemapLoc($loc);
+        if (isset($urlLastmod[$normalized])) {
+            return $urlLastmod[$normalized];
+        }
+
+        return $urlLastmod[$normalized . '/'] ?? $urlLastmod[rtrim($normalized, '/')] ?? null;
+    }
+
+    private function normalizeSitemapLoc(string $url): string
+    {
+        return rtrim(trim($url), '/');
     }
 
     private function parseSameAs($raw): array

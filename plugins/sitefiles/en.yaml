@@ -1,6 +1,8 @@
 SITE_FILES: Site Files
+SITEFILES_DISALLOW_PATHS_LABEL: Disallowed paths (robots.txt)
+SITEFILES_DISALLOW_PATHS_DESCRIPTION: One path per line. Each line becomes a Disallow rule. The admin area /tm/ is included by default.
 SITEFILES_EXTRA_RULES_LABEL: Additional robots.txt rules
-SITEFILES_EXTRA_RULES_DESCRIPTION: Optional extra lines that should appear in robots.txt.
+SITEFILES_EXTRA_RULES_DESCRIPTION: Optional extra lines appended after the Disallow rules (for example Crawl-delay).
 SITEFILES_SITE_DESCRIPTION_LABEL: Description of the website
 SITEFILES_SITE_DESCRIPTION_DESCRIPTION: Used when no suitable description is available for previews and structured data.
 SITEFILES_DEFAULT_SHARE_IMAGE_LABEL: Standard preview image

@@ -1,10 +1,11 @@
 name: Site Files
-version: 1.1.0
+version: 1.2.0
 description: Serve public site files and add metadata for link previews and structured page information.
 author: Moritz
 license: LGPL
 
 settings:
+  disallow_paths: "/tm/"
   extra_rules: ''
   site_description: ''
   default_share_image: ''
@@ -15,10 +16,15 @@ settings:
 
 forms:
   fields:
+    disallow_paths:
+      type: textarea
+      label: 'sitefiles.disallow_paths_label'
+      placeholder: "/tm/\n/private/"
+      description: 'sitefiles.disallow_paths_description'
     extra_rules:
       type: textarea
       label: 'sitefiles.extra_rules_label'
-      placeholder: "Disallow: /private/\nCrawl-delay: 10"
+      placeholder: "Crawl-delay: 10"
       description: 'sitefiles.extra_rules_description'
     site_description:
       type: textarea
