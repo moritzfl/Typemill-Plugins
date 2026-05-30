@@ -3,4 +3,4 @@ version: 1.0.0
 description: Renders markdown links wrapped in double square brackets as styled buttons. Write [[link text](url)] to get a button.
 author: moritz
 homepage: https://github.com/moritzfl/Typemill-Plugins
-license: LGPL
+license: GPL-2.0

@@ -3,7 +3,7 @@ version: 1.0.0
 description: "Embed raw HTML, CSS, and JavaScript in Typemill content using fenced code blocks with the \"rawhtml\" language tag. WARNING: This plugin intentionally bypasses HTML sanitization. Only enable it on sites where every content editor is fully trusted. Never use it on public multi-user sites with untrusted editors."
 author: Moritz
 homepage: https://github.com/moritzfl/Typemill-Plugins
-license: LGPL
+license: GPL-2.0
 
 settings:
   csp_domains: ''

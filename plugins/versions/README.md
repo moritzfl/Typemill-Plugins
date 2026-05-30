@@ -33,8 +33,8 @@ The right-side editor is editable, so you can merge changes manually before savi
 ### Recycle bin
 
 Deleted pages and deleted assets are moved to the recycle bin at **System → Versions**.
-From there you can preview a deleted item (pages, text files, and common browser media
-formats), restore it to its original location, download it, or permanently delete it.
+From there you can click a previewable row to inspect it (requires the **Preview** plugin),
+restore it to its original location, download it, or permanently delete it.
 
 Expired recycle-bin entries are removed automatically when they are older than the
 configured retention period. Purge runs when something is deleted into the bin or when
@@ -42,19 +42,53 @@ someone opens **System → Versions**.
 
 ### Exporting version history
 
-- **Single page:** In the page editor **Versions** tab, use **Export history** to download a
-  JSON file with the full version record for that page.
-- **Entire site:** In **System → Versions**, use **Export all history** to download a ZIP
-  archive containing:
-  - `manifest.json` — export metadata
-  - `pages/*.json` — all page version records
-  - `assets/*.json` — deleted asset records
-  - `snapshots/` — on-disk snapshot files referenced by trash entries (when present)
+#### From the page editor
 
-Exports are backups for archival or migration. The plugin does not import export files back
-into Typemill automatically.
+Open the **Versions** tab on any page and click **Export history**. A dialog lets you choose:
 
-Requires the PHP `zip` extension for full-site export (single-page export is JSON only).
+- **This page only** — downloads a JSON file with the full version record for that page.
+- **Entire history** — downloads a ZIP archive with version data for the whole site (see below).
+
+#### From the recycle bin
+
+Open **System → Versions** and click **Export History** to download the same **Entire history** ZIP without opening a page first.
+
+#### What is in the ZIP export?
+
+The **Entire history** archive is a backup of all version-related data:
+
+- `manifest.json` — export metadata
+- `pages/*.json` — version records for every page
+- `assets/*.json` — deleted asset records from the recycle bin
+- `snapshots/` — snapshot files referenced by trash entries (when present)
+
+#### Getting your data back
+
+**While the site is running**, use the admin UI — you do not need an export file:
+
+- **Older page content** — open the page, go to **Versions**, click **Compare & Restore** on the version you want, then **Restore left** (or edit the right panel and **Save as draft**).
+- **Deleted page or file** — open **System → Versions**, find the item in the recycle bin, and click **Restore**.
+
+Exports are for **backups**, moving data between servers, or recovery after the plugin data was lost. There is no **Import** button; you restore the files manually, then use the admin UI as above.
+
+**From a single-page JSON export**
+
+1. Find the `record_id` field in the JSON file.
+2. Copy the file to `data/versions/pages/<record_id>.json` on your Typemill server (create the `pages` folder if needed).
+3. In the admin, open that page → **Versions**. The history from the backup should appear; use **Compare & Restore** to write an older version back to the live page.
+
+**From an Entire history ZIP**
+
+1. Extract the archive.
+2. Copy its contents into Typemill's `data/versions/` folder, merging with existing files:
+   - `pages/*.json` → `data/versions/pages/`
+   - `assets/*.json` → `data/versions/assets/`
+   - `snapshots/` → `data/versions/snapshots/`
+3. Open **System → Versions** for recycle-bin entries, or open individual pages → **Versions** for page history. Use **Restore** or **Compare & Restore** to put content back on the site.
+
+Stop Typemill or take a backup of `data/versions/` before overwriting files. Restoring plugin data brings back version history and recycle-bin entries; live page files under `content/` are updated only when you restore through the admin.
+
+ZIP export uses PHP's `zip` extension when available; otherwise a built-in fallback is used. The **This page only** export is always a single JSON file and does not require ZIP support.
 
 ## Configuration
 

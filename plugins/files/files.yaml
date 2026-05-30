@@ -3,4 +3,4 @@ version: 2.1.0
 description: Folder-based file manager for media/files. Browse nested folders, upload and download files, create and delete folders, and export folders as ZIP archives.
 author: Moritz
 homepage: https://github.com/moritzfl/Typemill-Plugins
-license: LGPL
+license: GPL-2.0

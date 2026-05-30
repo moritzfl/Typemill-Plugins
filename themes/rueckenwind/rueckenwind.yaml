@@ -3,7 +3,7 @@ version: 1.0.0
 description: 'A clean, documentation-focused theme built with Tailwind CSS. Inspired by the Typhoon Grav theme and the Cyanine Typemill theme. Supports automatic dark mode based on system preferences.'
 author: moritz
 homepage: https://github.com/moritzfl/Typemill-Plugins
-license: LGPL
+license: GPL-2.0
 
 settings:
   heroTitle: ''

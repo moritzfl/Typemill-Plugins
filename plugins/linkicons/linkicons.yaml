@@ -3,7 +3,7 @@ version: 1.0.0
 description: Automatically prepends a small icon to links pointing to GitHub, GitLab, or Docker Hub and other services.
 author: moritz
 homepage: https://github.com/moritzfl/Typemill-Plugins
-license: LGPL
+license: GPL-2.0
 
 settings:
   appstore: true

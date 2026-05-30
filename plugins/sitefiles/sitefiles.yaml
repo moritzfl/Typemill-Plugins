@@ -2,7 +2,7 @@ name: Site Files
 version: 1.2.0
 description: Serve public site files and add metadata for link previews and structured page information.
 author: Moritz
-license: LGPL
+license: GPL-2.0
 
 settings:
   disallow_paths: "/tm/"

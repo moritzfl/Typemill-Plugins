@@ -32,8 +32,9 @@ express. Includes a CSP setting to whitelist external domains used by embedded c
 ### `files` — File Manager
 
 Adds a **Files** page to the Typemill system settings where you can upload files of any type to `media/files/`, browse
-all uploads, copy internal paths or full public URLs, download files, and delete them. Solves the problem of getting
-non-image files (PDFs, audio, playlists, archives, etc.) onto the server without FTP access.
+all uploads, move or copy files and folders (including drag-and-drop), copy internal paths or full public URLs,
+download files, export folders as ZIP, and delete them. Solves the problem of getting non-image files (PDFs, audio,
+playlists, archives, etc.) onto the server without FTP access.
 
 → See [`plugins/files/README.md`](plugins/files/README.md) for full documentation.
 
@@ -81,6 +82,16 @@ permanently removed.
 
 ---
 
+### `preview` — Preview
+
+Shared in-admin preview for files and recycle-bin entries. When active, **System → Files**
+and **System → Versions** let you click a previewable row to open a modal with rendered
+Markdown, syntax-highlighted text, or inline media (images, audio, video, PDF).
+
+→ See [`plugins/preview/README.md`](plugins/preview/README.md) for full documentation.
+
+---
+
 ## Installation
 
 ### Themes
@@ -109,3 +120,22 @@ Useful commands:
 - `npm run watch:rueckenwind` rebuilds the theme stylesheet on changes
 - `npm run update:mergely` refreshes `plugins/versions/js/mergely.min.js` from the installed npm package
 - `npm run sync:frontend` runs both the theme build and the Mergely sync
+
+## Testing
+
+Local test tooling lives in this repository:
+
+- `npm run test:setup` — start the Docker Typemill instance and provision the test admin account
+- `npm run test:php` — run PHP unit tests inside Docker
+- `npm run test:api` — run API integration tests (Vitest)
+- `npm run test` — run local PHP unit tests and API tests
+
+See [`AGENTS.md`](AGENTS.md) for Docker URLs, login details, and API authentication notes.
+
+## License
+
+Plugins and themes in this repository (except where noted otherwise) are licensed under the
+[GNU General Public License v2.0](LICENSE).
+
+Bundled third-party components keep their own licenses — for example, the Versions plugin
+ships [Mergely](https://mergely.com) under LGPL.

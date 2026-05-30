@@ -1,6 +1,7 @@
 {
   "name": "typemill-html-developer-mode",
   "private": true,
+  "license": "GPL-2.0",
   "type": "module",
   "scripts": {
     "build": "npm run build:frontend",
