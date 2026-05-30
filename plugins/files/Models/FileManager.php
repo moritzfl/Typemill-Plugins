@@ -9,12 +9,16 @@ class FileManager
 
     private string $rootPath;
 
+    private FileUploadMetaStore $uploadMeta;
+
     public function __construct(string $projectRoot)
     {
         $this->rootPath = rtrim($projectRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'media' . DIRECTORY_SEPARATOR . 'files';
         if (!is_dir($this->rootPath)) {
             mkdir($this->rootPath, 0755, true);
         }
+
+        $this->uploadMeta = new FileUploadMetaStore($this->rootPath);
     }
 
     public function getRootPath(): string
@@ -151,6 +155,7 @@ class FileManager
                 'path' => $relativeEntry,
                 'bytes' => filesize($entryPath) ?: 0,
                 'timestamp' => filemtime($entryPath) ?: 0,
+                'uploaded_by' => $this->uploadMeta->getUploader($relativeEntry),
             ];
         }
 
@@ -195,6 +200,16 @@ class FileManager
         return null;
     }
 
+    public function recordUpload(string $relativePath, string $username): void
+    {
+        $relativePath = $this->normalizeRelativePath($relativePath);
+        if ($relativePath === null || $relativePath === '') {
+            return;
+        }
+
+        $this->uploadMeta->recordUpload($relativePath, $username);
+    }
+
     public function deletePath(string $relativePath): bool
     {
         $relativePath = $this->normalizeRelativePath($relativePath);
@@ -212,14 +227,26 @@ class FileManager
         }
 
         if (is_file($absolute)) {
-            return unlink($absolute);
+            if (!unlink($absolute)) {
+                return false;
+            }
+
+            $this->uploadMeta->removeEntry($relativePath, false);
+
+            return true;
         }
 
         if (!is_dir($absolute)) {
             return false;
         }
 
-        return $this->deleteDirectoryRecursive($absolute);
+        if (!$this->deleteDirectoryRecursive($absolute)) {
+            return false;
+        }
+
+        $this->uploadMeta->removeEntry($relativePath, true);
+
+        return true;
     }
 
     public function transferEntry(string $sourcePath, string $destinationFolderPath, bool $copy): ?string
@@ -267,19 +294,40 @@ class FileManager
             return 'files.msg_transfer_exists';
         }
 
+        $destinationRelative = $this->joinPath($destinationFolderPath, $basename);
+        $sourceIsDirectory = is_dir($sourceAbsolute);
+
         if ($copy) {
             if (is_file($sourceAbsolute)) {
-                return copy($sourceAbsolute, $targetAbsolute) ? null : 'files.msg_transfer_error';
+                if (!copy($sourceAbsolute, $targetAbsolute)) {
+                    return 'files.msg_transfer_error';
+                }
+
+                $this->uploadMeta->copyEntry($sourcePath, $destinationRelative, false);
+
+                return null;
             }
 
             if (!is_dir($sourceAbsolute)) {
                 return 'files.msg_transfer_not_found';
             }
 
-            return $this->copyDirectoryRecursive($sourceAbsolute, $targetAbsolute) ? null : 'files.msg_transfer_error';
+            if (!$this->copyDirectoryRecursive($sourceAbsolute, $targetAbsolute)) {
+                return 'files.msg_transfer_error';
+            }
+
+            $this->uploadMeta->copyEntry($sourcePath, $destinationRelative, true);
+
+            return null;
         }
 
-        return rename($sourceAbsolute, $targetAbsolute) ? null : 'files.msg_transfer_error';
+        if (!rename($sourceAbsolute, $targetAbsolute)) {
+            return 'files.msg_transfer_error';
+        }
+
+        $this->uploadMeta->relocateEntry($sourcePath, $destinationRelative, $sourceIsDirectory);
+
+        return null;
     }
 
     public function getFileDownload(string $relativePath): ?array

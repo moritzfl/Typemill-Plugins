@@ -152,6 +152,7 @@
                                 <th>{{ $filters.translate('files.col_name') }}</th>
                                 <th class="tm-files-col--num">{{ $filters.translate('files.col_size') }}</th>
                                 <th class="tm-files-col--num">{{ $filters.translate('files.col_date') }}</th>
+                                <th>{{ $filters.translate('files.col_uploader') }}</th>
                                 <th class="tm-files-col--actions"></th>
                             </tr>
                         </thead>
@@ -175,6 +176,7 @@
                                 </td>
                                 <td class="tm-files-col--num">—</td>
                                 <td class="tm-files-col--num">—</td>
+                                <td>—</td>
                                 <td class="tm-files-col--actions"></td>
                             </tr>
                             <tr
@@ -200,6 +202,7 @@
                                 </td>
                                 <td class="tm-files-col--num">—</td>
                                 <td class="tm-files-col--num">—</td>
+                                <td>—</td>
                                 <td class="tm-files-col--actions relative" @click.stop>
                                     <button type="button" class="tm-files-icon-btn" @click="toggleActionMenu('folder:' + folder.path)">&#8942;</button>
                                     <div v-if="openMenuKey === 'folder:' + folder.path" class="tm-files-menu">
@@ -235,6 +238,7 @@
                                 </td>
                                 <td class="tm-files-col--num">{{ formatSize(file.bytes) }}</td>
                                 <td class="tm-files-col--num">{{ formatDate(file.timestamp) }}</td>
+                                <td>{{ uploaderLabel(file) }}</td>
                                 <td class="tm-files-col--actions relative" @click.stop>
                                     <button type="button" class="tm-files-icon-btn" @click="toggleActionMenu('file:' + file.path)">&#8942;</button>
                                     <div v-if="openMenuKey === 'file:' + file.path" class="tm-files-menu">

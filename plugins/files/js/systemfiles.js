@@ -982,6 +982,14 @@ const app = Vue.createApp({
                     return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
                 },
 
+                uploaderLabel(file) {
+                    if (!file || !file.uploaded_by) {
+                        return '—';
+                    }
+
+                    return file.uploaded_by;
+                },
+
                 showMessage(text, type) {
                     this.message      = text;
                     this.messageClass = type === 'error' ? 'bg-rose-500' : 'bg-teal-500';

@@ -330,6 +330,11 @@ class files extends Plugin
             ], 500);
         }
 
+        $this->getManager()->recordUpload(
+            $this->getManager()->joinPath($relativeDir, $safeFilename),
+            $this->currentUsername($request)
+        );
+
         $this->cleanupOldTmpFiles();
 
         return $this->jsonResponse($response, [
@@ -522,6 +527,11 @@ class files extends Plugin
             ], 500);
         }
 
+        $this->getManager()->recordUpload(
+            $this->getManager()->joinPath($relativeDir, $safeFilename),
+            $this->currentUsername($request)
+        );
+
         return $this->jsonResponse($response, [
             'message' => 'files.msg_upload_success',
         ]);
@@ -590,6 +600,16 @@ class files extends Plugin
         }
 
         return $this->fileManager;
+    }
+
+    private function currentUsername(Request $request): string
+    {
+        $username = $request->getAttribute('c_username');
+        if (is_string($username) && trim($username) !== '') {
+            return trim($username);
+        }
+
+        return 'unknown';
     }
 
     private function getTmpDir(): string
