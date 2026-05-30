@@ -17,6 +17,7 @@ class VersionStore
     private AssetVersionStore $assetVersions;
     private PageSnapshotService $snapshots;
     private TrashDownloadService $downloads;
+    private VersionExportService $exports;
 
     public function __construct()
     {
@@ -26,6 +27,34 @@ class VersionStore
         $this->assetVersions = new AssetVersionStore($this->storage, $this->records, $this->diff);
         $this->snapshots = new PageSnapshotService($this->storage);
         $this->downloads = new TrashDownloadService($this->assetVersions);
+        $this->exports = new VersionExportService();
+    }
+
+    public function runRetentionMaintenance(array $pluginSettings = []): array
+    {
+        $settings = $this->getSettings($pluginSettings);
+
+        return [
+            'purged' => $this->purgeExpiredTrash($settings),
+        ];
+    }
+
+    public function exportPageHistory(object $item, array $metadata): ?array
+    {
+        $pageId = $this->resolvePageId($item, $metadata);
+        $record = $this->records->loadPageRecord($pageId);
+        $pageMeta = [
+            'title' => $metadata['meta']['title'] ?? null,
+            'url' => $item->urlRelWoF ?? $item->url ?? null,
+            'path' => $item->path ?? null,
+        ];
+
+        return $this->exports->createPageExport($pageId, $record, $pageMeta);
+    }
+
+    public function exportAllHistory(): ?array
+    {
+        return $this->exports->createFullExport($this->records, $this->storage);
     }
 
     public function getSettings(array $pluginSettings = []): array

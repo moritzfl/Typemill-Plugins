@@ -118,6 +118,22 @@ class versions extends Plugin
             ],
             [
                 'httpMethod' => 'get',
+                'route' => '/api/v1/versions/export',
+                'name' => 'versions.export.all',
+                'class' => 'Plugins\versions\versions:exportAllHistory',
+                'resource' => 'system',
+                'privilege' => 'read',
+            ],
+            [
+                'httpMethod' => 'post',
+                'route' => '/api/v1/versions/maintenance/retention',
+                'name' => 'versions.maintenance.retention',
+                'class' => 'Plugins\versions\versions:runRetentionMaintenance',
+                'resource' => 'system',
+                'privilege' => 'update',
+            ],
+            [
+                'httpMethod' => 'get',
                 'route' => '/api/v1/versions/page',
                 'name' => 'versions.page.get',
                 'class' => 'Plugins\versions\versions:getPageVersions',
@@ -145,6 +161,14 @@ class versions extends Plugin
                 'route' => '/api/v1/versions/page/current',
                 'name' => 'versions.page.current.get',
                 'class' => 'Plugins\versions\versions:getCurrentMarkdown',
+                'resource' => 'mycontent',
+                'privilege' => 'read',
+            ],
+            [
+                'httpMethod' => 'get',
+                'route' => '/api/v1/versions/page/export',
+                'name' => 'versions.page.export',
+                'class' => 'Plugins\versions\versions:exportPageHistory',
                 'resource' => 'mycontent',
                 'privilege' => 'read',
             ],
@@ -377,11 +401,47 @@ class versions extends Plugin
             return $this->jsonResponse($response, ['message' => 'Download not available.'], 404);
         }
 
-        $response->getBody()->write($download['content']);
+        return $this->fileDownloadResponse($response, $download);
+    }
 
-        return $response
-            ->withHeader('Content-Type', $download['mime_type'])
-            ->withHeader('Content-Disposition', 'attachment; filename="' . str_replace(['"', '\\'], ['\"', '\\\\'], $download['filename']) . '"');
+    public function exportAllHistory(Request $request, Response $response, $args)
+    {
+        $download = $this->getStore()->exportAllHistory();
+        if (!$download) {
+            return $this->jsonResponse($response, ['message' => 'versions.msg_export_error'], 500);
+        }
+
+        return $this->fileDownloadResponse($response, $download);
+    }
+
+    public function exportPageHistory(Request $request, Response $response, $args)
+    {
+        $url = $request->getQueryParams()['url'] ?? false;
+        $resolved = $this->resolveItemAndMeta($response, $url);
+        if (isset($resolved['response'])) {
+            return $resolved['response'];
+        }
+
+        if ($permissionResponse = $this->guardPageAccess($request, $response, $resolved['metadata'], 'read')) {
+            return $permissionResponse;
+        }
+
+        $download = $this->getStore()->exportPageHistory($resolved['item'], $resolved['metadata']);
+        if (!$download) {
+            return $this->jsonResponse($response, ['message' => 'versions.msg_export_error'], 500);
+        }
+
+        return $this->fileDownloadResponse($response, $download);
+    }
+
+    public function runRetentionMaintenance(Request $request, Response $response, $args)
+    {
+        $result = $this->getStore()->runRetentionMaintenance($this->getPluginSettings() ?: []);
+
+        return $this->jsonResponse($response, [
+            'message' => 'versions.msg_retention_purged',
+            'purged' => $result['purged'],
+        ]);
     }
 
     public function getPageVersions(Request $request, Response $response, $args)
@@ -759,6 +819,15 @@ class versions extends Plugin
     private function getPreviewRenderer(): VersionPreviewRenderer
     {
         return new VersionPreviewRenderer($this->getSettings(), $this->urlinfo(), $this->getDispatcher());
+    }
+
+    private function fileDownloadResponse(Response $response, array $download): Response
+    {
+        $response->getBody()->write($download['content']);
+
+        return $response
+            ->withHeader('Content-Type', $download['mime_type'])
+            ->withHeader('Content-Disposition', 'attachment; filename="' . str_replace(['"', '\\'], ['\"', '\\\\'], $download['filename']) . '"');
     }
 
     private function jsonResponse(Response $response, array $payload, int $status = 200): Response

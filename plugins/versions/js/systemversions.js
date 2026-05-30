@@ -85,6 +85,44 @@ const app = Vue.createApp({
             this.restoreConflict = false;
         },
 
+        exportAll() {
+            var self = this;
+
+            tmaxios.get('/api/v1/versions/export', { responseType: 'blob' })
+                .then(function (response) {
+                    self.triggerBlobDownload(response, 'versions-export.zip');
+                })
+                .catch(function (error) {
+                    self.showMessage(handleErrorMessage(error) || 'versions.msg_export_error', 'error');
+                });
+        },
+
+        runRetention() {
+            var self = this;
+
+            tmaxios.post('/api/v1/versions/maintenance/retention')
+                .then(function (response) {
+                    self.showMessage(response.data.message || 'versions.msg_retention_purged', 'success');
+                    self.loadData();
+                })
+                .catch(function (error) {
+                    self.showMessage(handleErrorMessage(error) || 'versions.msg_retention_error', 'error');
+                });
+        },
+
+        triggerBlobDownload(response, fallbackName) {
+            var blobUrl = URL.createObjectURL(response.data);
+            var link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = this.downloadFilename(response.headers['content-disposition'], { title: fallbackName });
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(function () {
+                URL.revokeObjectURL(blobUrl);
+            }, 1000);
+        },
+
         downloadEntry(entry) {
             var self = this;
 
@@ -97,16 +135,7 @@ const app = Vue.createApp({
                 responseType: 'blob'
             })
             .then(function (response) {
-                var blobUrl = URL.createObjectURL(response.data);
-                var link = document.createElement('a');
-                link.href = blobUrl;
-                link.download = self.downloadFilename(response.headers['content-disposition'], entry);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                setTimeout(function () {
-                    URL.revokeObjectURL(blobUrl);
-                }, 1000);
+                self.triggerBlobDownload(response, entry.title || 'trash-entry');
             })
             .catch(function (error) {
                 self.showMessage(handleErrorMessage(error) || 'versions.msg_download_error', 'error');

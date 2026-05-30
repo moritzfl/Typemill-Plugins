@@ -25,6 +25,7 @@ describe('Access control', () => {
         { method: 'GET',    path: '/api/v1/versions/page?url=/' },
         { method: 'GET',    path: '/api/v1/versions/page/version?url=/&version_id=x' },
         { method: 'GET',    path: '/api/v1/versions/page/current?url=/' },
+        { method: 'GET',    path: '/api/v1/versions/page/export?url=/' },
         { method: 'POST',   path: '/api/v1/versions/page/restore' },
         { method: 'POST',   path: '/api/v1/versions/page/save' },
         { method: 'DELETE', path: '/api/v1/versions/article' },
@@ -36,6 +37,8 @@ describe('Access control', () => {
         { method: 'POST',   path: '/api/v1/versions/trash/restore' },
         { method: 'GET',    path: '/api/v1/versions/trash/version?record_id=x&version_id=x' },
         { method: 'GET',    path: '/api/v1/versions/trash/download?record_id=x&version_id=x' },
+        { method: 'GET',    path: '/api/v1/versions/export' },
+        { method: 'POST',   path: '/api/v1/versions/maintenance/retention' },
     ]
 
     for (const { method, path } of protectedEndpoints) {

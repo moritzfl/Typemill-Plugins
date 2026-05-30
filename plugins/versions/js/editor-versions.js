@@ -69,12 +69,20 @@
                         <h2 class="text-xl font-bold">{{ $filters.translate('Versions') }}</h2>
                         <p class="text-sm text-stone-500 dark:text-stone-300">{{ $filters.translate('Inspect changes, compare edits, and restore earlier versions.') }}</p>
                     </div>
-                    <button
-                        @click.prevent="loadVersions"
-                        class="px-3 py-2 bg-stone-700 dark:bg-stone-600 hover:bg-stone-900 hover:dark:bg-stone-900 text-white transition duration-100"
-                    >
-                        {{ $filters.translate('Refresh') }}
-                    </button>
+                    <div class="flex gap-2">
+                        <button
+                            @click.prevent="exportPageHistory"
+                            class="px-3 py-2 border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-600 hover:bg-stone-300 dark:hover:bg-stone-500 text-stone-900 dark:text-stone-200 transition duration-100"
+                        >
+                            {{ $filters.translate('versions.export_page') }}
+                        </button>
+                        <button
+                            @click.prevent="loadVersions"
+                            class="px-3 py-2 bg-stone-700 dark:bg-stone-600 hover:bg-stone-900 hover:dark:bg-stone-900 text-white transition duration-100"
+                        >
+                            {{ $filters.translate('Refresh') }}
+                        </button>
+                    </div>
                 </div>
 
                 <div v-if="loading" class="p-6 bg-stone-100 dark:bg-stone-800">{{ $filters.translate('Loading versions') }}...</div>
@@ -292,6 +300,31 @@
             this.loadVersions();
         },
         methods: {
+            exportPageHistory() {
+                var self = this;
+
+                tmaxios.get('/api/v1/versions/page/export', {
+                    params: { url: data.urlinfo.route },
+                    responseType: 'blob'
+                })
+                .then(function (response) {
+                    var blobUrl = URL.createObjectURL(response.data);
+                    var link = document.createElement('a');
+                    link.href = blobUrl;
+                    var disposition = response.headers['content-disposition'] || '';
+                    var match = disposition.match(/filename=\"?([^\";]+)\"?/i);
+                    link.download = (match && match[1]) ? match[1] : 'page-versions.json';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    setTimeout(function () {
+                        URL.revokeObjectURL(blobUrl);
+                    }, 1000);
+                })
+                .catch(function (error) {
+                    self.error = handleErrorMessage(error) || 'versions.msg_export_error';
+                });
+            },
             loadVersions() {
                 var self = this;
                 self.loading = true;

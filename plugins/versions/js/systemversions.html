@@ -4,12 +4,26 @@
             <h1 class="text-3xl font-bold">{{ $filters.translate('versions.recycle_bin') }}</h1>
             <p class="mt-2 text-stone-500 dark:text-stone-300">{{ $filters.translate('versions.recycle_bin_subtitle') }}</p>
         </div>
-        <button
-            @click.prevent="loadData"
-            class="px-3 py-2 bg-stone-700 dark:bg-stone-600 hover:bg-stone-900 hover:dark:bg-stone-900 text-white text-sm transition duration-100"
-        >
-            {{ $filters.translate('versions.refresh') }}
-        </button>
+        <div class="flex flex-wrap gap-2">
+            <button
+                @click.prevent="exportAll"
+                class="px-3 py-2 border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-600 hover:bg-stone-300 dark:hover:bg-stone-500 text-stone-900 dark:text-stone-200 text-sm transition duration-100"
+            >
+                {{ $filters.translate('versions.export_all') }}
+            </button>
+            <button
+                @click.prevent="runRetention"
+                class="px-3 py-2 border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-600 hover:bg-stone-300 dark:hover:bg-stone-500 text-stone-900 dark:text-stone-200 text-sm transition duration-100"
+            >
+                {{ $filters.translate('versions.run_retention') }}
+            </button>
+            <button
+                @click.prevent="loadData"
+                class="px-3 py-2 bg-stone-700 dark:bg-stone-600 hover:bg-stone-900 hover:dark:bg-stone-900 text-white text-sm transition duration-100"
+            >
+                {{ $filters.translate('versions.refresh') }}
+            </button>
+        </div>
     </div>
 
     <div class="mt-8">
