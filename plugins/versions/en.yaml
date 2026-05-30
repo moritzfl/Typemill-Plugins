@@ -58,12 +58,28 @@ VERSIONS_MSG_RESTORE_DATA_INCOMPLETE: Restore data is incomplete.
 VERSIONS_MSG_PREVIEW_ERROR: Preview could not be loaded.
 VERSIONS_MSG_DOWNLOAD_ERROR: Download could not be created.
 VERSIONS_EXPORT_ALL: Export all history
-VERSIONS_EXPORT_HISTORY: Export History
+VERSIONS_EXPORT_HISTORY: Export Site Content
 VERSIONS_EXPORT_PAGE: Export history
 VERSIONS_EXPORT_DIALOG_TITLE: Export version history
 VERSIONS_EXPORT_DIALOG_HELP: Choose what to include in the export file.
 VERSIONS_EXPORT_CURRENT_PAGE: This page only
 VERSIONS_EXPORT_ENTIRE_HISTORY: Entire history
+VERSIONS_EXPORT_FULL_TITLE: Export site content
+VERSIONS_EXPORT_FULL_SUBMIT: Export
+VERSIONS_EXPORT_FULL_HELP: Choose which media folders and recycle bin data to include. Content pages and version history for active pages are always included.
+VERSIONS_EXPORT_MEDIA_FOLDERS_TITLE: Media folders
+VERSIONS_EXPORT_INCLUDE_RECYCLE_BIN: Include recycle bin data
+VERSIONS_EXPORT_NO_MEDIA_FOLDERS: No media folders found on this site.
+VERSIONS_EXPORT_MEDIA_FILES: Uploaded files
+VERSIONS_EXPORT_MEDIA_LIVE: Live images
+VERSIONS_EXPORT_MEDIA_ORIGINAL: Original images
+VERSIONS_EXPORT_MEDIA_THUMBS: Thumbnails
+VERSIONS_EXPORT_MEDIA_CUSTOM: Custom files
+VERSIONS_LOADING_EXPORT_OPTIONS: Loading export options
+VERSIONS_EXPORTING: Exporting
+VERSIONS_SELECT_ALL: Select all
+VERSIONS_SELECT_NONE: Select none
+VERSIONS_MSG_EXPORT_OPTIONS_ERROR: Export options could not be loaded.
 VERSIONS_MSG_EXPORT_ERROR: Export could not be created.
 VERSIONS_NO_CHANGES: No changes
 INSPECT_CHANGES_COMPARE_EDITS_AND_RESTORE_EARLIER_VERSIONS: Inspect changes, compare edits, and restore earlier versions.

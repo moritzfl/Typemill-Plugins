@@ -80,6 +80,28 @@ class FileUploadMetaStoreTest extends TestCase
         $this->assertSame('admin', $listing['files'][0]['uploaded_by'] ?? null);
     }
 
+    public function testBrowseIncludesRecursiveFolderSize(): void
+    {
+        $manager = new FileManager($this->root);
+        mkdir($this->root . '/media/files/projects/nested', 0775, true);
+        file_put_contents($this->root . '/media/files/projects/a.txt', 'aaa');
+        file_put_contents($this->root . '/media/files/projects/nested/b.txt', 'bb');
+
+        $listing = $manager->browse('');
+        $this->assertNotNull($listing);
+
+        $projects = null;
+        foreach ($listing['folders'] as $folder) {
+            if ($folder['name'] === 'projects') {
+                $projects = $folder;
+                break;
+            }
+        }
+
+        $this->assertNotNull($projects);
+        $this->assertSame(5, $projects['bytes']);
+    }
+
     private function makeStore(): FileUploadMetaStore
     {
         return new FileUploadMetaStore($this->root . '/media/files');

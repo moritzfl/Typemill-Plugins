@@ -200,7 +200,7 @@
                                         <span class="tm-files-name-cell__label font-medium">{{ folder.name }}</span>
                                     </span>
                                 </td>
-                                <td class="tm-files-col--num">—</td>
+                                <td class="tm-files-col--num">{{ formatSize(folder.bytes) }}</td>
                                 <td class="tm-files-col--num">—</td>
                                 <td>—</td>
                                 <td class="tm-files-col--actions relative" @click.stop>

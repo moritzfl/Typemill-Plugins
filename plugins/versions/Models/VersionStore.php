@@ -43,9 +43,24 @@ class VersionStore
         return $this->exports->createPageExport($pageId, $record, $pageMeta);
     }
 
-    public function exportAllHistory(): ?array
+    public function exportAllHistory(ExportOptions $options): ?array
     {
-        return $this->exports->createFullExport($this->records, $this->storage);
+        return $this->exports->createFullExport($this->records, $this->storage, $options);
+    }
+
+    public function getExportOptionsPayload(): array
+    {
+        $folders = $this->exports->listMediaSubfolders($this->storage);
+        $defaults = ExportOptions::defaults($folders);
+
+        return [
+            'media_folders' => $folders,
+            'media_folder_sizes' => $this->exports->getMediaSubfolderSizes($this->storage),
+            'defaults' => [
+                'media_folders' => $defaults->mediaFolders,
+                'include_recycle_bin' => $defaults->includeRecycleBin,
+            ],
+        ];
     }
 
     public function getSettings(array $pluginSettings = []): array

@@ -47,20 +47,26 @@ someone opens **System → Versions**.
 Open the **Versions** tab on any page and click **Export history**. A dialog lets you choose:
 
 - **This page only** — downloads a JSON file with the full version record for that page.
-- **Entire history** — downloads a ZIP archive with version data for the whole site (see below).
+- **Entire history** — opens a chooser where you pick which **media subfolders** to include (for example `files`, `live`, `original`, `thumbs`, `custom`) and whether to include **recycle bin data**. Content pages and version history for active pages are always included.
 
 #### From the recycle bin
 
-Open **System → Versions** and click **Export History** to download the same **Entire history** ZIP without opening a page first.
+Open **System → Versions** and click **Export History** to open the same chooser and download the **Entire history** ZIP without opening a page first.
 
 #### What is in the ZIP export?
 
-The **Entire history** archive is a backup of all version-related data:
+The **Entire history** archive is a **content backup**. It does not include Typemill configuration (settings, themes, plugins, or cache).
 
-- `manifest.json` — export metadata
-- `pages/*.json` — version records for every page
-- `assets/*.json` — deleted asset records from the recycle bin
-- `snapshots/` — snapshot files referenced by trash entries (when present)
+| Path in ZIP | What it is |
+|-------------|------------|
+| `content/` | All current pages and folders (always included) |
+| `media/<folder>/` | Only the media subfolders you selected in the export dialog |
+| `versions/pages/` | Version history for active pages (always included). Deleted pages are included only when **Include recycle bin data** is checked. |
+| `versions/assets/` | Deleted asset records from the recycle bin (only when recycle bin is included) |
+| `versions/snapshots/` | Snapshot files used by the recycle bin (only when recycle bin is included) |
+| `manifest.json` | Export metadata (format version, selected media folders, recycle bin flag, file counts, timestamp) |
+
+Maximum export size is 200 MB. Very large sites may need to export in smaller parts or increase server limits.
 
 #### Getting your data back
 
@@ -69,24 +75,22 @@ The **Entire history** archive is a backup of all version-related data:
 - **Older page content** — open the page, go to **Versions**, click **Compare & Restore** on the version you want, then **Restore left** (or edit the right panel and **Save as draft**).
 - **Deleted page or file** — open **System → Versions**, find the item in the recycle bin, and click **Restore**.
 
-Exports are for **backups**, moving data between servers, or recovery after the plugin data was lost. There is no **Import** button; you restore the files manually, then use the admin UI as above.
+Exports are for **backups**, moving to another server, or disaster recovery. There is no **Import** button — copy the files back into place on the Typemill server, then use the admin as needed.
 
 **From a single-page JSON export**
 
 1. Find the `record_id` field in the JSON file.
-2. Copy the file to `data/versions/pages/<record_id>.json` on your Typemill server (create the `pages` folder if needed).
-3. In the admin, open that page → **Versions**. The history from the backup should appear; use **Compare & Restore** to write an older version back to the live page.
+2. Copy the file to `data/versions/pages/<record_id>.json`.
+3. Open that page in the admin → **Versions** and use **Compare & Restore** if you need an older revision.
 
 **From an Entire history ZIP**
 
-1. Extract the archive.
-2. Copy its contents into Typemill's `data/versions/` folder, merging with existing files:
-   - `pages/*.json` → `data/versions/pages/`
-   - `assets/*.json` → `data/versions/assets/`
-   - `snapshots/` → `data/versions/snapshots/`
-3. Open **System → Versions** for recycle-bin entries, or open individual pages → **Versions** for page history. Use **Restore** or **Compare & Restore** to put content back on the site.
-
-Stop Typemill or take a backup of `data/versions/` before overwriting files. Restoring plugin data brings back version history and recycle-bin entries; live page files under `content/` are updated only when you restore through the admin.
+1. Extract the archive on your computer.
+2. Copy the folders onto the Typemill server (stop Typemill first, or back up the existing folders):
+   - `content/` → Typemill `content/`
+   - `media/` → Typemill `media/`
+   - `versions/` → Typemill `data/versions/` (merge `pages/`, `assets/`, and `snapshots/`)
+3. Start Typemill again. Your pages and media files are live immediately. For version timelines and recycle-bin entries, open **Versions** on a page or **System → Versions** and use **Compare & Restore** / **Restore** as usual.
 
 ZIP export uses PHP's `zip` extension when available; otherwise a built-in fallback is used. The **This page only** export is always a single JSON file and does not require ZIP support.
 
@@ -115,4 +119,5 @@ Open **System → Versions** to adjust:
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
 | `/api/v1/versions/page/export?url=<page-url>` | GET | JSON export for one page |
-| `/api/v1/versions/export` | GET | ZIP export of all version data |
+| `/api/v1/versions/export/options` | GET | Lists available media subfolders and default export options |
+| `/api/v1/versions/export?media=files,live&include_recycle_bin=1` | GET | ZIP backup with selected media folders and optional recycle bin data |

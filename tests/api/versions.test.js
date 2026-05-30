@@ -38,6 +38,7 @@ describe('Access control', () => {
         { method: 'GET',    path: '/api/v1/versions/trash/version?record_id=x&version_id=x' },
         { method: 'GET',    path: '/api/v1/versions/trash/download?record_id=x&version_id=x' },
         { method: 'GET',    path: '/api/v1/versions/trash/preview?record_id=x&version_id=x' },
+        { method: 'GET',    path: '/api/v1/versions/export/options' },
         { method: 'GET',    path: '/api/v1/versions/export' },
     ]
 
@@ -121,6 +122,20 @@ describe('GET /api/v1/versions/trash', () => {
             expect(entry).toHaveProperty('title')
             expect(entry).toHaveProperty('deleted_at')
         }
+    })
+})
+
+describe('GET /api/v1/versions/export/options', () => {
+    it.skipIf(!configured)('returns available media folders and defaults', async () => {
+        requireSession()
+        const resp = await apiGet(session, `${BASE_URL}/api/v1/versions/export/options`)
+        expect(resp.status).toBe(200)
+
+        const data = await resp.json()
+        expect(Array.isArray(data.media_folders)).toBe(true)
+        expect(data.media_folder_sizes).toEqual(expect.any(Object))
+        expect(data.defaults).toHaveProperty('media_folders')
+        expect(data.defaults).toHaveProperty('include_recycle_bin')
     })
 })
 

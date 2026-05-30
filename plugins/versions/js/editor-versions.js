@@ -81,6 +81,7 @@
 
     app.component('tab-versions', {
         props: ['item'],
+        mixins: typeof TypemillExportOptionsMixin !== 'undefined' ? [TypemillExportOptionsMixin] : [],
         template: `
             <section class="dark:bg-stone-700 dark:text-stone-200">
                 <div class="flex justify-between items-center mb-6">
@@ -280,7 +281,7 @@
                                 type="button"
                                 class="tm-export-dialog__secondary"
                                 :disabled="exportInProgress"
-                                @click.prevent="exportEntireHistory"
+                                @click.prevent="openFullExportFromEditor"
                             >
                                 {{ $filters.translate('versions.export_entire_history') }}
                             </button>
@@ -292,6 +293,49 @@
                             >
                                 {{ $filters.translate('versions.cancel') }}
                             </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="fullExportDialogOpen" class="fixed inset-0 bg-stone-700/90 flex items-center justify-center z-50" @click.self="closeFullExportDialog">
+                    <div class="bg-white dark:bg-stone-600 border border-teal-500 dark:border-stone-200 shadow-lg w-11/12 md:max-w-lg mx-auto max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true">
+                        <div class="text-left p-6">
+                            <h3 class="text-xl font-bold text-stone-900 dark:text-stone-200 mb-4">{{ $filters.translate('versions.export_full_title') }}</h3>
+                            <p class="text-stone-700 dark:text-stone-200 text-sm mb-5">{{ $filters.translate('versions.export_full_help') }}</p>
+                            <div v-if="fullExportOptionsLoading" class="text-sm text-stone-500 dark:text-stone-400 italic py-2">{{ $filters.translate('versions.loading_export_options') }}…</div>
+                            <template v-else>
+                                <div class="mb-4">
+                                    <h4 class="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-2">{{ $filters.translate('versions.export_media_folders_title') }}</h4>
+                                    <div class="tm-export-media-links mb-2">
+                                        <button type="button" class="tm-export-link-btn" @click.prevent="selectAllExportMedia">{{ $filters.translate('versions.select_all') }}</button>
+                                        <button type="button" class="tm-export-link-btn" @click.prevent="clearExportMediaSelection">{{ $filters.translate('versions.select_none') }}</button>
+                                    </div>
+                                    <div v-if="fullExportMediaFolders.length === 0" class="text-sm text-stone-500 dark:text-stone-400 italic">{{ $filters.translate('versions.export_no_media_folders') }}</div>
+                                    <div v-else class="tm-export-checklist bg-stone-50 dark:bg-stone-700/40 border border-stone-200 dark:border-stone-500 p-3">
+                                        <label v-for="folder in fullExportMediaFolders" :key="folder" class="tm-export-check">
+                                            <input type="checkbox" :checked="isExportMediaSelected(folder)" @change="toggleExportMediaFolder(folder)">
+                                            <span class="tm-export-check__text">
+                                                <span class="tm-export-check__label">
+                                                    {{ exportMediaFolderLabel(folder) }}<span v-if="exportMediaFolderSize(folder)" class="tm-export-check__size">{{ exportMediaFolderSize(folder) }}</span>
+                                                </span>
+                                                <span class="tm-export-check__path">{{ exportMediaFolderPath(folder) }}</span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="border-t border-stone-200 dark:border-stone-500 pt-4">
+                                    <label class="tm-export-check">
+                                        <input type="checkbox" v-model="fullExportIncludeRecycleBin">
+                                        <span>{{ $filters.translate('versions.export_include_recycle_bin') }}</span>
+                                    </label>
+                                </div>
+                            </template>
+                            <div class="flex justify-end gap-2 mt-6">
+                                <button type="button" @click.prevent="closeFullExportDialog" :disabled="fullExportInProgress" class="tm-export-modal-btn">{{ $filters.translate('versions.cancel') }}</button>
+                                <button type="button" @click.prevent="runFullExportDownload" :disabled="fullExportOptionsLoading || fullExportInProgress" class="tm-export-modal-btn tm-export-modal-btn--primary">
+                                    {{ fullExportInProgress ? $filters.translate('versions.exporting') + '…' : $filters.translate('versions.export_full_submit') }}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -387,20 +431,12 @@
             },
 
             exportEntireHistory() {
-                var self = this;
-                self.exportInProgress = true;
-                self.error = '';
+                this.openFullExportFromEditor();
+            },
 
-                tmaxios.get('/api/v1/versions/export', { responseType: 'blob' })
-                .then(function (response) {
-                    self.triggerExportDownload(response, 'versions-export.zip');
-                    self.exportInProgress = false;
-                    self.exportDialogOpen = false;
-                })
-                .catch(function (error) {
-                    self.exportInProgress = false;
-                    self.error = handleErrorMessage(error) || 'versions.msg_export_error';
-                });
+            openFullExportFromEditor() {
+                this.exportDialogOpen = false;
+                this.openFullExportDialog();
             },
 
             triggerExportDownload(response, fallbackName) {

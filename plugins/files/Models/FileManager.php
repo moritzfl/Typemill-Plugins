@@ -142,6 +142,7 @@ class FileManager
                 $folders[] = [
                     'name' => $entry,
                     'path' => $relativeEntry,
+                    'bytes' => $this->directorySize($entryPath),
                 ];
                 continue;
             }
@@ -467,17 +468,29 @@ class FileManager
 
     private function folderSize(string $directory): int
     {
+        return $this->directorySize($directory, self::MAX_ZIP_BYTES + 1);
+    }
+
+    private function directorySize(string $directory, ?int $maxBytes = null): int
+    {
         $size = 0;
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS)
         );
 
         foreach ($iterator as $fileInfo) {
-            if ($fileInfo instanceof \SplFileInfo && $fileInfo->isFile()) {
-                $size += $fileInfo->getSize();
+            if (!$fileInfo instanceof \SplFileInfo || !$fileInfo->isFile()) {
+                continue;
             }
 
-            if ($size > self::MAX_ZIP_BYTES) {
+            $fileSize = $fileInfo->getSize();
+            if ($fileSize === false) {
+                continue;
+            }
+
+            $size += (int) $fileSize;
+
+            if ($maxBytes !== null && $size > $maxBytes) {
                 break;
             }
         }

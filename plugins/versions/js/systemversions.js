@@ -78,6 +78,7 @@ if (typeof previewModalTemplate !== 'undefined' && versionsSystemTemplate.indexO
 }
 
 const trashPreviewMixins = typeof TypemillPreviewMixin !== 'undefined' ? [TypemillPreviewMixin] : [];
+const exportOptionsMixins = typeof TypemillExportOptionsMixin !== 'undefined' ? [TypemillExportOptionsMixin] : [];
 
 const TRASH_ICON_PATHS = {
     page: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zm-2 10H8v-2h3v2zm0-4H8V8h3v2z',
@@ -88,7 +89,7 @@ const TRASH_ICON_PATHS = {
 
 const app = Vue.createApp({
     template: versionsSystemAppTemplate,
-    mixins: trashPreviewMixins,
+    mixins: trashPreviewMixins.concat(exportOptionsMixins),
 
     data() {
         return {
@@ -246,15 +247,7 @@ const app = Vue.createApp({
         },
 
         exportHistory() {
-            var self = this;
-
-            tmaxios.get('/api/v1/versions/export', { responseType: 'blob' })
-                .then(function (response) {
-                    self.triggerBlobDownload(response, 'versions-export.zip');
-                })
-                .catch(function (error) {
-                    self.showMessage(handleErrorMessage(error) || 'versions.msg_export_error', 'error');
-                });
+            this.openFullExportDialog();
         },
 
         triggerBlobDownload(response, fallbackName) {

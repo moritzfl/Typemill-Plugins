@@ -3,6 +3,7 @@
 namespace Plugins\versions;
 
 use Plugins\versions\Middleware\AssetTrashMiddleware;
+use Plugins\versions\Models\ExportOptions;
 use Plugins\versions\Models\SnapshotTooLargeException;
 use Plugins\preview\PreviewIntegration;
 use Plugins\versions\Models\VersionStore;
@@ -125,6 +126,14 @@ class versions extends Plugin
             ],
             [
                 'httpMethod' => 'get',
+                'route' => '/api/v1/versions/export/options',
+                'name' => 'versions.export.options',
+                'class' => 'Plugins\versions\versions:getExportOptions',
+                'resource' => 'system',
+                'privilege' => 'read',
+            ],
+            [
+                'httpMethod' => 'get',
                 'route' => '/api/v1/versions/export',
                 'name' => 'versions.export.all',
                 'class' => 'Plugins\versions\versions:exportAllHistory',
@@ -195,6 +204,7 @@ class versions extends Plugin
         if ($this->editorroute) {
             $this->addCSS('/versions/js/mergely.css');
             $this->addJS('/versions/js/mergely.min.js');
+            $this->addJS('/versions/js/export-options.js');
             $this->addInlineJS(file_get_contents(__DIR__ . '/js/editor-versions.js'));
         }
     }
@@ -215,6 +225,7 @@ class versions extends Plugin
 
         if (trim($this->route, '/') === 'tm/versions') {
             $navi['Versions']['active'] = true;
+            $this->addJS('/versions/js/export-options.js');
             $template = file_get_contents(__DIR__ . '/js/systemversions.html');
             $js = file_get_contents(__DIR__ . '/js/systemversions.js');
             $this->addInlineJS('const versionsSystemTemplate = ' . json_encode($template) . '; ' . $js);
@@ -411,9 +422,17 @@ class versions extends Plugin
         return $this->fileDownloadResponse($response, $preview, true);
     }
 
+    public function getExportOptions(Request $request, Response $response, $args)
+    {
+        return $this->jsonResponse($response, $this->getStore()->getExportOptionsPayload());
+    }
+
     public function exportAllHistory(Request $request, Response $response, $args)
     {
-        $download = $this->getStore()->exportAllHistory();
+        $store = $this->getStore();
+        $availableFolders = $store->getExportOptionsPayload()['media_folders'];
+        $options = ExportOptions::fromRequestParams($request->getQueryParams(), $availableFolders);
+        $download = $store->exportAllHistory($options);
         if (!$download) {
             return $this->jsonResponse($response, ['message' => 'versions.msg_export_error'], 500);
         }

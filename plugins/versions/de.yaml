@@ -58,12 +58,28 @@ VERSIONS_MSG_RESTORE_DATA_INCOMPLETE: Daten zum Wiederherstellen sind unvollstä
 VERSIONS_MSG_PREVIEW_ERROR: Vorschau konnte nicht geladen werden.
 VERSIONS_MSG_DOWNLOAD_ERROR: Download konnte nicht erstellt werden.
 VERSIONS_EXPORT_ALL: Gesamten Verlauf exportieren
-VERSIONS_EXPORT_HISTORY: Verlauf exportieren
+VERSIONS_EXPORT_HISTORY: Website-Inhalt exportieren
 VERSIONS_EXPORT_PAGE: Verlauf exportieren
 VERSIONS_EXPORT_DIALOG_TITLE: Versionsverlauf exportieren
 VERSIONS_EXPORT_DIALOG_HELP: Wählen Sie, was in die Exportdatei aufgenommen werden soll.
 VERSIONS_EXPORT_CURRENT_PAGE: Nur diese Seite
 VERSIONS_EXPORT_ENTIRE_HISTORY: Gesamter Verlauf
+VERSIONS_EXPORT_FULL_TITLE: Website-Inhalt exportieren
+VERSIONS_EXPORT_FULL_SUBMIT: Exportieren
+VERSIONS_EXPORT_FULL_HELP: Wählen Sie, welche Medienordner und Papierkorb-Daten exportiert werden sollen. Inhaltsseiten und Versionsverläufe aktiver Seiten sind immer enthalten.
+VERSIONS_EXPORT_MEDIA_FOLDERS_TITLE: Medienordner
+VERSIONS_EXPORT_INCLUDE_RECYCLE_BIN: Papierkorb-Daten einschließen
+VERSIONS_EXPORT_NO_MEDIA_FOLDERS: Auf dieser Website wurden keine Medienordner gefunden.
+VERSIONS_EXPORT_MEDIA_FILES: Hochgeladene Dateien
+VERSIONS_EXPORT_MEDIA_LIVE: Live-Bilder
+VERSIONS_EXPORT_MEDIA_ORIGINAL: Originalbilder
+VERSIONS_EXPORT_MEDIA_THUMBS: Vorschaubilder
+VERSIONS_EXPORT_MEDIA_CUSTOM: Eigene Dateien
+VERSIONS_LOADING_EXPORT_OPTIONS: Exportoptionen werden geladen
+VERSIONS_EXPORTING: Export läuft
+VERSIONS_SELECT_ALL: Alle auswählen
+VERSIONS_SELECT_NONE: Keine auswählen
+VERSIONS_MSG_EXPORT_OPTIONS_ERROR: Exportoptionen konnten nicht geladen werden.
 VERSIONS_MSG_EXPORT_ERROR: Export konnte nicht erstellt werden.
 VERSIONS_NO_CHANGES: Keine Änderungen
 INSPECT_CHANGES_COMPARE_EDITS_AND_RESTORE_EARLIER_VERSIONS: Änderungen prüfen, Bearbeitungen vergleichen und frühere Versionen wiederherstellen.
