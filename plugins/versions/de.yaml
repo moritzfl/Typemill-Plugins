@@ -55,10 +55,7 @@ VERSIONS_MSG_PREVIEW_ERROR: Vorschau konnte nicht geladen werden.
 VERSIONS_MSG_DOWNLOAD_ERROR: Download konnte nicht erstellt werden.
 VERSIONS_EXPORT_ALL: Gesamten Verlauf exportieren
 VERSIONS_EXPORT_PAGE: Verlauf exportieren
-VERSIONS_RUN_RETENTION: Abgelaufenen Papierkorb bereinigen
 VERSIONS_MSG_EXPORT_ERROR: Export konnte nicht erstellt werden.
-VERSIONS_MSG_RETENTION_PURGED: Abgelaufene Papierkorbeinträge wurden entfernt.
-VERSIONS_MSG_RETENTION_ERROR: Papierkorb-Aufbewahrung konnte nicht ausgeführt werden.
 VERSIONS_NO_CHANGES: Keine Änderungen
 INSPECT_CHANGES_COMPARE_EDITS_AND_RESTORE_EARLIER_VERSIONS: Änderungen prüfen, Bearbeitungen vergleichen und frühere Versionen wiederherstellen.
 REFRESH: Aktualisieren

@@ -125,14 +125,6 @@ class versions extends Plugin
                 'privilege' => 'read',
             ],
             [
-                'httpMethod' => 'post',
-                'route' => '/api/v1/versions/maintenance/retention',
-                'name' => 'versions.maintenance.retention',
-                'class' => 'Plugins\versions\versions:runRetentionMaintenance',
-                'resource' => 'system',
-                'privilege' => 'update',
-            ],
-            [
                 'httpMethod' => 'get',
                 'route' => '/api/v1/versions/page',
                 'name' => 'versions.page.get',
@@ -432,16 +424,6 @@ class versions extends Plugin
         }
 
         return $this->fileDownloadResponse($response, $download);
-    }
-
-    public function runRetentionMaintenance(Request $request, Response $response, $args)
-    {
-        $result = $this->getStore()->runRetentionMaintenance($this->getPluginSettings() ?: []);
-
-        return $this->jsonResponse($response, [
-            'message' => 'versions.msg_retention_purged',
-            'purged' => $result['purged'],
-        ]);
     }
 
     public function getPageVersions(Request $request, Response $response, $args)

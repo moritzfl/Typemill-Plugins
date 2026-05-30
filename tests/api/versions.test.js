@@ -38,7 +38,6 @@ describe('Access control', () => {
         { method: 'GET',    path: '/api/v1/versions/trash/version?record_id=x&version_id=x' },
         { method: 'GET',    path: '/api/v1/versions/trash/download?record_id=x&version_id=x' },
         { method: 'GET',    path: '/api/v1/versions/export' },
-        { method: 'POST',   path: '/api/v1/versions/maintenance/retention' },
     ]
 
     for (const { method, path } of protectedEndpoints) {

@@ -30,15 +30,6 @@ class VersionStore
         $this->exports = new VersionExportService();
     }
 
-    public function runRetentionMaintenance(array $pluginSettings = []): array
-    {
-        $settings = $this->getSettings($pluginSettings);
-
-        return [
-            'purged' => $this->purgeExpiredTrash($settings),
-        ];
-    }
-
     public function exportPageHistory(object $item, array $metadata): ?array
     {
         $pageId = $this->resolvePageId($item, $metadata);
@@ -161,6 +152,8 @@ class VersionStore
         ];
 
         if ($action === 'delete') {
+            $this->purgeExpiredTrashFromSettings($pluginSettings);
+
             $record['deleted'] = [
                 'pageid' => $pageId,
                 'version_id' => $entry['id'],
@@ -230,6 +223,8 @@ class VersionStore
         array $pluginSettings = []
     ): array {
         $settings = $this->getSettings($pluginSettings);
+        $this->purgeExpiredTrashFromSettings($pluginSettings);
+
         return $this->assetVersions->storeDeletion(
             $assetType,
             $name,
@@ -246,6 +241,8 @@ class VersionStore
         array $pluginSettings = []
     ): array {
         $settings = $this->getSettings($pluginSettings);
+        $this->purgeExpiredTrashFromSettings($pluginSettings);
+
         return $this->assetVersions->storeMediaFilesDeletion(
             $relativePath,
             $username,
@@ -511,6 +508,11 @@ class VersionStore
         }
 
         return ['deleted' => $deleted];
+    }
+
+    private function purgeExpiredTrashFromSettings(array $pluginSettings = []): void
+    {
+        $this->purgeExpiredTrash($this->getSettings($pluginSettings));
     }
 
     public function purgeExpiredTrash(array $settings): int

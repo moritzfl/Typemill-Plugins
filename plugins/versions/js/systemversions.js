@@ -237,19 +237,6 @@ const app = Vue.createApp({
                 });
         },
 
-        runRetention() {
-            var self = this;
-
-            tmaxios.post('/api/v1/versions/maintenance/retention')
-                .then(function (response) {
-                    self.showMessage(response.data.message || 'versions.msg_retention_purged', 'success');
-                    self.loadData();
-                })
-                .catch(function (error) {
-                    self.showMessage(handleErrorMessage(error) || 'versions.msg_retention_error', 'error');
-                });
-        },
-
         triggerBlobDownload(response, fallbackName) {
             var blobUrl = URL.createObjectURL(response.data);
             var link = document.createElement('a');

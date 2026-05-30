@@ -55,10 +55,7 @@ VERSIONS_MSG_PREVIEW_ERROR: Preview could not be loaded.
 VERSIONS_MSG_DOWNLOAD_ERROR: Download could not be created.
 VERSIONS_EXPORT_ALL: Export all history
 VERSIONS_EXPORT_PAGE: Export history
-VERSIONS_RUN_RETENTION: Purge expired trash
 VERSIONS_MSG_EXPORT_ERROR: Export could not be created.
-VERSIONS_MSG_RETENTION_PURGED: Expired recycle bin entries were removed.
-VERSIONS_MSG_RETENTION_ERROR: Recycle bin retention could not be run.
 VERSIONS_NO_CHANGES: No changes
 INSPECT_CHANGES_COMPARE_EDITS_AND_RESTORE_EARLIER_VERSIONS: Inspect changes, compare edits, and restore earlier versions.
 REFRESH: Refresh
