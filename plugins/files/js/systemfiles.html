@@ -182,7 +182,7 @@
                             <tr
                                 v-for="folder in filteredFolders"
                                 :key="'l-f-' + folder.path"
-                                class="tm-files-row tm-files-row--clickable tm-files-row--draggable"
+                                class="tm-files-row tm-files-row--clickable"
                                 :class="{ 'tm-files-row--drop-target': dropTargetPath === folder.path }"
                                 draggable="true"
                                 @click="onFolderRowClick(folder)"
@@ -219,7 +219,7 @@
                             <tr
                                 v-for="file in filteredFiles"
                                 :key="'l-file-' + file.path"
-                                class="tm-files-row tm-files-row--draggable"
+                                class="tm-files-row"
                                 :class="canPreviewFile(file) ? 'tm-files-row--clickable' : ''"
                                 draggable="true"
                                 @click="openFileEntry(file)"

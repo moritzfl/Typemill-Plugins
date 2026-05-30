@@ -81,8 +81,6 @@ filesStyle.textContent = `
 .tm-files-row--clickable{cursor:pointer}
 .tm-files-row--clickable:hover td{background:#fafaf9}
 .dark .tm-files-row--clickable:hover td{background:#1c1917}
-.tm-files-row--draggable{cursor:grab}
-.tm-files-row--draggable:active{cursor:grabbing}
 .tm-files-row--drop-target td{background:#ccfbf1!important}
 .dark .tm-files-row--drop-target td{background:rgba(19,78,74,.55)!important}
 .tm-files-panel--transfer{margin-top:.5rem;border:1px solid #e7e5e4;background:#fff}

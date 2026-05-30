@@ -86,6 +86,8 @@
                                 v-for="entry in filteredTrash"
                                 :key="entryMenuKey(entry)"
                                 class="tm-trash-row"
+                                :class="canPreviewEntry(entry) ? 'tm-trash-row--clickable' : ''"
+                                @click="openTrashEntry(entry)"
                             >
                                 <td>
                                     <span class="tm-trash-name-cell">

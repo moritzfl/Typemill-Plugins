@@ -54,8 +54,9 @@ trashStyle.textContent = `
 .tm-trash-row td.tm-trash-col--actions{width:3.25rem;padding-right:0;text-align:center;vertical-align:middle}
 .dark .tm-trash-row td{border-color:#292524}
 .dark .tm-trash-row td.tm-trash-col--meta{color:#a8a29e}
-.tm-trash-row:hover td{background:#fafaf9}
-.dark .tm-trash-row:hover td{background:#1c1917}
+.tm-trash-row--clickable{cursor:pointer}
+.tm-trash-row--clickable:hover td{background:#fafaf9}
+.dark .tm-trash-row--clickable:hover td{background:#1c1917}
 .tm-trash-name-cell{display:flex;align-items:flex-start;gap:.75rem;min-width:0;max-width:100%}
 .tm-trash-name-cell__body{display:flex;flex-direction:column;gap:.2rem;min-width:0}
 .tm-trash-name-cell__label{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -204,13 +205,26 @@ const app = Vue.createApp({
             this.openMenuKey = null;
         },
 
+        canPreviewEntry(entry) {
+            return this.previewAvailable && !!(entry && entry.previewable);
+        },
+
+        openTrashEntry(entry) {
+            if (!this.canPreviewEntry(entry)) {
+                return;
+            }
+
+            this.closeActionMenu();
+            if (typeof this.openTrashPreview === 'function') {
+                this.openTrashPreview(entry);
+            }
+        },
+
         runMenuAction(action, entry) {
             this.closeActionMenu();
 
             if (action === 'preview') {
-                if (typeof this.openTrashPreview === 'function') {
-                    this.openTrashPreview(entry);
-                }
+                this.openTrashEntry(entry);
                 return;
             }
             if (action === 'download') {
