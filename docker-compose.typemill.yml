@@ -3,7 +3,7 @@ services:
     build:
       # Builds directly from the Typemill GitHub repo — no local checkout needed.
       # Update the tag here when you want to test against a newer Typemill release.
-      context: https://github.com/typemill/typemill.git#v2.21.3
+      context: https://github.com/typemill/typemill.git#v2.23.0
     ports:
       - "8080:80"
     volumes:

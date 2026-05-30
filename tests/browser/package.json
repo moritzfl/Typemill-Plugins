@@ -1,0 +1,8 @@
+{
+  "name": "typemill-browser-tests",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "puppeteer": "^24.36.0"
+  }
+}

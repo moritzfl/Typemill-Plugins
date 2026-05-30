@@ -19,7 +19,7 @@
  */
 
 import { execSync, spawnSync } from 'node:child_process'
-import { existsSync, writeFileSync, copyFileSync, mkdirSync } from 'node:fs'
+import { existsSync, writeFileSync, readFileSync, copyFileSync, mkdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -45,6 +45,33 @@ const TM_PASSWORD = 'Test1234!'
 
 function log(msg) { console.log(`[setup] ${msg}`) }
 function die(msg) { console.error(`[setup] ERROR: ${msg}`); process.exit(1) }
+
+function ensureTestPluginsActive() {
+    if (!existsSync(SETTINGS_FILE)) {
+        return
+    }
+
+    let content = readFileSync(SETTINGS_FILE, 'utf8')
+    for (const plugin of ['versions', 'preview', 'files']) {
+        const blockRe = new RegExp(
+            `(^\\s+${plugin}:\\s*\\n(?:\\s+[^\\n]+\\n)*?\\s+active:\\s*)(true|false)`,
+            'm'
+        )
+        if (blockRe.test(content)) {
+            content = content.replace(blockRe, '$1true')
+            continue
+        }
+
+        if (!content.includes(`\n    ${plugin}:`)) {
+            content = content.replace(
+                /^plugins:\s*\n/m,
+                `plugins:\n    ${plugin}:\n        active: true\n`
+            )
+        }
+    }
+
+    writeFileSync(SETTINGS_FILE, content)
+}
 
 // ---------------------------------------------------------------------------
 // 1. Start container
@@ -113,6 +140,30 @@ if ((zipCheck.stdout || '').trim() !== 'yes') {
 }
 
 // ---------------------------------------------------------------------------
+// 2c. Composer vendor (Typemill v2.23+ image may not ship vendor at runtime)
+// ---------------------------------------------------------------------------
+
+log('Ensuring Composer vendor directory...')
+const vendorCheck = spawnSync(
+    'docker',
+    ['compose', '-f', COMPOSE_FILE, 'exec', '-T', 'typemill', 'test', '-f', '/var/www/html/vendor/autoload.php'],
+    { encoding: 'utf8' }
+)
+if (vendorCheck.status !== 0) {
+    const vendorInstall = spawnSync(
+        'docker',
+        [
+            'compose', '-f', COMPOSE_FILE, 'exec', '-T', 'typemill', 'sh', '-c',
+            'cd /var/www/html && php composer.phar install --no-interaction --no-dev',
+        ],
+        { stdio: 'inherit' }
+    )
+    if (vendorInstall.status !== 0) {
+        die('Failed to install Composer dependencies in the Typemill container.')
+    }
+}
+
+// ---------------------------------------------------------------------------
 // 3. Provision settings + admin user
 //
 // settings.yaml is only written when it does not exist, so manually configured
@@ -123,6 +174,9 @@ if ((zipCheck.stdout || '').trim() !== 'yes') {
 // ---------------------------------------------------------------------------
 
 const settingsExist = existsSync(SETTINGS_FILE)
+
+// Always ensure plugins required for automated tests are active.
+ensureTestPluginsActive()
 
 const php = `<?php
 $user     = ${JSON.stringify(TM_USER)};

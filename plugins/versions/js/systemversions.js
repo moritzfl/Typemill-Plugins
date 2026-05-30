@@ -68,7 +68,9 @@ trashStyle.textContent = `
 document.head.appendChild(trashStyle);
 
 if (typeof previewModalTemplate !== 'undefined' && versionsSystemTemplate.indexOf('<!--TYPEMILL_PREVIEW-->') !== -1) {
-    versionsSystemTemplate = versionsSystemTemplate.replace('<!--TYPEMILL_PREVIEW-->', previewModalTemplate);
+    var versionsSystemAppTemplate = versionsSystemTemplate.replace('<!--TYPEMILL_PREVIEW-->', previewModalTemplate);
+} else {
+    var versionsSystemAppTemplate = versionsSystemTemplate;
 }
 
 const trashPreviewMixins = typeof TypemillPreviewMixin !== 'undefined' ? [TypemillPreviewMixin] : [];
@@ -79,7 +81,7 @@ const TRASH_ICON_PATHS = {
 };
 
 const app = Vue.createApp({
-    template: versionsSystemTemplate,
+    template: versionsSystemAppTemplate,
     mixins: trashPreviewMixins,
 
     data() {

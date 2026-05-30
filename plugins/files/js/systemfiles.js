@@ -98,7 +98,9 @@ filesStyle.textContent = `
 document.head.appendChild(filesStyle);
 
 if (typeof previewModalTemplate !== 'undefined' && filesTemplate.indexOf('<!--TYPEMILL_PREVIEW-->') !== -1) {
-    filesTemplate = filesTemplate.replace('<!--TYPEMILL_PREVIEW-->', previewModalTemplate);
+    var filesAppTemplate = filesTemplate.replace('<!--TYPEMILL_PREVIEW-->', previewModalTemplate);
+} else {
+    var filesAppTemplate = filesTemplate;
 }
 
 const filesPreviewMixins = typeof TypemillPreviewMixin !== 'undefined' ? [TypemillPreviewMixin] : [];
@@ -123,7 +125,7 @@ const FILE_KIND_MAP = {
 };
 
 const app = Vue.createApp({
-    template: filesTemplate,
+    template: filesAppTemplate,
     mixins: filesPreviewMixins,
 
             data() {
@@ -287,6 +289,20 @@ const app = Vue.createApp({
 
                 closeActionMenu() {
                     this.openMenuKey = null;
+                },
+
+                canPreviewFile(file) {
+                    return this.previewAvailable && !!(file && file.previewable);
+                },
+
+                openFileEntry(file) {
+                    if (!this.canPreviewFile(file)) {
+                        return;
+                    }
+
+                    if (typeof this.openFilePreview === 'function') {
+                        this.openFilePreview(file);
+                    }
                 },
 
                 runMenuAction(action, entry, type) {

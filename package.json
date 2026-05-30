@@ -16,6 +16,7 @@
     "test:php:local": "tests/php/vendor/bin/phpunit --configuration tests/php/phpunit.xml",
     "test:api": "vitest run --config vitest.config.js",
     "test:api:watch": "vitest --config vitest.config.js",
+    "test:browser": "sh scripts/run-browser-tests-in-docker.sh",
     "test": "npm run test:php:local && npm run test:api"
   },
   "devDependencies": {

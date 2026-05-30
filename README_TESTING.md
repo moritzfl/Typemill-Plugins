@@ -72,6 +72,12 @@ Watch mode for development:
 npm run test:api:watch
 ```
 
+Browser smoke test (Puppeteer inside Docker — Files + Recycle Bin):
+
+```bash
+npm run test:browser
+```
+
 ### Run Everything
 
 ```bash
@@ -110,11 +116,11 @@ so local changes are reflected immediately without rebuilding.
 
 ## Typemill Version
 
-The Compose file pins a specific Typemill release tag (`v2.21.3` at the time of writing).
+The Compose file pins a specific Typemill release tag (`v2.23.0` at the time of writing).
 To test against a different version, update the `context:` line in `docker-compose.typemill.yml`:
 
 ```yaml
-context: https://github.com/typemill/typemill.git#v2.21.3
+context: https://github.com/typemill/typemill.git#v2.23.0
 ```
 
 After changing the tag, rebuild with `--build` to pick it up.

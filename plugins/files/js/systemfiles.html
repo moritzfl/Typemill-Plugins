@@ -200,6 +200,8 @@
                                 v-for="file in filteredFiles"
                                 :key="'l-file-' + file.path"
                                 class="tm-files-row"
+                                :class="canPreviewFile(file) ? 'tm-files-row--clickable' : ''"
+                                @click="openFileEntry(file)"
                                 @dblclick="downloadFile(file)"
                             >
                                 <td>
@@ -208,7 +210,7 @@
                                             <span v-if="fileIconKind(file.name) === 'ext'">{{ fileExtension(file.name) }}</span>
                                             <svg v-else class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path :d="fileIconPath(file.name)"/></svg>
                                         </span>
-                                        <span class="tm-files-name-cell__label">{{ file.name }}</span>
+                                        <span class="tm-files-name-cell__label" :class="canPreviewFile(file) ? 'font-medium' : ''">{{ file.name }}</span>
                                     </span>
                                 </td>
                                 <td class="tm-files-col--num">{{ formatSize(file.bytes) }}</td>
