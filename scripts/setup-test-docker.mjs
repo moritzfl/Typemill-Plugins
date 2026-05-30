@@ -137,6 +137,16 @@ if ((zipCheck.stdout || '').trim() !== 'yes') {
     if (zipInstall.status !== 0) {
         die('Failed to install PHP zip extension in the Typemill container.')
     }
+
+    // mod_php loads extensions at Apache start — reload after a runtime install.
+    const apacheReload = spawnSync(
+        'docker',
+        ['compose', '-f', COMPOSE_FILE, 'exec', '-T', 'typemill', 'apachectl', 'graceful'],
+        { stdio: 'inherit' }
+    )
+    if (apacheReload.status !== 0) {
+        die('Failed to reload Apache after installing the PHP zip extension.')
+    }
 }
 
 // ---------------------------------------------------------------------------

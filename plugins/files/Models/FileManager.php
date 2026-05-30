@@ -303,10 +303,6 @@ class FileManager
 
     public function createFolderZip(string $relativePath): ?array
     {
-        if (!class_exists(\ZipArchive::class)) {
-            return null;
-        }
-
         $relativePath = $this->normalizeRelativePath($relativePath);
         if ($relativePath === null || $relativePath === '') {
             return null;
@@ -321,45 +317,24 @@ class FileManager
             return null;
         }
 
-        $tempPath = tempnam(sys_get_temp_dir(), 'tm_files_zip_');
-        if ($tempPath === false) {
+        $zip = ZipCreator::open();
+        if ($zip === null) {
             return null;
         }
 
-        $zipPath = $tempPath . '.zip';
-        if (!unlink($tempPath)) {
-            error_log('[files] Failed to remove zip temp placeholder: ' . $tempPath);
+        $baseName = basename($directory);
+        $this->addDirectoryToZip($zip, $directory, $baseName);
+
+        $zipContent = $zip->finish();
+        if ($zipContent === null) {
+            return null;
         }
 
-        try {
-            $zip = new \ZipArchive();
-            if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
-                return null;
-            }
-
-            $baseName = basename($directory);
-            $this->addDirectoryToZip($zip, $directory, $baseName);
-            $zip->close();
-
-            if (!file_exists($zipPath)) {
-                return null;
-            }
-
-            $zipContent = file_get_contents($zipPath);
-            if ($zipContent === false) {
-                return null;
-            }
-
-            return [
-                'filename' => $this->sanitizeArchiveName($baseName) . '.zip',
-                'content' => $zipContent,
-                'mime_type' => 'application/zip',
-            ];
-        } finally {
-            if (file_exists($zipPath) && !unlink($zipPath)) {
-                error_log('[files] Failed to remove zip temp file: ' . $zipPath);
-            }
-        }
+        return [
+            'filename' => $this->sanitizeArchiveName($baseName) . '.zip',
+            'content' => $zipContent,
+            'mime_type' => 'application/zip',
+        ];
     }
 
     private function parentPath(string $relativePath): ?string
@@ -462,7 +437,7 @@ class FileManager
         return $size;
     }
 
-    private function addDirectoryToZip(\ZipArchive $zip, string $directory, string $zipPrefix): void
+    private function addDirectoryToZip(ZipCreator $zip, string $directory, string $zipPrefix): void
     {
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
@@ -477,7 +452,7 @@ class FileManager
             $absolutePath = $fileInfo->getPathname();
             $relative = ltrim(str_replace($directory, '', $absolutePath), DIRECTORY_SEPARATOR);
             $zipPath = $zipPrefix . '/' . str_replace(DIRECTORY_SEPARATOR, '/', $relative);
-            $zip->addFile($absolutePath, $zipPath);
+            $zip->addFile($zipPath, $absolutePath);
         }
     }
 

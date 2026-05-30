@@ -93,4 +93,4 @@ FILES_MSG_FOLDER_EXISTS: Ein Ordner mit diesem Namen existiert bereits.
 FILES_MSG_FOLDER_PARENT_MISSING: Ordner nicht gefunden.
 FILES_MSG_FOLDER_CREATE_ERROR: Ordner konnte nicht erstellt werden.
 FILES_MSG_DOWNLOAD_ERROR: Datei konnte nicht heruntergeladen werden.
-FILES_MSG_ZIP_ERROR: ZIP konnte nicht erstellt werden (Ordner fehlt, leer, zu groß oder ZipArchive nicht verfügbar).
+FILES_MSG_ZIP_ERROR: ZIP konnte nicht erstellt werden (Ordner fehlt, leer oder zu groß).

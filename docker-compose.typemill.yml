@@ -1,9 +1,10 @@
 services:
   typemill:
     build:
-      # Builds directly from the Typemill GitHub repo — no local checkout needed.
-      # Update the tag here when you want to test against a newer Typemill release.
-      context: https://github.com/typemill/typemill.git#v2.23.0
+      # Local Dockerfile mirrors upstream Typemill v2.23.0 and adds the PHP zip extension.
+      context: ./docker/typemill
+      args:
+        TYPEMILL_VERSION: v2.23.0
     ports:
       - "8080:80"
     volumes:

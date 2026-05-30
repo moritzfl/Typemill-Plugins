@@ -124,6 +124,20 @@ describe('GET /api/v1/versions/trash', () => {
     })
 })
 
+describe('GET /api/v1/versions/export', () => {
+    it.skipIf(!configured)('returns a ZIP download when authenticated', async () => {
+        requireSession()
+        const resp = await apiGet(session, `${BASE_URL}/api/v1/versions/export`)
+        expect(resp.status).toBe(200)
+
+        const contentType = resp.headers.get('content-type') ?? ''
+        expect(contentType).toMatch(/application\/zip/i)
+
+        const body = await resp.arrayBuffer()
+        expect(body.byteLength).toBeGreaterThan(0)
+    })
+})
+
 describe('DELETE /api/v1/versions/article', () => {
     it.skipIf(!configured)('returns a client error for a non-existent URL', async () => {
         requireSession()
