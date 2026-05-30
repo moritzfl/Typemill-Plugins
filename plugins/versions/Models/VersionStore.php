@@ -383,7 +383,8 @@ class VersionStore
                 'deleted_at' => $record['deleted']['deleted_at'],
                 'username' => $record['deleted']['username'],
                 'user_label' => $record['deleted']['user_label'],
-                'previewable' => true,
+                'previewable' => class_exists(\Plugins\preview\PreviewIntegration::class)
+                    && \Plugins\preview\PreviewIntegration::isAvailable(),
             ];
         }
 
@@ -565,6 +566,14 @@ class VersionStore
         $version = $this->findVersion($record, $versionId);
 
         return $version ? $this->downloads->createPackage($recordId, $recordType, $version) : null;
+    }
+
+    public function createTrashPreviewFile(string $recordId, string $versionId): ?array
+    {
+        $record = $this->records->loadAssetRecord($recordId);
+        $version = $this->findVersion($record, $versionId);
+
+        return $version ? $this->downloads->createPreviewFile($version) : null;
     }
 
     public function readCurrentMarkdown(object $item): string

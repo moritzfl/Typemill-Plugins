@@ -40,6 +40,7 @@ FILES_DOWNLOAD_ZIP: ZIP herunterladen
 FILES_COPY_PATH: Pfad kopieren
 FILES_COPY_URL: URL kopieren
 FILES_DOWNLOAD: Herunterladen
+FILES_PREVIEW: Vorschau
 FILES_NO_MATCH: Keine Dateien entsprechen der Suche.
 FILES_EMPTY: Noch keine Dateien hochgeladen.
 FILES_EMPTY_HINT: Dateien hier ablegen oder auf „Dateien hochladen“ klicken.

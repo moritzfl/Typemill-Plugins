@@ -38,6 +38,12 @@ class MediaFilesTrashTest extends TestCase
         $this->assertCount(1, $entries);
         $this->assertStringContainsString('docs/readme.txt', $entries[0]['path']);
         $this->assertStringContainsString('media/files/docs/readme.txt', $entries[0]['url']);
+        $this->assertTrue($entries[0]['previewable']);
+        $detail = $store->getVersionDetail((string) $result['record_id'], (string) $result['version_id']);
+        $this->assertNotNull($detail);
+        $this->assertSame('text', $detail['version']['preview_kind']);
+        $this->assertSame('readme.txt', $detail['version']['preview_filename']);
+        $this->assertStringContainsString('hello trash', $detail['version']['markdown']);
     }
 
     public function testStoreMediaFilesDeletionSnapshotsFolder(): void

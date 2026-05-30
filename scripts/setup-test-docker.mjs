@@ -146,6 +146,10 @@ if (!file_exists($dir . '/settings.yaml')) {
         "plugins:",
         "    versions:",
         "        active: true",
+        "    preview:",
+        "        active: true",
+        "    files:",
+        "        active: true",
         "",
     ]);
     file_put_contents($dir . '/settings.yaml', $settings);

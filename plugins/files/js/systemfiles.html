@@ -216,6 +216,11 @@
                                 <td class="tm-files-col--actions relative" @click.stop>
                                     <button type="button" class="tm-files-icon-btn" @click="toggleActionMenu('file:' + file.path)">&#8942;</button>
                                     <div v-if="openMenuKey === 'file:' + file.path" class="tm-files-menu">
+                                        <button
+                                            v-if="previewAvailable && file.previewable"
+                                            type="button"
+                                            @click="runMenuAction('preview', file, 'file')"
+                                        >{{ $filters.translate('files.preview') }}</button>
                                         <button type="button" @click="runMenuAction('download', file, 'file')">{{ $filters.translate('files.download') }}</button>
                                         <button type="button" @click="runMenuAction('copyPath', file, 'file')">{{ $filters.translate('files.copy_path') }}</button>
                                         <button type="button" @click="runMenuAction('copyUrl', file, 'file')">{{ $filters.translate('files.copy_url') }}</button>
@@ -228,6 +233,8 @@
                 </div>
             </div>
         </section>
+
+        <!--TYPEMILL_PREVIEW-->
 
         <Teleport to="body">
             <Transition name="tm-toast">

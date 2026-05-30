@@ -33,8 +33,8 @@ The right-side editor is editable, so you can merge changes manually before savi
 ### Recycle bin
 
 Deleted pages and deleted assets are moved to the recycle bin at **System → Versions**.
-From there you can preview a deleted item, restore it to its original location, download it,
-or permanently delete it.
+From there you can preview a deleted item (pages, text files, and common browser media
+formats), restore it to its original location, download it, or permanently delete it.
 
 Expired recycle-bin entries are removed automatically when they are older than the
 configured retention period. Purge runs when something is deleted into the bin or when

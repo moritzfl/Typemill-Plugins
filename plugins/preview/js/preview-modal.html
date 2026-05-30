@@ -1,0 +1,28 @@
+<div v-if="previewLoading || previewDetail" class="fixed inset-0 bg-stone-700/90 flex items-center justify-center z-50" @click.self="closePreview">
+    <div class="bg-white dark:bg-stone-600 border border-teal-500 dark:border-stone-200 shadow-lg w-11/12 md:max-w-3xl mx-auto">
+        <div class="text-left p-6">
+            <div class="flex justify-between gap-4 items-start mb-4">
+                <div>
+                    <h3 class="text-2xl font-bold text-stone-900 dark:text-stone-200">{{ previewDetail ? (previewDetail.title || $filters.translate('preview.title')) : $filters.translate('preview.title') }}</h3>
+                    <p v-if="previewDetail && previewSubtitle(previewDetail)" class="text-sm mt-1 text-stone-500 dark:text-stone-300">{{ previewSubtitle(previewDetail) }}</p>
+                </div>
+                <div v-if="!previewLoading && previewDetail && previewShowsTextToggle()" class="inline-flex border border-stone-300 dark:border-stone-400">
+                    <button @click.prevent="setPreviewMode('text')" :class="previewModeClass('text')" class="px-3 py-2 text-sm transition duration-100">{{ $filters.translate('preview.text') }}</button>
+                    <button @click.prevent="setPreviewMode('rendered')" :disabled="!previewHasRendered(previewDetail)" :class="[previewModeClass('rendered'), !previewHasRendered(previewDetail) ? 'opacity-50 cursor-not-allowed' : '']" class="px-3 py-2 text-sm transition duration-100">{{ $filters.translate('preview.rendered') }}</button>
+                </div>
+            </div>
+            <div v-if="previewLoading" class="text-stone-700 dark:text-stone-200 text-sm mb-6">{{ $filters.translate('preview.loading') }}...</div>
+            <pre v-else-if="previewMode === 'text'" style="max-height:60vh" class="mb-6 overflow-auto p-4 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-200 text-sm whitespace-pre-wrap break-words font-mono">{{ previewDetail ? previewDetail.markdown : '' }}</pre>
+            <div v-else-if="previewMode === 'media'" class="mb-6 tm-preview-media">
+                <img v-if="previewMediaKind() === 'image' && previewMediaUrl" :src="previewMediaUrl" :alt="previewDetail ? previewDetail.title : ''" />
+                <audio v-else-if="previewMediaKind() === 'audio' && previewMediaUrl" controls :src="previewMediaUrl"></audio>
+                <video v-else-if="previewMediaKind() === 'video' && previewMediaUrl" controls :src="previewMediaUrl"></video>
+                <iframe v-else-if="previewMediaKind() === 'pdf' && previewMediaUrl" :src="previewMediaUrl" title="PDF preview" style="width:100%;min-height:60vh;border:0"></iframe>
+            </div>
+            <div v-else class="mb-6 tm-preview-rendered" v-html="previewDetail ? (previewDetail.rendered_html || '') : ''"></div>
+            <div class="flex justify-end gap-2">
+                <button type="button" @click="closePreview" class="px-3 py-2 text-sm border border-stone-300 dark:border-stone-400 bg-stone-200 dark:bg-stone-500">{{ $filters.translate('preview.close') }}</button>
+            </div>
+        </div>
+    </div>
+</div>

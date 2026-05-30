@@ -40,6 +40,7 @@ FILES_DOWNLOAD_ZIP: Download ZIP
 FILES_COPY_PATH: Copy Path
 FILES_COPY_URL: Copy URL
 FILES_DOWNLOAD: Download
+FILES_PREVIEW: Preview
 FILES_NO_MATCH: No files match your filter.
 FILES_EMPTY: No files uploaded yet.
 FILES_EMPTY_HINT: Drop files anywhere here or click Upload files.

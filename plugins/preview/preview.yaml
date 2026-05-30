@@ -1,0 +1,6 @@
+name: Preview
+version: 1.0.0
+description: Shared file and media preview for the file manager, recycle bin, and other plugins.
+author: Moritz
+homepage: https://github.com/moritzfl/Typemill-Plugins
+license: LGPL

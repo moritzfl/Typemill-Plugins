@@ -98,7 +98,7 @@
                                     <button type="button" class="tm-trash-icon-btn" @click="toggleActionMenu(entryMenuKey(entry))">&#8942;</button>
                                     <div v-if="openMenuKey === entryMenuKey(entry)" class="tm-trash-menu">
                                         <button
-                                            v-if="entry.previewable"
+                                            v-if="previewAvailable && entry.previewable"
                                             type="button"
                                             @click="runMenuAction('preview', entry)"
                                         >{{ $filters.translate('versions.preview') }}</button>
@@ -114,28 +114,7 @@
             </div>
         </section>
 
-        <div v-if="previewLoading || previewDetail" class="fixed inset-0 bg-stone-700/90 flex items-center justify-center z-50" @click.self="closePreview">
-            <div class="bg-white dark:bg-stone-600 border border-teal-500 dark:border-stone-200 shadow-lg w-11/12 md:max-w-3xl mx-auto">
-                <div class="text-left p-6">
-                    <div class="flex justify-between gap-4 items-start mb-4">
-                        <div>
-                            <h3 class="text-2xl font-bold text-stone-900 dark:text-stone-200">{{ previewDetail ? (previewDetail.title || $filters.translate('versions.preview_markdown')) : $filters.translate('versions.preview_markdown') }}</h3>
-                            <p v-if="previewDetail" class="text-sm mt-1 text-stone-500 dark:text-stone-300">{{ previewMeta(previewDetail) }}</p>
-                        </div>
-                        <div v-if="!previewLoading && previewDetail" class="inline-flex border border-stone-300 dark:border-stone-400">
-                            <button @click.prevent="setPreviewMode('text')" :class="previewModeClass('text')" class="px-3 py-2 text-sm transition duration-100">{{ $filters.translate('versions.preview_text') }}</button>
-                            <button @click.prevent="setPreviewMode('rendered')" :disabled="!previewHasRendered(previewDetail)" :class="[previewModeClass('rendered'), !previewHasRendered(previewDetail) ? 'opacity-50 cursor-not-allowed' : '']" class="px-3 py-2 text-sm transition duration-100">{{ $filters.translate('versions.preview_rendered') }}</button>
-                        </div>
-                    </div>
-                    <div v-if="previewLoading" class="text-stone-700 dark:text-stone-200 text-sm mb-6">{{ $filters.translate('versions.loading_preview') }}...</div>
-                    <pre v-else-if="previewMode === 'text'" style="max-height:60vh" class="mb-6 overflow-auto p-4 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-200 text-sm whitespace-pre-wrap break-words font-mono">{{ previewDetail ? previewDetail.markdown : '' }}</pre>
-                    <div v-else class="mb-6 tm-versions-preview-rendered" v-html="previewDetail ? (previewDetail.rendered_html || '') : ''"></div>
-                    <div class="flex justify-end gap-2">
-                        <button type="button" @click="closePreview" class="tm-trash-btn">{{ $filters.translate('versions.close') }}</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!--TYPEMILL_PREVIEW-->
 
         <div v-if="restoreTarget" class="fixed inset-0 bg-stone-700/90 flex items-center justify-center z-50" @click.self="restoreTarget = null">
             <div class="bg-white dark:bg-stone-600 border border-teal-500 dark:border-stone-200 shadow-lg w-11/12 md:max-w-md mx-auto">

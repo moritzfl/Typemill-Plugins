@@ -4,7 +4,7 @@ namespace Plugins\versions;
 
 use Plugins\versions\Middleware\AssetTrashMiddleware;
 use Plugins\versions\Models\SnapshotTooLargeException;
-use Plugins\versions\Models\VersionPreviewRenderer;
+use Plugins\preview\PreviewIntegration;
 use Plugins\versions\Models\VersionStore;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -31,7 +31,6 @@ class versions extends Plugin
     public static function getSubscribedEvents()
     {
         return [
-            'onCspLoaded' => ['onCspLoaded', 0],
             'onTwigLoaded' => ['onTwigLoaded', 0],
             'onSystemnaviLoaded' => ['onSystemnaviLoaded', 0],
             'onPageUpdated' => ['onPageUpdated', 0],
@@ -118,6 +117,14 @@ class versions extends Plugin
             ],
             [
                 'httpMethod' => 'get',
+                'route' => '/api/v1/versions/trash/preview',
+                'name' => 'versions.trash.preview',
+                'class' => 'Plugins\versions\versions:previewTrashEntry',
+                'resource' => 'system',
+                'privilege' => 'read',
+            ],
+            [
+                'httpMethod' => 'get',
                 'route' => '/api/v1/versions/export',
                 'name' => 'versions.export.all',
                 'class' => 'Plugins\versions\versions:exportAllHistory',
@@ -192,16 +199,6 @@ class versions extends Plugin
         }
     }
 
-    public function onCspLoaded($event)
-    {
-        $csp = $event->getData();
-        if (!is_array($csp)) {
-            $csp = [];
-        }
-
-        $csp[] = 'blob:';
-        $event->setData(array_values(array_unique($csp)));
-    }
 
     public function onSystemnaviLoaded($navidata)
     {
@@ -373,7 +370,7 @@ class versions extends Plugin
             return $this->jsonResponse($response, ['message' => 'Version not found.'], 404);
         }
 
-        $detail = $this->getPreviewRenderer()->addRenderedPreview($detail);
+        $detail = $this->addRenderedVersionPreview($detail);
 
         return $this->jsonResponse($response, $detail);
     }
@@ -394,6 +391,24 @@ class versions extends Plugin
         }
 
         return $this->fileDownloadResponse($response, $download);
+    }
+
+    public function previewTrashEntry(Request $request, Response $response, $args)
+    {
+        $recordId = $request->getQueryParams()['record_id'] ?? $request->getQueryParams()['pageid'] ?? false;
+        $recordType = $request->getQueryParams()['record_type'] ?? 'asset';
+        $versionId = $request->getQueryParams()['version_id'] ?? false;
+
+        if (!$recordId || !$versionId || $recordType !== 'asset') {
+            return $this->jsonResponse($response, ['message' => 'versions.msg_restore_data_incomplete'], 400);
+        }
+
+        $preview = $this->getStore()->createTrashPreviewFile((string) $recordId, (string) $versionId);
+        if (!$preview) {
+            return $this->jsonResponse($response, ['message' => 'Preview not available.'], 404);
+        }
+
+        return $this->fileDownloadResponse($response, $preview, true);
     }
 
     public function exportAllHistory(Request $request, Response $response, $args)
@@ -472,7 +487,7 @@ class versions extends Plugin
             return $this->jsonResponse($response, ['message' => 'Version not found.'], 404);
         }
 
-        $detail = $this->getPreviewRenderer()->addRenderedPreview($detail);
+        $detail = $this->addRenderedVersionPreview($detail);
 
         return $this->jsonResponse($response, $detail);
     }
@@ -798,18 +813,36 @@ class versions extends Plugin
         return $this->store;
     }
 
-    private function getPreviewRenderer(): VersionPreviewRenderer
+    private function addRenderedVersionPreview(array $detail): array
     {
-        return new VersionPreviewRenderer($this->getSettings(), $this->urlinfo(), $this->getDispatcher());
+        if (!class_exists(PreviewIntegration::class) || !PreviewIntegration::isAvailable() || !isset($detail['version']) || !is_array($detail['version'])) {
+            return $detail;
+        }
+
+        $renderer = PreviewIntegration::markdownRenderer(
+            $this->getSettings(),
+            $this->urlinfo(),
+            $this->getDispatcher()
+        );
+
+        $version = $detail['version'];
+        $detail['version'] = $renderer->addRenderedHtml(array_merge($version, [
+            'preview_kind' => $version['preview_kind'] ?? 'page',
+            'preview_filename' => $version['preview_filename'] ?? '',
+        ]));
+
+        return $detail;
     }
 
-    private function fileDownloadResponse(Response $response, array $download): Response
+    private function fileDownloadResponse(Response $response, array $download, bool $inline = false): Response
     {
         $response->getBody()->write($download['content']);
+        $filename = str_replace(['"', '\\'], ['\"', '\\\\'], $download['filename']);
+        $disposition = $inline ? 'inline' : 'attachment';
 
         return $response
             ->withHeader('Content-Type', $download['mime_type'])
-            ->withHeader('Content-Disposition', 'attachment; filename="' . str_replace(['"', '\\'], ['\"', '\\\\'], $download['filename']) . '"');
+            ->withHeader('Content-Disposition', $disposition . '; filename="' . $filename . '"');
     }
 
     private function jsonResponse(Response $response, array $payload, int $status = 200): Response

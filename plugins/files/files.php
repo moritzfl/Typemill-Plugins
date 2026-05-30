@@ -346,7 +346,27 @@ class files extends Plugin
             ], 404);
         }
 
+        if (class_exists(\Plugins\preview\PreviewIntegration::class) && \Plugins\preview\PreviewIntegration::isAvailable()) {
+            $listing = $this->appendPreviewFlags($listing);
+        }
+
         return $this->jsonResponse($response, $listing);
+    }
+
+    private function appendPreviewFlags(array $listing): array
+    {
+        $support = \Plugins\preview\PreviewIntegration::support();
+
+        foreach ($listing['files'] as &$file) {
+            $kind = $support->getPreviewKind((string) ($file['path'] ?? ''));
+            $bytes = (int) ($file['bytes'] ?? 0);
+            $file['previewable'] = $kind !== null
+                && $bytes > 0
+                && $bytes <= $support->maxPreviewBytes($kind);
+        }
+        unset($file);
+
+        return $listing;
     }
 
     public function createFolder(Request $request, Response $response, $args)

@@ -10,37 +10,8 @@ class TrashDownloadService
 
     public function createPackage(string $recordId, string $recordType, array $version): ?array
     {
-        if (empty($version['snapshot_files'])) {
-            return null;
-        }
-
-        $downloadFiles = [];
-        foreach ($version['snapshot_files'] as $file) {
-            $path = ltrim(str_replace('\\', '/', (string) ($file['path'] ?? '')), '/');
-            if ($path === '') {
-                continue;
-            }
-
-            if (isset($file['snapshot_path']) && file_exists($file['snapshot_path'])) {
-                $content = file_get_contents($file['snapshot_path']);
-            } else {
-                $content = isset($file['content_base64'])
-                    ? base64_decode($file['content_base64'], true)
-                    : ($file['content'] ?? '');
-            }
-
-            if ($content === false || $content === null) {
-                continue;
-            }
-
-            $downloadFiles[] = [
-                'path' => $path,
-                'content' => $content,
-                'location' => $file['location'] ?? null,
-            ];
-        }
-
-        if (count($downloadFiles) === 0) {
+        $downloadFiles = $this->assetVersions->collectSnapshotContents($version);
+        if ($downloadFiles === []) {
             return null;
         }
 
@@ -110,13 +81,18 @@ class TrashDownloadService
             return [
                 'filename' => $baseName . '.zip',
                 'content' => $zipContent,
-                'mime_type' => 'application/octet-stream',
+                'mime_type' => 'application/zip',
             ];
         } finally {
             if (file_exists($zipPath) && !unlink($zipPath)) {
                 error_log('[versions] Failed to remove zip temp file: ' . $zipPath);
             }
         }
+    }
+
+    public function createPreviewFile(array $version): ?array
+    {
+        return $this->assetVersions->getPreviewFile($version);
     }
 
     public function sanitizeArchiveName(string $value): string

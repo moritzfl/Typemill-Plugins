@@ -64,26 +64,14 @@ trashStyle.textContent = `
 .tm-trash-list-icon{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;flex-shrink:0;border-radius:4px;color:#78716c;background:#e7e5e4}
 .tm-trash-list-icon--page{background:#fee2e2;color:#dc2626}
 .tm-trash-list-icon--asset{background:#dbeafe;color:#2563eb}
-.tm-versions-preview-rendered{max-height:60vh;overflow:auto;padding:1.25rem;background:#f5f5f4;color:#1c1917}
-    .dark .tm-versions-preview-rendered{background:#1c1917;color:#e7e5e4}
-    .tm-versions-preview-rendered h1,.tm-versions-preview-rendered h2,.tm-versions-preview-rendered h3,.tm-versions-preview-rendered h4,.tm-versions-preview-rendered h5,.tm-versions-preview-rendered h6{margin:0 0 .9rem;font-weight:700;line-height:1.2}
-    .tm-versions-preview-rendered h1{font-size:2rem}
-    .tm-versions-preview-rendered h2{font-size:1.6rem}
-    .tm-versions-preview-rendered h3{font-size:1.3rem}
-    .tm-versions-preview-rendered p,.tm-versions-preview-rendered ul,.tm-versions-preview-rendered ol,.tm-versions-preview-rendered blockquote,.tm-versions-preview-rendered pre,.tm-versions-preview-rendered table{margin:0 0 1rem}
-    .tm-versions-preview-rendered ul,.tm-versions-preview-rendered ol{padding-left:1.5rem}
-    .tm-versions-preview-rendered blockquote{padding-left:1rem;border-left:4px solid #14b8a6;opacity:.9}
-    .tm-versions-preview-rendered a{color:#0f766e;text-decoration:underline}
-    .dark .tm-versions-preview-rendered a{color:#5eead4}
-    .tm-versions-preview-rendered code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:rgba(120,113,108,.15);padding:.1rem .3rem;border-radius:.25rem}
-    .tm-versions-preview-rendered pre{padding:1rem;overflow:auto;background:rgba(28,25,23,.08)}
-    .dark .tm-versions-preview-rendered pre{background:rgba(245,245,244,.08)}
-    .tm-versions-preview-rendered pre code{background:transparent;padding:0}
-    .tm-versions-preview-rendered img,.tm-versions-preview-rendered video,.tm-versions-preview-rendered audio{max-width:100%}
-    .tm-versions-preview-rendered table{width:100%;border-collapse:collapse}
-    .tm-versions-preview-rendered th,.tm-versions-preview-rendered td{padding:.5rem;border:1px solid rgba(120,113,108,.35)}
 `;
 document.head.appendChild(trashStyle);
+
+if (typeof previewModalTemplate !== 'undefined' && versionsSystemTemplate.indexOf('<!--TYPEMILL_PREVIEW-->') !== -1) {
+    versionsSystemTemplate = versionsSystemTemplate.replace('<!--TYPEMILL_PREVIEW-->', previewModalTemplate);
+}
+
+const trashPreviewMixins = typeof TypemillPreviewMixin !== 'undefined' ? [TypemillPreviewMixin] : [];
 
 const TRASH_ICON_PATHS = {
     page: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zm-2 10H8v-2h3v2zm0-4H8V8h3v2z',
@@ -92,6 +80,7 @@ const TRASH_ICON_PATHS = {
 
 const app = Vue.createApp({
     template: versionsSystemTemplate,
+    mixins: trashPreviewMixins,
 
     data() {
         return {
@@ -100,9 +89,7 @@ const app = Vue.createApp({
             searchQuery: '',
             message: '',
             messageClass: '',
-            previewDetail: null,
-            previewLoading: false,
-            previewMode: 'rendered',
+            previewAvailable: typeof TypemillPreviewMixin !== 'undefined',
             restoreTarget: null,
             restoreConflict: false,
             deleteTarget: null,
@@ -204,7 +191,9 @@ const app = Vue.createApp({
             this.closeActionMenu();
 
             if (action === 'preview') {
-                this.openPreview(entry);
+                if (typeof this.openTrashPreview === 'function') {
+                    this.openTrashPreview(entry);
+                }
                 return;
             }
             if (action === 'download') {
@@ -266,29 +255,6 @@ const app = Vue.createApp({
             })
             .catch(function (error) {
                 self.showMessage(handleErrorMessage(error) || 'versions.msg_download_error', 'error');
-            });
-        },
-
-        openPreview(entry) {
-            var self = this;
-            self.previewLoading = true;
-            self.previewDetail = null;
-
-            tmaxios.get('/api/v1/versions/trash/version', {
-                params: {
-                    record_id: entry.record_id,
-                    record_type: entry.record_type || 'page',
-                    version_id: entry.version_id
-                }
-            })
-            .then(function (response) {
-                self.previewDetail = response.data.version || null;
-                self.previewMode = self.previewHasRendered(self.previewDetail) ? 'rendered' : 'text';
-                self.previewLoading = false;
-            })
-            .catch(function (error) {
-                self.previewLoading = false;
-                self.showMessage(handleErrorMessage(error) || 'versions.msg_preview_error', 'error');
             });
         },
 
@@ -369,47 +335,6 @@ const app = Vue.createApp({
             }
 
             return new Date(value).toLocaleString();
-        },
-
-        closePreview() {
-            this.previewLoading = false;
-            this.previewDetail = null;
-            this.previewMode = 'rendered';
-        },
-
-        previewHasRendered(version) {
-            return !!(version && version.rendered_html);
-        },
-
-        setPreviewMode(mode) {
-            if (mode === 'rendered' && !this.previewHasRendered(this.previewDetail)) {
-                return;
-            }
-
-            this.previewMode = mode;
-        },
-
-        previewModeClass(mode) {
-            var active = this.previewMode === mode;
-            return active
-                ? 'bg-teal-500 border-teal-500 text-white'
-                : 'bg-stone-200 dark:bg-stone-500 border-stone-300 dark:border-stone-400 text-stone-900 dark:text-stone-200 hover:bg-stone-300 dark:hover:bg-stone-400';
-        },
-
-        previewMeta(version) {
-            if (!version) {
-                return '';
-            }
-
-            var parts = [];
-            if (version.user_label) {
-                parts.push(version.user_label);
-            }
-            if (version.created_at) {
-                parts.push(this.formatDate(version.created_at));
-            }
-
-            return parts.join(' | ');
         },
 
         downloadFilename(contentDisposition, entry) {

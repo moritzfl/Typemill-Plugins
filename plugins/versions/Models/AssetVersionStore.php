@@ -12,7 +12,6 @@ class AssetVersionStore
     private StorageWrapper $storage;
     private VersionRecordRepository $records;
     private LineDiff $diff;
-
     public function __construct(StorageWrapper $storage, VersionRecordRepository $records, LineDiff $diff)
     {
         $this->storage = $storage;
@@ -69,8 +68,8 @@ class AssetVersionStore
             'snapshot_files' => $snapshotFiles,
             'restorable' => true,
             'deleted_snapshot' => true,
-            'previewable' => false,
         ];
+        $entry['previewable'] = $this->isVersionPreviewable($entry);
 
         $record['versions'][] = $entry;
         if (count($record['versions']) > $maxVersions) {
@@ -103,7 +102,7 @@ class AssetVersionStore
             'path' => $entry['path'],
             'item_type' => $entry['item_type'],
             'asset_type' => $assetType,
-            'previewable' => false,
+            'previewable' => $entry['previewable'],
         ];
 
         $this->records->saveAssetRecord($recordId, $record);
@@ -169,8 +168,8 @@ class AssetVersionStore
             'snapshot_files' => $snapshotFiles,
             'restorable' => true,
             'deleted_snapshot' => true,
-            'previewable' => false,
         ];
+        $entry['previewable'] = $this->isVersionPreviewable($entry);
 
         $record['versions'][] = $entry;
         if (count($record['versions']) > $maxVersions) {
@@ -203,7 +202,7 @@ class AssetVersionStore
             'path' => $entry['path'],
             'item_type' => $entry['item_type'],
             'asset_type' => $assetType,
-            'previewable' => false,
+            'previewable' => $entry['previewable'],
         ];
 
         $this->records->saveAssetRecord($recordId, $record);
@@ -224,6 +223,8 @@ class AssetVersionStore
                 continue;
             }
 
+            $deletedVersion = $this->findVersion($record, (string) ($record['deleted']['version_id'] ?? ''));
+
             $entries[] = [
                 'record_type' => 'asset',
                 'record_id' => $record['deleted']['record_id'],
@@ -237,7 +238,9 @@ class AssetVersionStore
                 'deleted_at' => $record['deleted']['deleted_at'],
                 'username' => $record['deleted']['username'],
                 'user_label' => $record['deleted']['user_label'],
-                'previewable' => false,
+                'previewable' => $deletedVersion
+                    ? $this->isVersionPreviewable($deletedVersion)
+                    : (bool) ($record['deleted']['previewable'] ?? false),
             ];
         }
 
@@ -252,8 +255,12 @@ class AssetVersionStore
             return null;
         }
 
-        $label = $version['metadata']['label'] ?? ucfirst($version['asset_type'] ?? 'asset');
-        $snapshotCount = count($version['snapshot_files'] ?? []);
+        $preview = $this->resolvePreviewMeta($version);
+        $markdown = $preview['text'] ?? (
+            ($version['metadata']['label'] ?? ucfirst($version['asset_type'] ?? 'asset'))
+            . ' snapshot stored for restore. Captured files: '
+            . count($version['snapshot_files'] ?? [])
+        );
 
         return [
             'version' => [
@@ -266,10 +273,14 @@ class AssetVersionStore
                 'status' => null,
                 'title' => $version['title'] ?? '',
                 'url' => $version['url'] ?? '/',
-                'markdown' => $label . ' snapshot stored for restore. Captured files: ' . $snapshotCount,
+                'markdown' => $markdown,
                 'metadata' => $version['metadata'] ?? [],
                 'restorable' => $version['restorable'] ?? true,
                 'deleted_snapshot' => $version['deleted_snapshot'] ?? true,
+                'previewable' => $preview['previewable'],
+                'preview_kind' => $preview['kind'],
+                'preview_mime' => $preview['mime_type'] ?? null,
+                'preview_filename' => $preview['filename'] ?? null,
             ],
             'compare_to' => [
                 'label' => 'deleted asset',
@@ -316,6 +327,144 @@ class AssetVersionStore
         }
 
         return $downloadFiles[0];
+    }
+
+    public function collectSnapshotContents(array $version): array
+    {
+        $downloadFiles = [];
+        foreach ($version['snapshot_files'] ?? [] as $file) {
+            $path = ltrim(str_replace('\\', '/', (string) ($file['path'] ?? '')), '/');
+            if ($path === '') {
+                continue;
+            }
+
+            $content = $this->readSnapshotFileContent($file);
+            if ($content === null) {
+                continue;
+            }
+
+            $downloadFiles[] = [
+                'path' => $path,
+                'content' => $content,
+                'location' => $file['location'] ?? null,
+            ];
+        }
+
+        return $downloadFiles;
+    }
+
+    public function isVersionPreviewable(array $version): bool
+    {
+        return $this->resolvePreviewMeta($version)['previewable'];
+    }
+
+    public function getPreviewFile(array $version): ?array
+    {
+        $preview = $this->resolvePreviewMeta($version);
+        if (!$preview['previewable'] || $preview['kind'] === 'text') {
+            return null;
+        }
+
+        $file = $preview['file'] ?? null;
+        if (!$file || !isset($file['content'])) {
+            return null;
+        }
+
+        return [
+            'filename' => $preview['filename'],
+            'content' => $file['content'],
+            'mime_type' => $preview['mime_type'],
+        ];
+    }
+
+    private function resolvePreviewMeta(array $version): array
+    {
+        $support = $this->getPreviewSupport();
+        if ($support === null) {
+            return ['previewable' => false];
+        }
+
+        $downloadFiles = $this->collectSnapshotContents($version);
+        if ($downloadFiles === []) {
+            return ['previewable' => false];
+        }
+
+        $primary = $this->selectPrimaryDownloadFile($downloadFiles, $version);
+        $candidates = $primary ? [$primary] : [];
+        foreach ($downloadFiles as $file) {
+            if ($primary && ($file['path'] ?? '') === ($primary['path'] ?? '')) {
+                continue;
+            }
+            $candidates[] = $file;
+        }
+
+        foreach ($candidates as $file) {
+            $path = (string) ($file['path'] ?? '');
+            $kind = $support->getPreviewKind($path);
+            if ($kind === null) {
+                continue;
+            }
+
+            $content = $file['content'] ?? '';
+            $size = strlen($content);
+            if ($size === 0 || $size > $support->maxPreviewBytes($kind)) {
+                continue;
+            }
+
+            if ($kind === 'text' && !$support->isLikelyTextContent($content)) {
+                continue;
+            }
+
+            $meta = [
+                'previewable' => true,
+                'kind' => $kind,
+                'filename' => basename($path),
+                'mime_type' => $support->guessMimeType($path),
+                'file' => $file,
+            ];
+
+            if ($kind === 'text') {
+                $meta['text'] = $content;
+            }
+
+            return $meta;
+        }
+
+        return ['previewable' => false];
+    }
+
+    private function getPreviewSupport(): ?\Plugins\preview\Models\PreviewSupport
+    {
+        if (!class_exists(\Plugins\preview\PreviewIntegration::class)) {
+            return null;
+        }
+
+        if (!\Plugins\preview\PreviewIntegration::isAvailable()) {
+            return null;
+        }
+
+        return \Plugins\preview\PreviewIntegration::support();
+    }
+
+    private function readSnapshotFileContent(array $file): ?string
+    {
+        if (isset($file['snapshot_path']) && is_string($file['snapshot_path']) && file_exists($file['snapshot_path'])) {
+            $content = file_get_contents($file['snapshot_path']);
+
+            return $content === false ? null : $content;
+        }
+
+        if (isset($file['content_base64'])) {
+            $content = base64_decode((string) $file['content_base64'], true);
+
+            return $content === false ? null : $content;
+        }
+
+        if (isset($file['content']) && is_string($file['content'])) {
+            return $file['content'];
+        }
+
+        return null;
     }
 
     public function cleanupVersionSnapshots(string $recordId, string $versionId): void

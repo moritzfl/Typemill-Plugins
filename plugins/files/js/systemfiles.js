@@ -97,6 +97,12 @@ filesStyle.textContent = `
 `;
 document.head.appendChild(filesStyle);
 
+if (typeof previewModalTemplate !== 'undefined' && filesTemplate.indexOf('<!--TYPEMILL_PREVIEW-->') !== -1) {
+    filesTemplate = filesTemplate.replace('<!--TYPEMILL_PREVIEW-->', previewModalTemplate);
+}
+
+const filesPreviewMixins = typeof TypemillPreviewMixin !== 'undefined' ? [TypemillPreviewMixin] : [];
+
 const FILE_ICON_PATHS = {
     generic: 'M14,2H6a2,2 0 0,0-2,2v16a2,2 0 0,0 2,2h12a2,2 0 0,0 2-2V8l-6-6zm-1 2l5 5h-5V4z',
     image: 'M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z',
@@ -118,6 +124,7 @@ const FILE_KIND_MAP = {
 
 const app = Vue.createApp({
     template: filesTemplate,
+    mixins: filesPreviewMixins,
 
             data() {
                 return {
@@ -127,6 +134,7 @@ const app = Vue.createApp({
                     folders:      [],
                     files:        [],
                     loading:      true,
+                    previewAvailable: typeof TypemillPreviewMixin !== 'undefined',
                     isDragging:   false,
                     dragDepth:    0,
                     uploadQueue:  [],
@@ -299,6 +307,10 @@ const app = Vue.createApp({
                     }
                     if (action === 'download') {
                         this.downloadFile(entry);
+                    } else if (action === 'preview') {
+                        if (typeof this.openFilePreview === 'function') {
+                            this.openFilePreview(entry);
+                        }
                     } else if (action === 'copyPath') {
                         this.copyLink(entry, 'internal');
                     } else if (action === 'copyUrl') {

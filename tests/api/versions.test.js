@@ -37,6 +37,7 @@ describe('Access control', () => {
         { method: 'POST',   path: '/api/v1/versions/trash/restore' },
         { method: 'GET',    path: '/api/v1/versions/trash/version?record_id=x&version_id=x' },
         { method: 'GET',    path: '/api/v1/versions/trash/download?record_id=x&version_id=x' },
+        { method: 'GET',    path: '/api/v1/versions/trash/preview?record_id=x&version_id=x' },
         { method: 'GET',    path: '/api/v1/versions/export' },
     ]
 

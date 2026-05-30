@@ -53,3 +53,20 @@ class StorageWrapper
         return true;
     }
 }
+
+class Settings
+{
+    public function loadSettings(): array
+    {
+        return [
+            'plugins' => [
+                'preview' => ['active' => true],
+            ],
+        ];
+    }
+
+    public function updateSettings(array $settings, string $type, string $name): bool
+    {
+        return true;
+    }
+}
