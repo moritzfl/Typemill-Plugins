@@ -11,10 +11,12 @@ VERSIONS_RECYCLE_BIN: Recycle Bin
 VERSIONS_RECYCLE_BIN_SUBTITLE: Deleted pages stay here until you restore or permanently remove them.
 VERSIONS_LOADING_TRASH: Loading recycle bin
 VERSIONS_TRASH_EMPTY: Trash is empty.
+VERSIONS_TRASH_EMPTY_HINT: Deleted pages and assets appear here after you remove them from the site. You can restore them or delete them permanently.
 VERSIONS_SINGULAR: Entry
 VERSIONS_PLURAL: Entries
 VERSIONS_FILTER_PLACEHOLDER: Filter pages
-VERSIONS_NO_MATCH: No deleted pages match your filter.
+VERSIONS_SEARCH_PLACEHOLDER: Search deleted pages…
+VERSIONS_NO_MATCH: No deleted pages match your search.
 VERSIONS_COL_PAGE: Page
 VERSIONS_COL_DELETED: Deleted
 VERSIONS_COL_ACTIONS: Actions

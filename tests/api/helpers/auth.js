@@ -64,10 +64,13 @@ export async function createSession(baseUrl, username, password) {
 }
 
 export function apiRequest(session, url, method = 'GET', body = null) {
+    const origin = new URL(url).origin
     const headers = {
         'Content-Type': 'application/json',
         'Cookie': session.cookie,
         'X-Session-Auth': 'true',
+        // SecurityMiddleware rejects POST/DELETE without a matching Referer.
+        Referer: `${origin}/`,
     }
 
     const opts = { method, headers }

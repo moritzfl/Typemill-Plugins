@@ -240,6 +240,21 @@ class VersionStore
         );
     }
 
+    public function storeMediaFilesDeletion(
+        string $relativePath,
+        string $username,
+        array $pluginSettings = []
+    ): array {
+        $settings = $this->getSettings($pluginSettings);
+        return $this->assetVersions->storeMediaFilesDeletion(
+            $relativePath,
+            $username,
+            $settings['max_versions'],
+            $this->resolveUserLabel($username),
+            $this->generateVersionId()
+        );
+    }
+
     public function getVersionDetailByPageId(string $pageId, string $versionId): ?array
     {
         $record = $this->records->loadPageRecord($pageId);

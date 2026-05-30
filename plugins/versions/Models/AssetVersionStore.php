@@ -6,6 +6,9 @@ use Typemill\Models\StorageWrapper;
 
 class AssetVersionStore
 {
+    private const MAX_SNAPSHOT_FILES = 500;
+    private const MAX_SNAPSHOT_BYTES = 50 * 1024 * 1024;
+
     private StorageWrapper $storage;
     private VersionRecordRepository $records;
     private LineDiff $diff;
@@ -112,6 +115,106 @@ class AssetVersionStore
         ];
     }
 
+    public function storeMediaFilesDeletion(
+        string $relativePath,
+        string $username,
+        int $maxVersions,
+        string $userLabel,
+        string $versionId
+    ): array {
+        $relativePath = $this->normalizeMediaFilesPath($relativePath);
+        if ($relativePath === null) {
+            return ['success' => false, 'message' => 'Invalid path.'];
+        }
+
+        $assetType = 'mediafiles';
+        $recordId = $this->resolveRecordId($assetType, $relativePath);
+
+        try {
+            $snapshotFiles = $this->createMediaFilesSnapshots($relativePath, $recordId, $versionId);
+        } catch (SnapshotTooLargeException $exception) {
+            throw $exception;
+        }
+
+        if (empty($snapshotFiles)) {
+            return ['success' => false, 'message' => 'File or folder not found.'];
+        }
+
+        $displayTitle = basename($relativePath) ?: $relativePath;
+
+        $record = $this->records->loadAssetRecord($recordId);
+        $label = $this->resolveLabel($assetType);
+        $isoNow = gmdate('c');
+
+        $entry = [
+            'id' => $versionId,
+            'action' => 'delete',
+            'created_at' => $isoNow,
+            'updated_at' => $isoNow,
+            'username' => $username,
+            'user_label' => $userLabel,
+            'status' => null,
+            'item_type' => 'asset_' . $assetType,
+            'asset_type' => $assetType,
+            'title' => $displayTitle,
+            'url' => $this->resolveUrl($assetType, $relativePath),
+            'path' => $this->resolveUrl($assetType, $relativePath),
+            'path_without_type' => '',
+            'markdown' => '',
+            'metadata' => [
+                'asset_type' => $assetType,
+                'name' => $relativePath,
+                'label' => $label,
+            ],
+            'snapshot_files' => $snapshotFiles,
+            'restorable' => true,
+            'deleted_snapshot' => true,
+            'previewable' => false,
+        ];
+
+        $record['versions'][] = $entry;
+        if (count($record['versions']) > $maxVersions) {
+            $dropped = array_slice($record['versions'], 0, count($record['versions']) - $maxVersions);
+            $record['versions'] = array_slice($record['versions'], -1 * $maxVersions);
+            foreach ($dropped as $droppedVersion) {
+                $this->cleanupVersionSnapshots($recordId, $droppedVersion['id']);
+            }
+        }
+
+        $record['asset'] = [
+            'record_id' => $recordId,
+            'asset_type' => $assetType,
+            'name' => $relativePath,
+            'title' => $displayTitle,
+            'url' => $entry['url'],
+            'path' => $entry['path'],
+            'updated_at' => $isoNow,
+        ];
+
+        $record['deleted'] = [
+            'record_type' => 'asset',
+            'record_id' => $recordId,
+            'version_id' => $entry['id'],
+            'deleted_at' => $isoNow,
+            'username' => $username,
+            'user_label' => $entry['user_label'],
+            'title' => $entry['title'],
+            'url' => $entry['url'],
+            'path' => $entry['path'],
+            'item_type' => $entry['item_type'],
+            'asset_type' => $assetType,
+            'previewable' => false,
+        ];
+
+        $this->records->saveAssetRecord($recordId, $record);
+
+        return [
+            'success' => true,
+            'record_id' => $recordId,
+            'version_id' => $entry['id'],
+        ];
+    }
+
     public function listDeletedEntries(): array
     {
         $entries = [];
@@ -189,7 +292,8 @@ class AssetVersionStore
 
         if ($assetType !== 'image') {
             foreach ($downloadFiles as $file) {
-                if (basename($file['path']) === $assetName) {
+                $filePath = str_replace('\\', '/', (string) ($file['path'] ?? ''));
+                if ($filePath === $assetName || basename($filePath) === basename($assetName)) {
                     return $file;
                 }
             }
@@ -229,6 +333,116 @@ class AssetVersionStore
         }
 
         return $this->snapshotMediaFile($name, $recordId, $versionId);
+    }
+
+    private function createMediaFilesSnapshots(string $relativePath, string $recordId, string $versionId): array
+    {
+        $base = rtrim($this->storage->getFolderPath('fileFolder'), DIRECTORY_SEPARATOR);
+        $absolute = $base . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+        if (!file_exists($absolute)) {
+            return [];
+        }
+
+        if (is_file($absolute)) {
+            return $this->snapshotMediaFilesEntry($absolute, $relativePath, $recordId, $versionId);
+        }
+
+        if (!is_dir($absolute)) {
+            return [];
+        }
+
+        return $this->snapshotMediaFilesDirectory($absolute, $relativePath, $recordId, $versionId);
+    }
+
+    private function snapshotMediaFilesEntry(string $absolutePath, string $relativePath, string $recordId, string $versionId): array
+    {
+        $snapshotPath = $this->copyToSnapshot($absolutePath, $recordId, $versionId, $relativePath);
+        if ($snapshotPath !== null) {
+            return [[
+                'location' => 'fileFolder',
+                'path' => $relativePath,
+                'snapshot_path' => $snapshotPath,
+            ]];
+        }
+
+        $content = file_get_contents($absolutePath);
+        if ($content === false) {
+            return [];
+        }
+
+        return [[
+            'location' => 'fileFolder',
+            'path' => $relativePath,
+            'content_base64' => base64_encode($content),
+        ]];
+    }
+
+    private function snapshotMediaFilesDirectory(string $absoluteDir, string $relativeDir, string $recordId, string $versionId): array
+    {
+        $snapshots = [];
+        $fileCount = 0;
+        $totalBytes = 0;
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($absoluteDir, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $fileInfo) {
+            if (!$fileInfo->isFile()) {
+                continue;
+            }
+
+            $absolutePath = $fileInfo->getPathname();
+            $subPath = ltrim(str_replace('\\', '/', substr($absolutePath, strlen($absoluteDir) + 1)), '/');
+            $relativePath = $relativeDir === '' ? $subPath : $relativeDir . '/' . $subPath;
+            if ($this->normalizeMediaFilesPath($relativePath) === null) {
+                continue;
+            }
+
+            $fileCount++;
+            if ($fileCount > self::MAX_SNAPSHOT_FILES) {
+                throw new SnapshotTooLargeException(
+                    'This folder exceeds the ' . self::MAX_SNAPSHOT_FILES . '-file limit for the recycle bin.'
+                );
+            }
+
+            $fileSize = $fileInfo->getSize();
+            if ($fileSize === false) {
+                continue;
+            }
+
+            $totalBytes += $fileSize;
+            if ($totalBytes > self::MAX_SNAPSHOT_BYTES) {
+                throw new SnapshotTooLargeException(
+                    'This folder exceeds the ' . (self::MAX_SNAPSHOT_BYTES / 1024 / 1024) . ' MB size limit for the recycle bin.'
+                );
+            }
+
+            $entrySnapshots = $this->snapshotMediaFilesEntry($absolutePath, $relativePath, $recordId, $versionId);
+            if (!empty($entrySnapshots)) {
+                $snapshots = array_merge($snapshots, $entrySnapshots);
+            }
+        }
+
+        return $snapshots;
+    }
+
+    private function normalizeMediaFilesPath(string $path): ?string
+    {
+        $path = trim(str_replace('\\', '/', $path), '/');
+        if ($path === '') {
+            return '';
+        }
+
+        foreach (explode('/', $path) as $segment) {
+            if ($segment === '' || $segment === '.' || $segment === '..') {
+                return null;
+            }
+            if ($segment === '.tmp' || str_starts_with($segment, '.')) {
+                return null;
+            }
+        }
+
+        return $path;
     }
 
     private function snapshotMediaFile(string $name, string $recordId, string $versionId): array
@@ -355,14 +569,20 @@ class AssetVersionStore
         return rtrim($base, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'versions' . DIRECTORY_SEPARATOR . 'snapshots';
     }
 
-    private function copyToSnapshot(string $srcPath, string $recordId, string $versionId, string $filename): ?string
+    private function copyToSnapshot(string $srcPath, string $recordId, string $versionId, string $relativePath): ?string
     {
-        $dir = $this->getSnapshotBasePath() . DIRECTORY_SEPARATOR . $recordId . DIRECTORY_SEPARATOR . $versionId;
-        if (!is_dir($dir) && !mkdir($dir, 0775, true)) {
+        $relativePath = str_replace('\\', '/', $relativePath);
+        if ($relativePath === '' || str_contains($relativePath, '..') || str_starts_with($relativePath, '/')) {
             return null;
         }
 
-        $destPath = $dir . DIRECTORY_SEPARATOR . $filename;
+        $dir = $this->getSnapshotBasePath() . DIRECTORY_SEPARATOR . $recordId . DIRECTORY_SEPARATOR . $versionId;
+        $destPath = $dir . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+        $destDir = dirname($destPath);
+        if (!is_dir($destDir) && !mkdir($destDir, 0775, true)) {
+            return null;
+        }
+
         if (!copy($srcPath, $destPath)) {
             return null;
         }
@@ -407,11 +627,19 @@ class AssetVersionStore
 
     private function resolveLabel(string $assetType): string
     {
-        return $assetType === 'image' ? 'Image' : 'File';
+        return match ($assetType) {
+            'image' => 'Image',
+            'mediafiles' => 'File',
+            default => 'File',
+        };
     }
 
     private function sanitizeType(string $assetType): string
     {
-        return $assetType === 'image' ? 'image' : 'file';
+        return match ($assetType) {
+            'image' => 'image',
+            'mediafiles' => 'mediafiles',
+            default => 'file',
+        };
     }
 }

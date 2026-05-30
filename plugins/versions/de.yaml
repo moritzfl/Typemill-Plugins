@@ -11,10 +11,12 @@ VERSIONS_RECYCLE_BIN: Papierkorb
 VERSIONS_RECYCLE_BIN_SUBTITLE: Gelöschte Seiten bleiben hier, bis du sie wiederherstellst oder endgültig löschst.
 VERSIONS_LOADING_TRASH: Papierkorb wird geladen
 VERSIONS_TRASH_EMPTY: Der Papierkorb ist leer.
+VERSIONS_TRASH_EMPTY_HINT: Gelöschte Seiten und Dateien erscheinen hier, nachdem du sie von der Website entfernt hast. Du kannst sie wiederherstellen oder endgültig löschen.
 VERSIONS_SINGULAR: Eintrag
 VERSIONS_PLURAL: Einträge
 VERSIONS_FILTER_PLACEHOLDER: Seiten filtern
-VERSIONS_NO_MATCH: Keine gelöschten Seiten entsprechen deinem Filter.
+VERSIONS_SEARCH_PLACEHOLDER: Gelöschte Seiten durchsuchen…
+VERSIONS_NO_MATCH: Keine gelöschten Seiten entsprechen deiner Suche.
 VERSIONS_COL_PAGE: Seite
 VERSIONS_COL_DELETED: Gelöscht
 VERSIONS_COL_ACTIONS: Aktionen

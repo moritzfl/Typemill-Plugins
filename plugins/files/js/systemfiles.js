@@ -606,21 +606,32 @@ const app = Vue.createApp({
                     this.deleteTarget = target;
                 },
 
-                deleteEntry() {
+                deleteEntry(forceDelete) {
                     if (!this.deleteTarget) return;
                     var self   = this;
                     var target = this.deleteTarget;
-                    this.deleteTarget = null;
 
                     tmaxios.delete('/api/v1/files/entry', {
-                        data: { path: target.path }
+                        data: {
+                            path: target.path,
+                            force_delete: forceDelete || false,
+                        }
                     })
                     .then(function() {
+                        self.deleteTarget = null;
                         self.showMessage('files.msg_deleted', 'success');
                         self.loadBrowse();
                     })
-                    .catch(function() {
-                        self.showMessage('files.msg_delete_error', 'error');
+                    .catch(function(error) {
+                        if (error.response && error.response.status === 409 && error.response.data && error.response.data.too_large) {
+                            if (window.confirm(error.response.data.message)) {
+                                self.deleteEntry(true);
+                                return;
+                            }
+                        } else {
+                            self.showMessage('files.msg_delete_error', 'error');
+                        }
+                        self.deleteTarget = null;
                     });
                 },
 
