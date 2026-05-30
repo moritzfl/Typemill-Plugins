@@ -1,7 +1,8 @@
 # Files — Typemill Plugin
 
-A Typemill plugin that adds a file manager to the system settings. Upload any file type to the `media/files` folder,
-browse your uploads, copy links, download, and delete — all from a clean GUI without touching FTP.
+A Typemill plugin that adds a folder-based file manager to the system settings. Create nested folders under
+`media/files`, upload and download files in any subfolder, copy links, delete files or whole folder trees, and export
+folders as ZIP archives — all from the admin GUI.
 
 ## Installation
 
@@ -11,64 +12,61 @@ See [Installation in the project README](../../README.md#installation).
 
 Open **System → Files** in the admin area.
 
+### Folders and navigation
+
+- Use **breadcrumbs** at the top to jump to any parent folder.
+- Click a **folder row** to open it, or use **..** to go up one level.
+- **New folder** creates a subfolder in the current directory.
+
 ### Uploading files
 
-Drop files onto the upload zone or click it to open a file picker. Multiple files can be selected at once — they are
-uploaded sequentially and a status indicator shows progress for each file.
+Drop files onto the upload zone or click it to open a file picker. Uploads go into the **currently open folder**.
+Multiple files are uploaded sequentially with per-file status.
 
-Files land directly in `media/files/` and are immediately available.
+Small files use `POST /api/v1/files/upload`. Large files (when the base64 payload would exceed PHP `post_max_size`)
+use chunked upload (`/api/v1/files/chunk` + `/api/v1/files/finalize`).
 
-### File list
+### File and folder actions
 
-All files in `media/files/` are listed with their name, size, and upload date. Use the filter input to search by
-filename.
-
-### Actions per file
-
-| Button        | What it does                                                                                                            |
-|---------------|-------------------------------------------------------------------------------------------------------------------------|
-| **Copy Path** | Copies the relative path, e.g. `media/files/filename.ext`. Use this to reference the file in Typemill content.          |
-| **Copy URL**  | Copies the full public URL, e.g. `https://yoursite.com/media/files/filename.ext`. Use this to share or link externally. |
-| Download icon | Downloads the file through the browser.                                                                                 |
-| Delete icon   | Asks for confirmation, then permanently deletes the file.                                                               |
-
-When you copy a path or URL, a toast notification slides up from the bottom of the screen showing the exact string that
-was copied.
+| Action | What it does |
+|--------|----------------|
+| **Copy Path** | Relative path, e.g. `media/files/docs/guide.pdf` |
+| **Copy URL** | Full public URL for external sharing |
+| **Download** | Authenticated download of a single file |
+| **Download ZIP** | Downloads a folder and all nested contents as a `.zip` (max 200 MB total) |
+| **Delete** | Removes a file or folder (folders are deleted recursively after confirmation) |
 
 ## Security
 
-Uploads are validated on the server when a chunked upload is finalized:
+Uploads are validated on the server when stored (direct upload and chunked finalize):
 
-1. **Filename** — Only the base name is kept (`basename`). Paths with `..`, null bytes, or directory separators are rejected.
-2. **Extension blocklist** — Server-side script and executable extensions are rejected (for example `.php`, `.phtml`, `.phar`, `.asp`, `.jsp`, `.exe`, `.sh`, `.bat`, `.htaccess`).
-3. **MIME sniffing** — When PHP's `fileinfo` extension is available, the assembled file content is inspected with `finfo` (magic bytes), not just the filename. Blocked MIME types include PHP, generic executables, and shell scripts. For common extensions (`.pdf`, `.jpg`, `.png`, `.zip`, and others), the sniffed type must match the expected type so a script cannot be uploaded as `document.pdf`.
+1. **Paths** — Relative paths are normalized; `..`, `.tmp`, and hidden names (leading `.`) are rejected. Writes stay inside `media/files/`.
+2. **Filename** — Only the base name is kept (`basename`). Paths with `..`, null bytes, or directory separators are rejected.
+3. **Extension blocklist** — Script and executable extensions are rejected.
+4. **MIME sniffing** — When PHP `fileinfo` is available, content is inspected with `finfo`. Blocked MIME types and extension mismatches are rejected.
 
-Unlisted extensions (for example `.m3u`, `.epub`, `.mobi`) are still allowed if they pass the global MIME blocklist.
-
-The maximum upload size follows Typemill's global `maxfileuploads` setting (defaults to 50 MB if not set).
+The maximum upload size follows Typemill's global `maxfileuploads` setting.
 
 ### Production deployments
 
 The plugin does **not** scan uploads for malware. On internet-facing production sites you should:
 
-- Treat **System → Files** as a trusted-admin feature only (Typemill already requires authentication).
-- Run **antivirus or malware scanning** on `media/files/` at the OS or storage layer (for example ClamAV on upload or via scheduled scans).
-- Serve `media/files/` with **`Content-Disposition: attachment`** or from a separate domain/CDN if files are user-supplied, so browsers do not execute disguised content in the same origin as your site.
-- Keep PHP's **`fileinfo`** extension enabled so MIME sniffing stays active.
+- Treat **System → Files** as a trusted-admin feature only.
+- Run **antivirus or malware scanning** on `media/files/` at the OS or storage layer.
+- Serve user-supplied files with **`Content-Disposition: attachment`** or from a separate domain/CDN where appropriate.
+- Keep PHP's **`fileinfo`** and **`zip`** (ZipArchive) extensions enabled.
 
-MIME and extension checks reduce obvious upload abuse; they are not a substitute for virus scanning on production systems.
+## Plugin API routes
 
-## API routes
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET` | `/api/v1/files/browse?path=` | List folders and files in a directory |
+| `POST` | `/api/v1/files/folder` | Create folder (`path`, `name`) |
+| `DELETE` | `/api/v1/files/entry` | Delete file or folder (`path`) |
+| `POST` | `/api/v1/files/upload` | Upload file to folder (`path`, `name`, `file` data URL) |
+| `POST` | `/api/v1/files/chunk` | Chunked upload (large files) |
+| `POST` | `/api/v1/files/finalize` | Assemble chunks into folder (`path`, `filename`, …) |
+| `GET` | `/api/v1/files/download?path=` | Download a file |
+| `GET` | `/api/v1/files/download-zip?path=` | Download folder as ZIP |
 
-The plugin only registers the admin page route `/tm/files`.
-
-For listing, uploading, and deleting files it uses Typemill's core file APIs:
-
-| Method   | Path             | Purpose                             |
-|----------|------------------|-------------------------------------|
-| `GET`    | `/api/v1/files`  | List all files in `media/files/`    |
-| `POST`   | `/api/v1/file`   | Upload and publish a file           |
-| `DELETE` | `/api/v1/file`   | Delete a file by name               |
-
-This keeps the files manager aligned with medialib and allows optional integrations such as the versions recycle bin
-to intercept one standard delete route.
+Admin page: `GET /tm/files`

@@ -1,30 +1,56 @@
 FILES: Dateien
 FILES_TITLE: Dateien
-FILES_SUBTITLE: Dateien im Ordner media/files hochladen und verwalten.
+FILES_SUBTITLE: Dateien und Ordner in media/files verwalten — hochladen, sortieren und Links teilen.
 FILES_DROP_HINT: Dateien hier ablegen oder klicken zum Auswählen
+FILES_DROP_OVERLAY: Dateien zum Hochladen ablegen
+FILES_UPLOAD_FILES: Dateien hochladen
 FILES_DROP_TYPES: Die meisten Dateitypen erlaubt; Skripte und unpassende Inhalte werden blockiert
 FILES_CLEAR_QUEUE: Liste leeren
 FILES_UPLOADING: Wird hochgeladen
 FILES_DONE: Fertig
 FILES_FAILED: Fehlgeschlagen
 FILES_QUEUED: Ausstehend
-FILES_FILTER_PLACEHOLDER: Dateien filtern
+FILES_FILTER_PLACEHOLDER: Name filtern
+FILES_SEARCH_PLACEHOLDER: In diesem Ordner suchen
+FILES_VIEW_MODE: Ansicht
+FILES_VIEW_GRID: Kachelansicht
+FILES_VIEW_LIST: Listenansicht
+FILES_GO_UP: Übergeordneter Ordner
+FILES_BREADCRUMB_ROOT: Alle Dateien
+FILES_KIND_FOLDER: Ordner
+FILES_ACTIONS: Aktionen
+FILES_ACTION_OPEN: Öffnen
+FILES_TRANSFER_TITLE: Uploads
+FILES_COL_NAME: Name
 FILES_COL_FILE: Datei
 FILES_COL_SIZE: Größe
 FILES_COL_DATE: Datum
 FILES_COL_ACTIONS: Aktionen
 FILES_SINGULAR: Datei
 FILES_PLURAL: Dateien
+FILES_ENTRY_SINGULAR: Eintrag
+FILES_ENTRY_PLURAL: Einträge
+FILES_NEW_FOLDER: Neuer Ordner
+FILES_NEW_FOLDER_TITLE: Ordner erstellen
+FILES_NEW_FOLDER_PLACEHOLDER: Ordnername
+FILES_CREATE: Erstellen
+FILES_PARENT_FOLDER: Übergeordneter Ordner
+FILES_UPLOAD_TO: Hochladen nach
+FILES_DOWNLOAD_ZIP: ZIP herunterladen
 FILES_COPY_PATH: Pfad kopieren
 FILES_COPY_URL: URL kopieren
 FILES_DOWNLOAD: Herunterladen
-FILES_NO_MATCH: Keine Dateien gefunden.
+FILES_NO_MATCH: Keine Dateien entsprechen der Suche.
 FILES_EMPTY: Noch keine Dateien hochgeladen.
-FILES_EMPTY_HINT: Dateien oben ablegen um zu starten.
+FILES_EMPTY_HINT: Dateien hier ablegen oder auf „Dateien hochladen“ klicken.
+FILES_FOLDER_EMPTY: Dieser Ordner ist leer.
+FILES_FOLDER_EMPTY_HINT: Dateien hier hochladen oder einen Unterordner anlegen.
 FILES_LOADING: Dateien werden geladen
 FILES_DELETE_TITLE: Datei löschen?
-FILES_DELETE_CONFIRM: Soll diese Datei wirklich gelöscht werden
+FILES_DELETE_FOLDER_TITLE: Ordner löschen?
+FILES_DELETE_CONFIRM: Soll dieser Eintrag wirklich gelöscht werden
 FILES_DELETE_WARNING: Diese Aktion kann nicht rückgängig gemacht werden.
+FILES_DELETE_FOLDER_WARNING: Alle Dateien und Unterordner werden dauerhaft gelöscht.
 FILES_CANCEL: Abbrechen
 FILES_CLOSE: Schließen
 FILES_ERROR_TITLE: Upload-Fehler
@@ -45,3 +71,10 @@ FILES_MSG_STORE_ERROR: Datei konnte nicht gespeichert werden.
 FILES_MSG_PUBLISH_ERROR: Datei konnte nicht veröffentlicht werden.
 FILES_MSG_UPLOAD_SUCCESS: Datei erfolgreich hochgeladen.
 FILES_MSG_FILENAME_MISSING: Dateiname fehlt.
+FILES_MSG_FOLDER_CREATED: Ordner erstellt.
+FILES_MSG_FOLDER_INVALID: Ungültiger Ordnername oder Pfad.
+FILES_MSG_FOLDER_EXISTS: Ein Ordner mit diesem Namen existiert bereits.
+FILES_MSG_FOLDER_PARENT_MISSING: Ordner nicht gefunden.
+FILES_MSG_FOLDER_CREATE_ERROR: Ordner konnte nicht erstellt werden.
+FILES_MSG_DOWNLOAD_ERROR: Datei konnte nicht heruntergeladen werden.
+FILES_MSG_ZIP_ERROR: ZIP konnte nicht erstellt werden (Ordner fehlt, leer, zu groß oder ZipArchive nicht verfügbar).

@@ -89,6 +89,30 @@ if (!reachable) {
 }
 
 // ---------------------------------------------------------------------------
+// 2b. PHP zip extension (folder ZIP downloads, versions export)
+// ---------------------------------------------------------------------------
+
+log('Ensuring PHP zip extension...')
+const zipCheck = spawnSync(
+    'docker',
+    ['compose', '-f', COMPOSE_FILE, 'exec', '-T', 'typemill', 'php', '-r', "echo class_exists('ZipArchive') ? 'yes' : 'no';"],
+    { encoding: 'utf8' }
+)
+if ((zipCheck.stdout || '').trim() !== 'yes') {
+    const zipInstall = spawnSync(
+        'docker',
+        [
+            'compose', '-f', COMPOSE_FILE, 'exec', '-T', 'typemill', 'sh', '-c',
+            'apt-get update -qq && apt-get install -y -qq libzip-dev zlib1g-dev && docker-php-ext-install zip',
+        ],
+        { stdio: 'inherit' }
+    )
+    if (zipInstall.status !== 0) {
+        die('Failed to install PHP zip extension in the Typemill container.')
+    }
+}
+
+// ---------------------------------------------------------------------------
 // 3. Provision settings + admin user
 //
 // settings.yaml is only written when it does not exist, so manually configured

@@ -2,12 +2,14 @@
 
 namespace Plugins\files;
 
+use Plugins\files\Models\FileManager;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Typemill\Plugin;
 
 class files extends Plugin
 {
+    private ?FileManager $fileManager = null;
     private const BLOCKED_EXTENSIONS = [
         'php', 'php3', 'php4', 'php5', 'php7', 'php8', 'phtml', 'phar',
         'asp', 'aspx', 'jsp', 'jspx', 'cgi', 'pl', 'exe', 'bat', 'cmd', 'com', 'scr',
@@ -99,6 +101,54 @@ class files extends Plugin
                 'class'      => 'Plugins\files\files:finalizeUpload',
                 'resource'   => 'system',
                 'privilege'  => 'update'
+            ],
+            [
+                'httpMethod' => 'get',
+                'route'      => '/api/v1/files/browse',
+                'name'       => 'files.browse',
+                'class'      => 'Plugins\files\files:browse',
+                'resource'   => 'system',
+                'privilege'  => 'view'
+            ],
+            [
+                'httpMethod' => 'post',
+                'route'      => '/api/v1/files/folder',
+                'name'       => 'files.folder',
+                'class'      => 'Plugins\files\files:createFolder',
+                'resource'   => 'system',
+                'privilege'  => 'update'
+            ],
+            [
+                'httpMethod' => 'delete',
+                'route'      => '/api/v1/files/entry',
+                'name'       => 'files.entry.delete',
+                'class'      => 'Plugins\files\files:deleteEntry',
+                'resource'   => 'system',
+                'privilege'  => 'update'
+            ],
+            [
+                'httpMethod' => 'post',
+                'route'      => '/api/v1/files/upload',
+                'name'       => 'files.upload',
+                'class'      => 'Plugins\files\files:uploadFile',
+                'resource'   => 'system',
+                'privilege'  => 'update'
+            ],
+            [
+                'httpMethod' => 'get',
+                'route'      => '/api/v1/files/download',
+                'name'       => 'files.download',
+                'class'      => 'Plugins\files\files:downloadFile',
+                'resource'   => 'system',
+                'privilege'  => 'view'
+            ],
+            [
+                'httpMethod' => 'get',
+                'route'      => '/api/v1/files/download-zip',
+                'name'       => 'files.download.zip',
+                'class'      => 'Plugins\files\files:downloadFolderZip',
+                'resource'   => 'system',
+                'privilege'  => 'view'
             ],
         ];
     }
@@ -240,11 +290,23 @@ class files extends Plugin
             ], 400);
         }
 
-        $destDir = $this->getProjectRoot() . '/media/files';
-        if (!is_dir($destDir)) {
-            mkdir($destDir, 0755, true);
+        $relativeDir = $this->getManager()->normalizeRelativePath($params['path'] ?? '');
+        if ($relativeDir === null) {
+            unlink($tmpFile);
+            return $this->jsonResponse($response, [
+                'message' => 'files.msg_folder_invalid',
+            ], 400);
         }
-        $destPath = $destDir . '/' . $safeFilename;
+
+        $destDir = $this->getManager()->resolveDirectoryForWrite($relativeDir);
+        if ($destDir === null) {
+            unlink($tmpFile);
+            return $this->jsonResponse($response, [
+                'message' => 'files.msg_folder_parent_missing',
+            ], 400);
+        }
+
+        $destPath = $destDir . DIRECTORY_SEPARATOR . $safeFilename;
 
         if (file_exists($destPath)) {
             unlink($tmpFile);
@@ -265,6 +327,180 @@ class files extends Plugin
         return $this->jsonResponse($response, [
             'message' => 'files.msg_upload_success',
         ]);
+    }
+
+    public function browse(Request $request, Response $response, $args)
+    {
+        $params = $request->getQueryParams();
+        $path = $this->getManager()->normalizeRelativePath($params['path'] ?? '');
+        if ($path === null) {
+            return $this->jsonResponse($response, [
+                'message' => 'files.msg_folder_invalid',
+            ], 400);
+        }
+
+        $listing = $this->getManager()->browse($path);
+        if ($listing === null) {
+            return $this->jsonResponse($response, [
+                'message' => 'files.msg_folder_parent_missing',
+            ], 404);
+        }
+
+        return $this->jsonResponse($response, $listing);
+    }
+
+    public function createFolder(Request $request, Response $response, $args)
+    {
+        $params = $request->getParsedBody();
+        $parentPath = $params['path'] ?? '';
+        $name = $params['name'] ?? '';
+
+        $error = $this->getManager()->createFolder($parentPath, $name);
+        if ($error !== null) {
+            return $this->jsonResponse($response, [
+                'message' => $error,
+            ], 400);
+        }
+
+        return $this->jsonResponse($response, [
+            'message' => 'files.msg_folder_created',
+        ]);
+    }
+
+    public function deleteEntry(Request $request, Response $response, $args)
+    {
+        $params = $request->getParsedBody();
+        if (!is_array($params)) {
+            $params = [];
+        }
+
+        $query = $request->getQueryParams();
+        $path = $params['path'] ?? $query['path'] ?? '';
+
+        if (!$this->getManager()->deletePath($path)) {
+            return $this->jsonResponse($response, [
+                'message' => 'files.msg_delete_error',
+            ], 400);
+        }
+
+        return $this->jsonResponse($response, [
+            'message' => 'files.msg_deleted',
+        ]);
+    }
+
+    public function uploadFile(Request $request, Response $response, $args)
+    {
+        $params = $request->getParsedBody();
+        $relativeDir = $this->getManager()->normalizeRelativePath($params['path'] ?? '');
+        if ($relativeDir === null) {
+            return $this->jsonResponse($response, [
+                'message' => 'files.msg_folder_invalid',
+            ], 400);
+        }
+
+        $destDir = $this->getManager()->resolveDirectoryForWrite($relativeDir);
+        if ($destDir === null) {
+            return $this->jsonResponse($response, [
+                'message' => 'files.msg_folder_parent_missing',
+            ], 400);
+        }
+
+        $filename = $params['name'] ?? '';
+        $fileData = $params['file'] ?? '';
+        if (!is_string($fileData) || $fileData === '') {
+            return $this->jsonResponse($response, [
+                'message' => 'files.msg_file_missing',
+            ], 400);
+        }
+
+        $safeFilename = $this->sanitizeFilename($filename);
+        if ($safeFilename === null) {
+            return $this->jsonResponse($response, [
+                'message' => 'files.msg_filename_missing',
+            ], 400);
+        }
+
+        $decoded = $this->decodeDataUrl($fileData);
+        if ($decoded === null) {
+            return $this->jsonResponse($response, [
+                'message' => 'files.msg_upload_failed',
+            ], 400);
+        }
+
+        $settings = $this->getSettings();
+        $maxSize = isset($settings['maxfileuploads']) ? (int) $settings['maxfileuploads'] * 1024 * 1024 : 0;
+        if ($maxSize > 0 && strlen($decoded) > $maxSize) {
+            return $this->jsonResponse($response, [
+                'message' => 'files.msg_too_large',
+            ], 400);
+        }
+
+        $tmpDir = $this->getTmpDir();
+        if (!is_dir($tmpDir)) {
+            mkdir($tmpDir, 0755, true);
+        }
+
+        $tmpFile = $tmpDir . '/upload_' . uniqid('', true) . '.bin';
+        if (file_put_contents($tmpFile, $decoded) === false) {
+            return $this->jsonResponse($response, [
+                'message' => 'files.msg_store_error',
+            ], 500);
+        }
+
+        $validationError = $this->validateUploadedFile($tmpFile, $safeFilename);
+        if ($validationError !== null) {
+            unlink($tmpFile);
+            return $this->jsonResponse($response, [
+                'message' => $validationError,
+            ], 400);
+        }
+
+        $destPath = $destDir . DIRECTORY_SEPARATOR . $safeFilename;
+        if (file_exists($destPath)) {
+            unlink($tmpFile);
+            return $this->jsonResponse($response, [
+                'message' => 'files.msg_filename_missing',
+            ], 409);
+        }
+
+        if (!rename($tmpFile, $destPath)) {
+            unlink($tmpFile);
+            return $this->jsonResponse($response, [
+                'message' => 'files.msg_store_error',
+            ], 500);
+        }
+
+        return $this->jsonResponse($response, [
+            'message' => 'files.msg_upload_success',
+        ]);
+    }
+
+    public function downloadFile(Request $request, Response $response, $args)
+    {
+        $params = $request->getQueryParams();
+        $path = $params['path'] ?? '';
+        $download = $this->getManager()->getFileDownload($path);
+        if ($download === null) {
+            return $this->jsonResponse($response, [
+                'message' => 'files.msg_download_error',
+            ], 404);
+        }
+
+        return $this->fileDownloadResponse($response, $download);
+    }
+
+    public function downloadFolderZip(Request $request, Response $response, $args)
+    {
+        $params = $request->getQueryParams();
+        $path = $params['path'] ?? '';
+        $download = $this->getManager()->createFolderZip($path);
+        if ($download === null) {
+            return $this->jsonResponse($response, [
+                'message' => 'files.msg_zip_error',
+            ], 400);
+        }
+
+        return $this->fileDownloadResponse($response, $download);
     }
 
     private function cleanupOldTmpFiles(): void
@@ -295,9 +531,38 @@ class files extends Plugin
         return dirname(__DIR__, 2);
     }
 
+    private function getManager(): FileManager
+    {
+        if ($this->fileManager === null) {
+            $this->fileManager = new FileManager($this->getProjectRoot());
+        }
+
+        return $this->fileManager;
+    }
+
     private function getTmpDir(): string
     {
-        return $this->getProjectRoot() . '/media/files/.tmp';
+        return $this->getManager()->getTmpDir();
+    }
+
+    private function decodeDataUrl(string $value): ?string
+    {
+        if (str_contains($value, ',')) {
+            $value = substr($value, strpos($value, ',') + 1);
+        }
+
+        $decoded = base64_decode($value, true);
+
+        return $decoded === false ? null : $decoded;
+    }
+
+    private function fileDownloadResponse(Response $response, array $download): Response
+    {
+        $response->getBody()->write($download['content']);
+
+        return $response
+            ->withHeader('Content-Type', $download['mime_type'])
+            ->withHeader('Content-Disposition', 'attachment; filename="' . str_replace(['"', '\\'], ['\"', '\\\\'], $download['filename']) . '"');
     }
 
     private function sanitizeUploadId(string $id): string

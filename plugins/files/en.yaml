@@ -1,30 +1,56 @@
 FILES: Files
 FILES_TITLE: Files
-FILES_SUBTITLE: Upload and manage files in the media/files folder.
+FILES_SUBTITLE: Manage files and folders in media/files — upload, organize, and share links.
 FILES_DROP_HINT: Drop files here or click to browse
+FILES_DROP_OVERLAY: Drop files to upload
+FILES_UPLOAD_FILES: Upload files
 FILES_DROP_TYPES: Most file types accepted; scripts and mismatched content are blocked
 FILES_CLEAR_QUEUE: Clear list
 FILES_UPLOADING: Uploading
 FILES_DONE: Done
 FILES_FAILED: Failed
 FILES_QUEUED: Queued
-FILES_FILTER_PLACEHOLDER: Filter files
+FILES_FILTER_PLACEHOLDER: Filter name
+FILES_SEARCH_PLACEHOLDER: Search in this folder
+FILES_VIEW_MODE: View mode
+FILES_VIEW_GRID: Grid view
+FILES_VIEW_LIST: List view
+FILES_GO_UP: Parent folder
+FILES_BREADCRUMB_ROOT: All files
+FILES_KIND_FOLDER: Folder
+FILES_ACTIONS: Actions
+FILES_ACTION_OPEN: Open
+FILES_TRANSFER_TITLE: Uploads
+FILES_COL_NAME: Name
 FILES_COL_FILE: File
 FILES_COL_SIZE: Size
 FILES_COL_DATE: Date
 FILES_COL_ACTIONS: Actions
 FILES_SINGULAR: file
 FILES_PLURAL: files
+FILES_ENTRY_SINGULAR: item
+FILES_ENTRY_PLURAL: items
+FILES_NEW_FOLDER: New folder
+FILES_NEW_FOLDER_TITLE: Create folder
+FILES_NEW_FOLDER_PLACEHOLDER: Folder name
+FILES_CREATE: Create
+FILES_PARENT_FOLDER: Parent folder
+FILES_UPLOAD_TO: Uploading to
+FILES_DOWNLOAD_ZIP: Download ZIP
 FILES_COPY_PATH: Copy Path
 FILES_COPY_URL: Copy URL
 FILES_DOWNLOAD: Download
 FILES_NO_MATCH: No files match your filter.
 FILES_EMPTY: No files uploaded yet.
-FILES_EMPTY_HINT: Drop files above to get started.
+FILES_EMPTY_HINT: Drop files anywhere here or click Upload files.
+FILES_FOLDER_EMPTY: This folder is empty.
+FILES_FOLDER_EMPTY_HINT: Upload files here or create a subfolder.
 FILES_LOADING: Loading files
 FILES_DELETE_TITLE: Delete file?
+FILES_DELETE_FOLDER_TITLE: Delete folder?
 FILES_DELETE_CONFIRM: Are you sure you want to delete
 FILES_DELETE_WARNING: This cannot be undone.
+FILES_DELETE_FOLDER_WARNING: All files and subfolders inside will be deleted permanently.
 FILES_CANCEL: Cancel
 FILES_CLOSE: Close
 FILES_ERROR_TITLE: Upload error
@@ -45,3 +71,10 @@ FILES_MSG_STORE_ERROR: Could not store the file.
 FILES_MSG_PUBLISH_ERROR: Could not publish the file.
 FILES_MSG_UPLOAD_SUCCESS: File uploaded successfully.
 FILES_MSG_FILENAME_MISSING: Filename is missing.
+FILES_MSG_FOLDER_CREATED: Folder created.
+FILES_MSG_FOLDER_INVALID: Invalid folder name or path.
+FILES_MSG_FOLDER_EXISTS: A folder with this name already exists.
+FILES_MSG_FOLDER_PARENT_MISSING: Folder not found.
+FILES_MSG_FOLDER_CREATE_ERROR: Could not create folder.
+FILES_MSG_DOWNLOAD_ERROR: Could not download file.
+FILES_MSG_ZIP_ERROR: Could not create ZIP archive (folder missing, empty, too large, or ZipArchive unavailable).

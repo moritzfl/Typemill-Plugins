@@ -1,6 +1,6 @@
 name: Files
-version: 1.1.0
-description: Upload and manage files of all types. Provides a GUI in system settings to upload files to the media/files folder, list uploads, copy links, delete files, and replace files.
+version: 2.1.0
+description: Folder-based file manager for media/files. Browse nested folders, upload and download files, create and delete folders, and export folders as ZIP archives.
 author: Moritz
 homepage: https://github.com/moritzfl/Typemill-Plugins
 license: LGPL
