@@ -91,6 +91,7 @@
                     </div>
                     <div class="flex gap-2">
                         <button
+                            v-if="canExport"
                             @click.prevent="openExportDialog"
                             class="px-3 py-2 border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-600 hover:bg-stone-300 dark:hover:bg-stone-500 text-stone-900 dark:text-stone-200 transition duration-100"
                         >
@@ -358,6 +359,7 @@
                 mergelyAppEventCtor: null,
                 exportDialogOpen: false,
                 exportInProgress: false,
+                canExport: typeof versionsCanExport !== 'undefined' && versionsCanExport,
             };
         },
         watch: {

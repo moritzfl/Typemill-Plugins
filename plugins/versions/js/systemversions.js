@@ -104,6 +104,7 @@ const app = Vue.createApp({
             deleteTarget: null,
             confirmEmpty: false,
             openMenuKey: null,
+            canExport: typeof versionsCanExport !== 'undefined' && versionsCanExport,
         };
     },
 

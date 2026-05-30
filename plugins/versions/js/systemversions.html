@@ -9,6 +9,7 @@
             <div class="tm-trash-toolbar">
                 <div class="tm-trash-toolbar__primary">
                     <button
+                        v-if="canExport"
                         type="button"
                         @click.prevent="exportHistory"
                         class="tm-trash-btn tm-trash-btn--primary"

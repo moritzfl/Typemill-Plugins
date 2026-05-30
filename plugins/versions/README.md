@@ -116,6 +116,8 @@ Open **System → Versions** to adjust:
 
 ### Export API
 
+Export requires the **`system` + `read`** permission (Typemill **manager** and **administrator** roles). Editors and authors without system access receive HTTP 403 if they call these routes directly.
+
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
 | `/api/v1/versions/page/export?url=<page-url>` | GET | JSON export for one page |

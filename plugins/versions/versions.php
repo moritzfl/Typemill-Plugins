@@ -205,6 +205,7 @@ class versions extends Plugin
             $this->addCSS('/versions/js/mergely.css');
             $this->addJS('/versions/js/mergely.min.js');
             $this->addJS('/versions/js/export-options.js');
+            $this->addInlineJS($this->exportAccessInlineJs());
             $this->addInlineJS(file_get_contents(__DIR__ . '/js/editor-versions.js'));
         }
     }
@@ -228,6 +229,7 @@ class versions extends Plugin
             $this->addJS('/versions/js/export-options.js');
             $template = file_get_contents(__DIR__ . '/js/systemversions.html');
             $js = file_get_contents(__DIR__ . '/js/systemversions.js');
+            $this->addInlineJS($this->exportAccessInlineJs());
             $this->addInlineJS('const versionsSystemTemplate = ' . json_encode($template) . '; ' . $js);
         }
 
@@ -424,11 +426,19 @@ class versions extends Plugin
 
     public function getExportOptions(Request $request, Response $response, $args)
     {
+        if ($permissionResponse = $this->guardExportAccess($request, $response)) {
+            return $permissionResponse;
+        }
+
         return $this->jsonResponse($response, $this->getStore()->getExportOptionsPayload());
     }
 
     public function exportAllHistory(Request $request, Response $response, $args)
     {
+        if ($permissionResponse = $this->guardExportAccess($request, $response)) {
+            return $permissionResponse;
+        }
+
         $store = $this->getStore();
         $availableFolders = $store->getExportOptionsPayload()['media_folders'];
         $options = ExportOptions::fromRequestParams($request->getQueryParams(), $availableFolders);
@@ -442,14 +452,14 @@ class versions extends Plugin
 
     public function exportPageHistory(Request $request, Response $response, $args)
     {
+        if ($permissionResponse = $this->guardExportAccess($request, $response)) {
+            return $permissionResponse;
+        }
+
         $url = $request->getQueryParams()['url'] ?? false;
         $resolved = $this->resolveItemAndMeta($response, $url);
         if (isset($resolved['response'])) {
             return $resolved['response'];
-        }
-
-        if ($permissionResponse = $this->guardPageAccess($request, $response, $resolved['metadata'], 'read')) {
-            return $permissionResponse;
         }
 
         $download = $this->getStore()->exportPageHistory($resolved['item'], $resolved['metadata']);
@@ -803,6 +813,37 @@ class versions extends Plugin
         return $this->jsonResponse($response, [
             'message' => Translations::translate('You do not have enough rights.'),
         ], 403);
+    }
+
+    private function guardExportAccess(Request $request, Response $response): ?Response
+    {
+        $userrole = $request->getAttribute('c_userrole');
+        if ($this->userroleIsAllowed($userrole, 'system', 'read')) {
+            return null;
+        }
+
+        return $this->jsonResponse($response, [
+            'message' => Translations::translate('You do not have enough rights.'),
+        ], 403);
+    }
+
+    private function canExport(): bool
+    {
+        if (!isset($_SESSION['username'])) {
+            return false;
+        }
+
+        $user = new User();
+        if (!$user->setUser($_SESSION['username'])) {
+            return false;
+        }
+
+        return $this->userroleIsAllowed($user->getValue('userrole'), 'system', 'read');
+    }
+
+    private function exportAccessInlineJs(): string
+    {
+        return 'const versionsCanExport = ' . ($this->canExport() ? 'true' : 'false') . ';';
     }
 
     private function userroleIsAllowed($userrole, string $resource, string $action): bool
