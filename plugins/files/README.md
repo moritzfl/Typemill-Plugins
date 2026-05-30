@@ -37,13 +37,26 @@ was copied.
 
 ## Security
 
-The following server-side executable extensions are blocked from uploading:
+Uploads are validated on the server when a chunked upload is finalized:
 
-`.php` `.php3` `.php4` `.php5` `.php7` `.phtml` `.phar` `.asp` `.aspx` `.jsp` `.jspx` `.cgi`
+1. **Filename** — Only the base name is kept (`basename`). Paths with `..`, null bytes, or directory separators are rejected.
+2. **Extension blocklist** — Server-side script and executable extensions are rejected (for example `.php`, `.phtml`, `.phar`, `.asp`, `.jsp`, `.exe`, `.sh`, `.bat`, `.htaccess`).
+3. **MIME sniffing** — When PHP's `fileinfo` extension is available, the assembled file content is inspected with `finfo` (magic bytes), not just the filename. Blocked MIME types include PHP, generic executables, and shell scripts. For common extensions (`.pdf`, `.jpg`, `.png`, `.zip`, and others), the sniffed type must match the expected type so a script cannot be uploaded as `document.pdf`.
 
-Everything else is accepted, including uncommon types like `.m3u`, `.epub`, `.mobi`, audio, video, archives, and so on.
+Unlisted extensions (for example `.m3u`, `.epub`, `.mobi`) are still allowed if they pass the global MIME blocklist.
 
 The maximum upload size follows Typemill's global `maxfileuploads` setting (defaults to 50 MB if not set).
+
+### Production deployments
+
+The plugin does **not** scan uploads for malware. On internet-facing production sites you should:
+
+- Treat **System → Files** as a trusted-admin feature only (Typemill already requires authentication).
+- Run **antivirus or malware scanning** on `media/files/` at the OS or storage layer (for example ClamAV on upload or via scheduled scans).
+- Serve `media/files/` with **`Content-Disposition: attachment`** or from a separate domain/CDN if files are user-supplied, so browsers do not execute disguised content in the same origin as your site.
+- Keep PHP's **`fileinfo`** extension enabled so MIME sniffing stays active.
+
+MIME and extension checks reduce obvious upload abuse; they are not a substitute for virus scanning on production systems.
 
 ## API routes
 

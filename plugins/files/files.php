@@ -9,8 +9,56 @@ use Typemill\Plugin;
 class files extends Plugin
 {
     private const BLOCKED_EXTENSIONS = [
-        'php', 'php3', 'php4', 'php5', 'php7', 'phtml', 'phar',
-        'asp', 'aspx', 'jsp', 'jspx', 'cgi',
+        'php', 'php3', 'php4', 'php5', 'php7', 'php8', 'phtml', 'phar',
+        'asp', 'aspx', 'jsp', 'jspx', 'cgi', 'pl', 'exe', 'bat', 'cmd', 'com', 'scr',
+        'vbs', 'ps1', 'sh', 'bash', 'zsh', 'htaccess', 'htpasswd',
+    ];
+
+    /** MIME types that must never be stored in media/files. */
+    private const BLOCKED_MIME_TYPES = [
+        'application/x-httpd-php',
+        'application/x-php',
+        'application/php',
+        'text/x-php',
+        'text/php',
+        'application/x-executable',
+        'application/x-msdos-program',
+        'application/x-msdownload',
+        'application/vnd.microsoft.portable-executable',
+        'application/x-sh',
+        'application/x-csh',
+        'application/java-archive',
+    ];
+
+    /** Substrings that indicate a blocked MIME type (checked on the full MIME string). */
+    private const BLOCKED_MIME_MARKERS = [
+        'php',
+        'x-httpd-',
+        'msdownload',
+        'executable',
+    ];
+
+    /**
+     * When the filename extension is listed here, the sniffed MIME must match one of the values.
+     * Extensions not listed are only checked against the global blocklists above.
+     */
+    private const EXTENSION_MIME_HINTS = [
+        'pdf'  => ['application/pdf'],
+        'jpg'  => ['image/jpeg'],
+        'jpeg' => ['image/jpeg'],
+        'png'  => ['image/png'],
+        'gif'  => ['image/gif'],
+        'webp' => ['image/webp'],
+        'svg'  => ['image/svg+xml'],
+        'mp3'  => ['audio/mpeg', 'audio/mp3'],
+        'mp4'  => ['video/mp4'],
+        'webm' => ['video/webm'],
+        'zip'  => ['application/zip', 'application/x-zip-compressed'],
+        'gz'   => ['application/gzip', 'application/x-gzip'],
+        'json' => ['application/json', 'text/plain'],
+        'xml'  => ['application/xml', 'text/xml'],
+        'txt'  => ['text/plain'],
+        'csv'  => ['text/csv', 'text/plain', 'application/csv'],
     ];
 
     public static function setPremiumLicense()
@@ -135,11 +183,11 @@ class files extends Plugin
             ], 400);
         }
 
-        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-        if (in_array($extension, self::BLOCKED_EXTENSIONS, true)) {
+        $safeFilename = $this->sanitizeFilename($filename);
+        if ($safeFilename === null) {
             $this->cleanupChunks($uploadId, $total);
             return $this->jsonResponse($response, [
-                'message' => 'files.msg_type_not_allowed',
+                'message' => 'files.msg_filename_missing',
             ], 400);
         }
 
@@ -184,11 +232,19 @@ class files extends Plugin
         }
         fclose($out);
 
+        $validationError = $this->validateUploadedFile($tmpFile, $safeFilename);
+        if ($validationError !== null) {
+            unlink($tmpFile);
+            return $this->jsonResponse($response, [
+                'message' => $validationError,
+            ], 400);
+        }
+
         $destDir = $this->getProjectRoot() . '/media/files';
         if (!is_dir($destDir)) {
             mkdir($destDir, 0755, true);
         }
-        $destPath = $destDir . '/' . $filename;
+        $destPath = $destDir . '/' . $safeFilename;
 
         if (file_exists($destPath)) {
             unlink($tmpFile);
@@ -247,6 +303,98 @@ class files extends Plugin
     private function sanitizeUploadId(string $id): string
     {
         return preg_replace('/[^a-zA-Z0-9_-]/', '', $id);
+    }
+
+    private function sanitizeFilename(string $filename): ?string
+    {
+        $basename = basename(str_replace('\\', '/', trim($filename)));
+        if ($basename === '' || $basename === '.' || $basename === '..') {
+            return null;
+        }
+
+        if (preg_match('/\.\.|[\x00-\x1f]/', $basename)) {
+            return null;
+        }
+
+        return $basename;
+    }
+
+    private function validateUploadedFile(string $path, string $filename): ?string
+    {
+        if (!is_readable($path) || filesize($path) === 0) {
+            return 'files.msg_file_empty';
+        }
+
+        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        if ($extension !== '' && in_array($extension, self::BLOCKED_EXTENSIONS, true)) {
+            return 'files.msg_type_not_allowed';
+        }
+
+        $mime = $this->detectMimeType($path);
+        if ($mime === null) {
+            return null;
+        }
+
+        if ($this->isBlockedMimeType($mime)) {
+            return 'files.msg_mime_not_allowed';
+        }
+
+        if ($extension !== '' && $this->mimeConflictsWithExtension($mime, $extension)) {
+            return 'files.msg_mime_not_allowed';
+        }
+
+        return null;
+    }
+
+    private function detectMimeType(string $path): ?string
+    {
+        if (!function_exists('finfo_open')) {
+            return null;
+        }
+
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        if ($finfo === false) {
+            return null;
+        }
+
+        $mime = finfo_file($finfo, $path);
+        finfo_close($finfo);
+
+        if (!is_string($mime) || $mime === '') {
+            return null;
+        }
+
+        return strtolower($mime);
+    }
+
+    private function isBlockedMimeType(string $mime): bool
+    {
+        if (in_array($mime, self::BLOCKED_MIME_TYPES, true)) {
+            return true;
+        }
+
+        foreach (self::BLOCKED_MIME_MARKERS as $marker) {
+            if (str_contains($mime, $marker)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function mimeConflictsWithExtension(string $mime, string $extension): bool
+    {
+        if (!isset(self::EXTENSION_MIME_HINTS[$extension])) {
+            return false;
+        }
+
+        foreach (self::EXTENSION_MIME_HINTS[$extension] as $allowed) {
+            if ($mime === $allowed) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function cleanupChunks(string $uploadId, int $total): void

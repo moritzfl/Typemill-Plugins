@@ -2,7 +2,7 @@ FILES: Files
 FILES_TITLE: Files
 FILES_SUBTITLE: Upload and manage files in the media/files folder.
 FILES_DROP_HINT: Drop files here or click to browse
-FILES_DROP_TYPES: All file types accepted except server-side scripts
+FILES_DROP_TYPES: Most file types accepted; scripts and mismatched content are blocked
 FILES_CLEAR_QUEUE: Clear list
 FILES_UPLOADING: Uploading
 FILES_DONE: Done
@@ -35,6 +35,7 @@ FILES_MSG_UPLOAD_FAILED: Upload failed.
 FILES_MSG_LOAD_ERROR: Could not load files.
 FILES_MSG_FILE_MISSING: File or filename is missing.
 FILES_MSG_TYPE_NOT_ALLOWED: This file type is not allowed for security reasons.
+FILES_MSG_MIME_NOT_ALLOWED: File content does not match its type or is not allowed for security reasons.
 FILES_MSG_FILE_EMPTY: File is empty.
 FILES_MSG_TOO_LARGE: File exceeds Typemill's maximum allowed size.
 FILES_MSG_PHP_UPLOAD_LIMIT: File exceeds the PHP upload limit (upload_max_filesize).
