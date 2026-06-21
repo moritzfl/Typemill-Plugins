@@ -21,9 +21,9 @@
     "test": "npm run test:php:local && npm run test:api"
   },
   "devDependencies": {
-    "@tailwindcss/cli": "4.2.2",
+    "@tailwindcss/cli": "4.3.1",
     "mergely": "5.4.7",
-    "tailwindcss": "4.2.2",
+    "tailwindcss": "4.3.1",
     "vitest": "^3.0.0"
   }
 }
