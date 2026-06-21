@@ -24,6 +24,6 @@
     "@tailwindcss/cli": "4.3.1",
     "mergely": "5.4.7",
     "tailwindcss": "4.3.1",
-    "vitest": "^3.0.0"
+    "vitest": "^4.1.9"
   }
 }
