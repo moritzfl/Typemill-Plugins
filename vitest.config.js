@@ -9,6 +9,8 @@ export default defineConfig(({ mode }) => {
         test: {
             include: ['tests/api/**/*.test.js'],
             environment: 'node',
+            // API tests share one mutable Docker Typemill instance.
+            fileParallelism: false,
             testTimeout: 15000,
             hookTimeout: 15000,
             env,
