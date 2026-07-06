@@ -77,8 +77,9 @@ export function createLargeFolder() {
         { input: `<?php ${php}` }
     ).toString().trim()
 
-    if (parseInt(count) < 502) {
-        throw new Error(`createLargeFolder: expected 502 files, got ${count}`)
+    // Inverted comparison so NaN (polluted PHP output) also fails the guard.
+    if (!(Number.parseInt(count, 10) >= 502)) {
+        throw new Error(`createLargeFolder: expected 502 files, got ${JSON.stringify(count)}`)
     }
 
     clearNavigationCache()

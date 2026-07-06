@@ -7,12 +7,8 @@ const BASE_URL  = process.env.TM_BASE_URL || 'http://127.0.0.1:8080'
 const USERNAME  = process.env.TM_USER
 const PASSWORD  = process.env.TM_PASSWORD
 
+// CI guard for missing credentials lives in helpers/setup.js (vitest setupFiles).
 const configured = Boolean(USERNAME && PASSWORD)
-const requireConfiguredAuth = process.env.CI === 'true' || process.env.REQUIRE_TM_AUTH === 'true'
-
-if (requireConfiguredAuth && !configured) {
-    throw new Error('TM_USER and TM_PASSWORD are required for authenticated API tests in CI.')
-}
 
 // ---------------------------------------------------------------------------
 // Access control — these endpoints must refuse unauthenticated calls.

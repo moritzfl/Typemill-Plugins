@@ -58,7 +58,9 @@ async function assertPageLoads(page, spec) {
 
     page.on('console', (message) => {
         if (message.type() === 'error') {
-            consoleErrors.push(message.text())
+            // Append the source URL so failed resource loads can be filtered precisely.
+            const location = message.location()?.url || ''
+            consoleErrors.push(`${message.text()} ${location}`.trim())
         }
     })
     page.on('pageerror', (error) => {
@@ -93,8 +95,12 @@ async function assertPageLoads(page, spec) {
 
     assert(hasMountedContent, `${spec.name} did not render list/empty content`)
 
+    // Only favicon load failures are harmless; any other failed resource load
+    // (e.g. a missing plugin JS/CSS asset) must fail the smoke test.
     const criticalErrors = [...pageErrors, ...consoleErrors].filter((entry) => {
-        return !/favicon|DevTools|Failed to load resource.*404/i.test(entry)
+        if (/DevTools/i.test(entry)) return false
+        if (/Failed to load resource/i.test(entry) && /favicon/i.test(entry)) return false
+        return true
     })
 
     assert(criticalErrors.length === 0, `${spec.name} console errors:\n${criticalErrors.join('\n')}`)

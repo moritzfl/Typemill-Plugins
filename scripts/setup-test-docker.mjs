@@ -53,8 +53,10 @@ function ensureTestPluginsActive() {
 
     let content = readFileSync(SETTINGS_FILE, 'utf8')
     for (const plugin of ['versions', 'preview', 'files']) {
+        // Anchor continuation lines to deeper indentation than the plugin key,
+        // so the match can never run into the next plugin's block.
         const blockRe = new RegExp(
-            `(^\\s+${plugin}:\\s*\\n(?:\\s+[^\\n]+\\n)*?\\s+active:\\s*)(true|false)`,
+            `(^([ \\t]+)${plugin}:[ \\t]*\\n(?:\\2[ \\t]+[^\\n]+\\n)*?\\2[ \\t]+active:[ \\t]*)(true|false)`,
             'm'
         )
         if (blockRe.test(content)) {
@@ -62,12 +64,18 @@ function ensureTestPluginsActive() {
             continue
         }
 
-        if (!content.includes(`\n    ${plugin}:`)) {
-            content = content.replace(
-                /^plugins:\s*\n/m,
-                `plugins:\n    ${plugin}:\n        active: true\n`
-            )
+        const keyRe = new RegExp(`^([ \\t]+)${plugin}:[ \\t]*\\n`, 'm')
+        const keyMatch = content.match(keyRe)
+        if (keyMatch) {
+            // Block exists but has no active key — insert one below the plugin key.
+            content = content.replace(keyRe, `${keyMatch[0]}${keyMatch[1]}    active: true\n`)
+            continue
         }
+
+        content = content.replace(
+            /^plugins:\s*\n/m,
+            `plugins:\n    ${plugin}:\n        active: true\n`
+        )
     }
 
     writeFileSync(SETTINGS_FILE, content)
@@ -291,7 +299,7 @@ try {
             'Content-Type': 'application/x-www-form-urlencoded',
             'Referer':      `${TM_BASE_URL}/tm/login`,
         },
-        body:     new URLSearchParams({ username: TM_USER, password: TM_PASSWORD }).toString(),
+        body:     new URLSearchParams({ username: TM_USER, password: TM_PASSWORD, 'personal-honey-mail': '' }).toString(),
         redirect: 'manual',
     })
 } catch (err) {
