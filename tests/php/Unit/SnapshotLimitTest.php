@@ -3,11 +3,12 @@
 namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
+use Plugins\versions\Models\PageSnapshotService;
 use Plugins\versions\Models\SnapshotTooLargeException;
-use Plugins\versions\Models\VersionStore;
+use Typemill\Models\StorageWrapper;
 
 /**
- * Tests for the file-count and size limits in VersionStore::snapshotFolderFiles().
+ * Tests for the file-count and size limits in PageSnapshotService::snapshotFolderFiles().
  *
  * When a folder is too large to snapshot, the method must throw
  * SnapshotTooLargeException so the caller (the delete endpoint) can return
@@ -109,8 +110,8 @@ class SnapshotLimitTest extends TestCase
 
     private function invokeSnapshot(string $folderName): array
     {
-        $store  = new VersionStore();
-        $method = new \ReflectionMethod($store, 'snapshotFolderFiles');
-        return $method->invoke($store, $folderName);
+        $service = new PageSnapshotService(new StorageWrapper('\Typemill\Models\Storage'));
+
+        return $service->snapshotFolderFiles($folderName);
     }
 }

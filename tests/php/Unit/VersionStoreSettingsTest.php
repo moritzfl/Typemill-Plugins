@@ -207,7 +207,17 @@ class VersionStoreSettingsTest extends TestCase
 
     private function archiveName(string $value): string
     {
-        $method = new \ReflectionMethod($this->store, 'sanitizeArchiveName');
-        return $method->invoke($this->store, $value);
+        $downloads = new \Plugins\versions\Models\TrashDownloadService(
+            new \Plugins\versions\Models\AssetVersionStore(
+                new \Typemill\Models\StorageWrapper('\Typemill\Models\Storage'),
+                new \Plugins\versions\Models\VersionRecordRepository(
+                    new \Typemill\Models\StorageWrapper('\Typemill\Models\Storage'),
+                    'versions'
+                ),
+                new \Plugins\versions\Models\LineDiff()
+            )
+        );
+
+        return $downloads->sanitizeArchiveName($value);
     }
 }
