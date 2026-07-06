@@ -13,6 +13,7 @@
       {% if settings.themes.rueckenwind.blogimage and post.meta.heroimage %}
         <figure class="m-0 overflow-hidden">
           <img src="{{ assets.image(post.meta.heroimage).resize(820, 380).src() }}"
+               loading="lazy" decoding="async"
                {% if post.meta.heroimagealt %} alt="{{ post.meta.heroimagealt|e }}"{% endif %}
                class="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" />
         </figure>

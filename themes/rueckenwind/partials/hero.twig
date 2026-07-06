@@ -16,8 +16,10 @@
     <div class="overflow-hidden rounded-[2rem] border border-gray-200/80 bg-white/80 shadow-2xl shadow-gray-950/10 ring-1 ring-gray-950/5 dark:border-gray-800/80 dark:bg-gray-900/70 dark:ring-white/10">
       {% if heroImage %}
         <div class="relative isolate overflow-hidden bg-gray-950">
+          {# above the fold: no lazy loading, but async decode + high priority #}
           <img src="{{ heroImageSrc }}"
                alt="{{ heroImageAlt|e }}"
+               decoding="async" fetchpriority="high"
                class="h-64 w-full object-cover object-center sm:h-80 lg:h-[28rem]" />
           <div class="absolute inset-0 bg-linear-to-t from-gray-950 via-gray-950/55 to-gray-950/10"></div>
           <div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 lg:p-10">

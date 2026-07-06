@@ -47,6 +47,7 @@
           {% if theme.blogimage and post.meta.heroimage %}
             <figure class="m-0">
               <img src="{{ assets.image(post.meta.heroimage).resize(820, 400).src() }}"
+                   loading="lazy" decoding="async"
                    {% if post.meta.heroimagealt %} alt="{{ post.meta.heroimagealt|e }}"{% endif %}
                    class="w-full h-52 object-cover" />
             </figure>
