@@ -4,6 +4,10 @@ namespace Plugins\versions\Models;
 
 class LineDiff
 {
+    // full LCS needs an (old+1)x(new+1) matrix; above this bound we fall
+    // back to a trivial remove-all/add-all diff instead of exhausting memory_limit.
+    private const MAX_MATRIX_CELLS = 250000;
+
     public function compare(string $oldText, string $newText): array
     {
         $oldLines = $this->splitLines($oldText);
@@ -44,6 +48,11 @@ class LineDiff
     {
         $oldCount = count($oldLines);
         $newCount = count($newLines);
+
+        if (($oldCount + 1) * ($newCount + 1) > self::MAX_MATRIX_CELLS) {
+            return $this->buildTrivialOperations($oldLines, $newLines);
+        }
+
         $matrix = array_fill(0, $oldCount + 1, array_fill(0, $newCount + 1, 0));
 
         for ($i = $oldCount - 1; $i >= 0; $i--) {
@@ -119,6 +128,31 @@ class LineDiff
             ];
             $j++;
             $newLineNumber++;
+        }
+
+        return $operations;
+    }
+
+    private function buildTrivialOperations(array $oldLines, array $newLines): array
+    {
+        $operations = [];
+
+        foreach ($oldLines as $index => $line) {
+            $operations[] = [
+                'type' => 'remove',
+                'line' => $line,
+                'old_line' => $index + 1,
+                'new_line' => null,
+            ];
+        }
+
+        foreach ($newLines as $index => $line) {
+            $operations[] = [
+                'type' => 'add',
+                'line' => $line,
+                'old_line' => null,
+                'new_line' => $index + 1,
+            ];
         }
 
         return $operations;

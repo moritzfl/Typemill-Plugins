@@ -128,26 +128,26 @@ class VersionStore
         ];
 
         $forceNew = $options['force_new'] ?? false;
+        $mergeIntoLast = $contentChanged
+            && !$forceNew
+            && $action === 'update'
+            && !empty($record['versions'])
+            && $this->shouldMergeIntoLastVersion($record['versions'], $username, $settings['group_hours']);
 
-        if (
-            !$contentChanged ||
-            (
-                !$forceNew &&
-                $action === 'update' &&
-                !empty($record['versions']) &&
-                $this->shouldMergeIntoLastVersion($record['versions'], $username, $settings['group_hours'])
-            )
-        ) {
-            // Event-only entries and same-session updates both append (never merge events into content versions)
-            if (!$contentChanged) {
-                $record['versions'][] = $entry;
-            } else {
-                $lastIndex = array_key_last($record['versions']);
-                $entry['id'] = $record['versions'][$lastIndex]['id'];
-                $entry['created_at'] = $record['versions'][$lastIndex]['created_at'];
-                $record['versions'][$lastIndex] = $entry;
-            }
+        if (!$contentChanged) {
+            // Event-only entries always append (never merge events into content versions)
+            $record['versions'][] = $entry;
+        } elseif ($mergeIntoLast) {
+            $lastIndex = array_key_last($record['versions']);
+            $entry['id'] = $record['versions'][$lastIndex]['id'];
+            $entry['created_at'] = $record['versions'][$lastIndex]['created_at'];
+            $entry['diff_stats'] = $this->diff->compare(
+                $this->markdownOfContentVersionBefore($record['versions'], $lastIndex) ?? '',
+                $markdown
+            )['stats'];
+            $record['versions'][$lastIndex] = $entry;
         } else {
+            $entry['diff_stats'] = $this->diff->compare($lastContentMarkdown ?? '', $markdown)['stats'];
             $record['versions'][] = $entry;
         }
 
@@ -202,8 +202,11 @@ class VersionStore
             if ($isEventOnly) {
                 $diffStats = ['added' => 0, 'removed' => 0];
             } else {
-                $diff = $this->diff->compare($previousMarkdown ?? '', $entry['markdown'] ?? '');
-                $diffStats = $diff['stats'];
+                $diffStats = $entry['diff_stats'] ?? null;
+                if (!is_array($diffStats)) {
+                    // Legacy entries stored before diff stats were persisted
+                    $diffStats = $this->diff->compare($previousMarkdown ?? '', $entry['markdown'] ?? '')['stats'];
+                }
                 $previousMarkdown = $entry['markdown'] ?? '';
             }
 
@@ -323,6 +326,17 @@ class VersionStore
         foreach ($versions as $index => $entry) {
             if (($entry['id'] ?? null) === $versionId) {
                 return $index;
+            }
+        }
+
+        return null;
+    }
+
+    private function markdownOfContentVersionBefore(array $versions, int $index): ?string
+    {
+        for ($i = $index - 1; $i >= 0; $i--) {
+            if (!($versions[$i]['event_only'] ?? false)) {
+                return $versions[$i]['markdown'] ?? null;
             }
         }
 
