@@ -34,7 +34,7 @@
   {# Prev / Next inline #}
   <div class="hidden shrink-0 items-center gap-2 text-gray-400 dark:text-gray-500 sm:flex">
     {% if item.prevItem %}
-      <a href="{{ item.prevItem.urlRel }}" title="{{ item.prevItem.name }}"
+      <a href="{{ item.prevItem.urlRel }}" title="{{ item.prevItem.name|e('html_attr') }}"
          class="flex items-center gap-1 rounded-full border border-gray-200/80 bg-white/80 px-3 py-1.5 shadow-sm shadow-gray-950/5 transition-colors hover:text-primary-500 dark:border-gray-800/80 dark:bg-gray-900/70 dark:hover:text-primary-300">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
@@ -43,7 +43,7 @@
       </a>
     {% endif %}
     {% if item.nextItem %}
-      <a href="{{ item.nextItem.urlRel }}" title="{{ item.nextItem.name }}"
+      <a href="{{ item.nextItem.urlRel }}" title="{{ item.nextItem.name|e('html_attr') }}"
          class="flex items-center gap-1 rounded-full border border-gray-200/80 bg-white/80 px-3 py-1.5 shadow-sm shadow-gray-950/5 transition-colors hover:text-primary-500 dark:border-gray-800/80 dark:bg-gray-900/70 dark:hover:text-primary-300">
         <span class="text-xs">{{ settings.themes.rueckenwind.next|default('Next') }}</span>
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

@@ -1,6 +1,6 @@
 {% extends 'layout.twig' %}
 
-{% block title %}{{ metatabs.meta.title }} | {{ settings.title }}{% endblock %}
+{% block title %}{{ metatabs.meta.title|e }} | {{ settings.title|e }}{% endblock %}
 
 
 {% block content %}

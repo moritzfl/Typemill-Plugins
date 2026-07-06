@@ -8,6 +8,6 @@
   {% endif %}
   <a href="{{ element.urlRel }}"
      class="block py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-    {{ element.name }}
+    {{ element.name|e }}
   </a>
 {% endfor %}

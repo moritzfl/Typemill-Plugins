@@ -1,6 +1,6 @@
 {% extends 'layout.twig' %}
 
-{% block title %}404 – Page not found | {{ settings.title }}{% endblock %}
+{% block title %}404 – Page not found | {{ settings.title|e }}{% endblock %}
 
 {% block sidebar_wrapper %}{% endblock %}
 
@@ -15,11 +15,11 @@
     </div>
 
     <h1 class="mb-3 text-2xl font-semibold text-gray-950 dark:text-white">
-      {{ title|default('Page not found') }}
+      {{ title|default('Page not found')|e }}
     </h1>
 
     <p class="mb-8 leading-relaxed text-gray-500 dark:text-gray-400">
-      {{ description|default('The page you were looking for does not exist or has been moved.') }}
+      {{ description|default('The page you were looking for does not exist or has been moved.')|e }}
     </p>
 
     <a href="{{ base_url }}"

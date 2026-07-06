@@ -32,7 +32,7 @@
         {% set nowYear = "now"|date("Y") %}
         {% set copyrightYears = (settings.year is empty or settings.year == nowYear) ? nowYear : settings.year ~ ' – ' ~ nowYear %}
         <p class="text-xs text-gray-500 dark:text-gray-400">
-          {{ settings.copyright|e }} {{ translate('by') }} {{ settings.author }}, {{ copyrightYears }}.
+          {{ settings.copyright|e }} {{ translate('by') }} {{ settings.author|e }}, {{ copyrightYears }}.
           {{ translate('All Rights Reserved') }}.
           {{ translate('Built with') }}
           <a href="https://typemill.net" class="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 underline underline-offset-2 transition-colors">Typemill</a>.

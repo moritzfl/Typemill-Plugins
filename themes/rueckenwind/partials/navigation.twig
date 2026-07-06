@@ -32,7 +32,7 @@
             </svg>
           {%- endif -%}
 
-          <span class="truncate">{% if settings.themes.rueckenwind.chapnum and element.chapter %}{{ element.chapter }}&nbsp;{% endif %}{{ element.name }}</span>
+          <span class="truncate">{% if settings.themes.rueckenwind.chapnum and element.chapter %}{{ element.chapter|e }}&nbsp;{% endif %}{{ element.name|e }}</span>
 
         </a>
 
@@ -41,7 +41,7 @@
                   data-nav-toggle
                   aria-expanded="{{ expanded ? 'true' : 'false' }}"
                   aria-controls="{{ submenuId }}"
-                  aria-label="Toggle {{ element.name }}"
+                  aria-label="Toggle {{ element.name|e('html_attr') }}"
                   class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-white/80 hover:text-gray-700 dark:hover:bg-gray-900/80 dark:hover:text-gray-200">
             <svg data-icon-plus xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 {{ expanded ? 'hidden' : '' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
