@@ -22,6 +22,7 @@ settings:
   printText: 'Print'
   chapnum: false
   navposition: 'side'
+  fullwidth: false
   footer1: ''
   footer2: ''
   footer3: ''
@@ -84,6 +85,10 @@ forms:
       type: fieldset
       legend: 'Layout & Navigation'
       fields:
+        fullwidth:
+          type: checkbox
+          label: 'Content width'
+          checkboxlabel: 'Let page content fill the entire available horizontal space'
         navposition:
           type: select
           label: 'Navigation position'
