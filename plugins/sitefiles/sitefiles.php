@@ -600,7 +600,10 @@ class sitefiles extends Plugin
         if ($schema !== null) {
             $this->addMeta(
                 'sitefiles_schema',
-                '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>'
+                // JSON_HEX_TAG escapes < and > so editor-controlled values
+                // (title, description, author, breadcrumb names) cannot break
+                // out of the <script> element with a literal </script>.
+                '<script type="application/ld+json">' . json_encode($schema, JSON_HEX_TAG | JSON_UNESCAPED_UNICODE) . '</script>'
             );
         }
     }
