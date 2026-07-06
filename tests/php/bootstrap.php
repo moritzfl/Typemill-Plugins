@@ -15,7 +15,10 @@
  *   - Local:   sys_get_temp_dir()     (the stub's getFolderPath() returns this)
  */
 
-$typemillAutoloader = '/var/www/html/vendor/autoload.php';
+// vendor location moved to system/vendor in newer Typemill versions; accept either
+$typemillAutoloader = is_file('/var/www/html/vendor/autoload.php')
+    ? '/var/www/html/vendor/autoload.php'
+    : '/var/www/html/system/vendor/autoload.php';
 $localAutoloader    = __DIR__ . '/vendor/autoload.php';
 
 if (is_file($typemillAutoloader)) {

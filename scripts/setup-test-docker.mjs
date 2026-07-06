@@ -164,7 +164,9 @@ if ((zipCheck.stdout || '').trim() !== 'yes') {
 log('Ensuring Composer vendor directory...')
 const vendorCheck = spawnSync(
     'docker',
-    ['compose', '-f', COMPOSE_FILE, 'exec', '-T', 'typemill', 'test', '-f', '/var/www/html/vendor/autoload.php'],
+    // vendor location moved to system/vendor in newer Typemill versions; accept either
+    ['compose', '-f', COMPOSE_FILE, 'exec', '-T', 'typemill', 'sh', '-c',
+        'test -f /var/www/html/vendor/autoload.php || test -f /var/www/html/system/vendor/autoload.php'],
     { encoding: 'utf8' }
 )
 if (vendorCheck.status !== 0) {
