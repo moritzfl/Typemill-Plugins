@@ -47,6 +47,14 @@ class VersionRecordRepository
         });
     }
 
+    private function isValidRecordId(string $recordId): bool
+    {
+        // Real record IDs are hex: sha1() (40 chars) or bin2hex(random_bytes(8))
+        // (16 chars). This guard keeps a user-supplied record_id from escaping
+        // the storage folder via path traversal into recursiveDeleteDir/getFile.
+        return $recordId !== '' && preg_match('/^[a-zA-Z0-9_-]+$/', $recordId) === 1;
+    }
+
     public function loadPageRecord(string $pageId): array
     {
         return $this->loadRecord('pages', $pageId, static function (string $id): array {
@@ -83,6 +91,10 @@ class VersionRecordRepository
 
     public function deleteTrashEntry(string $recordId, string $recordType = 'page'): bool
     {
+        if (!$this->isValidRecordId($recordId)) {
+            return false;
+        }
+
         $folder = $recordType === 'asset' ? 'assets' : 'pages';
 
         // Delete external snapshot files for this record
@@ -129,6 +141,10 @@ class VersionRecordRepository
 
     private function loadRecord(string $folder, string $recordId, callable $defaultRecord): array
     {
+        if (!$this->isValidRecordId($recordId)) {
+            return $defaultRecord($recordId);
+        }
+
         $raw = $this->storage->getFile('dataFolder', $this->pluginName . DIRECTORY_SEPARATOR . $folder, $recordId . '.json');
         if (!$raw) {
             return $defaultRecord($recordId);
@@ -152,6 +168,10 @@ class VersionRecordRepository
 
     private function saveRecord(string $folder, string $recordId, array $record): bool
     {
+        if (!$this->isValidRecordId($recordId)) {
+            return false;
+        }
+
         $json = json_encode($record, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
         return (bool) $this->storage->writeFile('dataFolder', $this->pluginName . DIRECTORY_SEPARATOR . $folder, $recordId . '.json', $json);
