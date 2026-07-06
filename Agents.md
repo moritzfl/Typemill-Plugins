@@ -27,7 +27,7 @@ If the container is already running, just open the URL. Host directories are bin
 |-------------|-----------------------|-------------------------------------|
 | `plugins/`  | `/var/www/html/plugins` | PHP and JS — edit on host, refresh |
 | `themes/`   | `/var/www/html/themes`  | Twig/templates yes; **compiled** `themes/rueckenwind/css/theme.css` only after `npm run build:rueckenwind` |
-| `tests/`    | `/var/www/html/tests`   | Used by PHPUnit in Docker          |
+| `tests/`    | `/var/www/tests` (outside webroot) | Used by PHPUnit in Docker |
 
 Plugin JS (e.g. `plugins/versions/js/editor-versions.js`) is reflected immediately without rebuilding.
 
