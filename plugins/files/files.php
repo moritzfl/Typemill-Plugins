@@ -766,17 +766,4 @@ class files extends Plugin
 
         return $response->withHeader('Content-Type', 'application/json')->withStatus($status);
     }
-
-    private function parseIniBytes(string $value): int
-    {
-        $value = trim($value);
-        $num = (float) $value;
-        $unit = strtoupper(substr($value, -1));
-        switch ($unit) {
-            case 'G': return (int) ($num * 1024 * 1024 * 1024);
-            case 'M': return (int) ($num * 1024 * 1024);
-            case 'K': return (int) ($num * 1024);
-            default:  return (int) $num;
-        }
-    }
 }

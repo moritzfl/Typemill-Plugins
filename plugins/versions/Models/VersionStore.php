@@ -8,9 +8,6 @@ use Typemill\Models\User;
 
 class VersionStore
 {
-    private const MAX_SNAPSHOT_FILES = 500;
-    private const MAX_SNAPSHOT_BYTES = 50 * 1024 * 1024; // 50 MB
-
     private StorageWrapper $storage;
     private LineDiff $diff;
     private VersionRecordRepository $records;
@@ -88,7 +85,7 @@ class VersionStore
 
         // When content is unchanged, store a lightweight event entry (no markdown copy)
         // so status changes like publish/unpublish still appear in the timeline.
-        // Delete and restore_deleted are always full entries regardless of content.
+        // Delete actions are always full entries regardless of content.
         // Compare against the last *non-event-only* version — event-only entries have
         // markdown: null and must not be used as the baseline or every event after them
         // would appear to have changed content.
@@ -99,7 +96,7 @@ class VersionStore
                 break;
             }
         }
-        $contentChanged = in_array($action, ['delete', 'restore_deleted'], true)
+        $contentChanged = $action === 'delete'
             || ($lastContentMarkdown === null && $markdown !== '')
             || $lastContentMarkdown !== $markdown;
 
@@ -187,8 +184,6 @@ class VersionStore
                 'path' => $entry['path'],
                 'item_type' => $entry['item_type'],
             ];
-        } elseif ($action === 'restore_deleted') {
-            $record['deleted'] = null;
         }
 
         $this->records->savePageRecord($pageId, $record);
@@ -813,24 +808,9 @@ class VersionStore
             : $resolvedBasePath . DIRECTORY_SEPARATOR . $trimmedPath;
     }
 
-    private function snapshotPageFiles(string $pathWithoutType): array
-    {
-        return $this->snapshots->snapshotPageFiles($pathWithoutType);
-    }
-
-    private function snapshotFolderFiles(string $folderPath): array
-    {
-        return $this->snapshots->snapshotFolderFiles($folderPath);
-    }
-
     private function findSnapshotConflicts(array $snapshotFiles): array
     {
         return $this->snapshots->findSnapshotConflicts($snapshotFiles);
-    }
-
-    private function sanitizeArchiveName(string $value): string
-    {
-        return $this->downloads->sanitizeArchiveName($value);
     }
 
     private function shouldMergeIntoLastVersion(array $versions, string $username, int $groupHours): bool
