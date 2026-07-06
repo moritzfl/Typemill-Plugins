@@ -897,7 +897,7 @@ class versions extends Plugin
     private function fileDownloadResponse(Response $response, array $download, bool $inline = false): Response
     {
         $response->getBody()->write($download['content']);
-        $filename = str_replace(['"', '\\'], ['\"', '\\\\'], $download['filename']);
+        $filename = str_replace(['\\', '"'], ['\\\\', '\"'], $download['filename']);
         $disposition = $inline ? 'inline' : 'attachment';
 
         return $response

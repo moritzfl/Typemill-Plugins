@@ -634,7 +634,7 @@ class files extends Plugin
 
         return $response
             ->withHeader('Content-Type', $download['mime_type'])
-            ->withHeader('Content-Disposition', 'attachment; filename="' . str_replace(['"', '\\'], ['\"', '\\\\'], $download['filename']) . '"');
+            ->withHeader('Content-Disposition', 'attachment; filename="' . str_replace(['\\', '"'], ['\\\\', '\"'], $download['filename']) . '"');
     }
 
     private function sanitizeUploadId(string $id): string

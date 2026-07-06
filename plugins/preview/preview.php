@@ -112,7 +112,7 @@ class preview extends Plugin
     private function inlineFileResponse(Response $response, array $file): Response
     {
         $response->getBody()->write($file['content']);
-        $filename = str_replace(['"', '\\'], ['\"', '\\\\'], $file['filename']);
+        $filename = str_replace(['\\', '"'], ['\\\\', '\"'], $file['filename']);
 
         return $response
             ->withHeader('Content-Type', $file['mime_type'])
