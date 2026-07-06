@@ -26,3 +26,4 @@ tests/php/vendor/
 /tests/php/.phpunit.result.cache
 !Agents.md
 
+**/.DS_Store
