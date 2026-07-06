@@ -103,6 +103,13 @@ class VersionStore
             || ($lastContentMarkdown === null && $markdown !== '')
             || $lastContentMarkdown !== $markdown;
 
+        // A plain re-save with unchanged content is not worth a timeline entry:
+        // event-only entries count against max_versions, so habitual no-op saves
+        // would slowly evict real content versions from the history.
+        if (!$contentChanged && $action === 'update') {
+            return [];
+        }
+
         $isoNow = gmdate('c', $timestamp);
         $title  = $this->resolveTitle($item, $metadata);
 
