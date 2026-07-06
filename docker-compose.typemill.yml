@@ -5,6 +5,10 @@ services:
       context: ./docker/typemill
       args:
         TYPEMILL_VERSION: v2.23.0
+    # Chromium (browser tests) crashes with SIGTRAP under Docker's default
+    # seccomp profile; this is a local test container only.
+    security_opt:
+      - seccomp=unconfined
     ports:
       - "8080:80"
     volumes:
