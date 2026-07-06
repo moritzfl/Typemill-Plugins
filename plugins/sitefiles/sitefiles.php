@@ -230,8 +230,8 @@ class sitefiles extends Plugin
 
         $content = new Content($urlinfo['baseurl'] ?? '', $settings, $this->getDispatcher());
         $metaModel = new Meta();
-        $metadata = $this->loadMetadataForItem($metaModel, $content, $item, $settings['author'] ?? '');
         $markdownArray = $this->loadMarkdownArrayForItem($content, $item);
+        $metadata = $this->loadMetadataForItem($metaModel, $item, $settings['author'] ?? '', $markdownArray);
 
         if (($metadata['meta']['referencetype'] ?? '') === 'copy' && !empty($metadata['meta']['reference'])) {
             $referenceItem = $this->resolveReferenceItem(
@@ -243,13 +243,19 @@ class sitefiles extends Plugin
             );
 
             if ($referenceItem) {
-                $metadata = $this->loadMetadataForItem($metaModel, $content, $referenceItem, $settings['author'] ?? '');
                 $markdownArray = $this->loadMarkdownArrayForItem($content, $referenceItem);
+                $metadata = $this->loadMetadataForItem($metaModel, $referenceItem, $settings['author'] ?? '', $markdownArray);
             }
         }
 
         $title = !empty($markdownArray) ? $content->getTitle($markdownArray) : ($metadata['meta']['title'] ?? '');
-        $contentHtml = $this->buildContentHtmlFromMarkdown($content, $markdownArray);
+
+        // The content HTML is only needed to extract a fallback og:image, so
+        // skip the second markdown render when a hero image already wins.
+        $contentHtml = '';
+        if (empty($this->resolveHeroImageData($item, $this->extractMeta($metadata), true)['path'])) {
+            $contentHtml = $this->buildContentHtmlFromMarkdown($content, $markdownArray);
+        }
 
         return [
             'item' => $item,
@@ -262,9 +268,8 @@ class sitefiles extends Plugin
         ];
     }
 
-    private function loadMetadataForItem(Meta $metaModel, Content $content, $item, string $defaultAuthor): array
+    private function loadMetadataForItem(Meta $metaModel, $item, string $defaultAuthor, array $markdownArray): array
     {
-        $markdownArray = $this->loadMarkdownArrayForItem($content, $item);
         $metadata = $metaModel->getMetaData($item);
         $metadata = $metaModel->addMetaDefaults($metadata, $item, $defaultAuthor);
 
@@ -371,11 +376,15 @@ class sitefiles extends Plugin
         $cacheFolder = rtrim($storage->getFolderPath('cacheFolder'), DIRECTORY_SEPARATOR);
         $matches = glob($cacheFolder . DIRECTORY_SEPARATOR . 'sitemap-*.xml') ?: [];
 
-        if (count($matches) === 1) {
-            return basename($matches[0]);
+        if (empty($matches)) {
+            return null;
         }
 
-        return null;
+        // Multiple parts (e.g. multi-language setups): serve the newest one
+        // instead of 404ing the whole sitemap.
+        usort($matches, static fn ($a, $b) => (filemtime($b) ?: 0) <=> (filemtime($a) ?: 0));
+
+        return basename($matches[0]);
     }
 
     private function extractMeta($metatabs): array
@@ -774,7 +783,9 @@ class sitefiles extends Plugin
             return false;
         }
 
-        foreach ($this->getAncestorMetaChain($item) as $ancestorMeta) {
+        // Exclude home: `contains: posts` on the homepage would otherwise mark
+        // every file page site-wide as an Article.
+        foreach ($this->getAncestorMetaChain($item, false) as $ancestorMeta) {
             if (($ancestorMeta['contains'] ?? null) === 'posts') {
                 return true;
             }
