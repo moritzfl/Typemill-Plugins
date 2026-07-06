@@ -21,6 +21,7 @@ settings:
   editText: 'Edit'
   printText: 'Print'
   chapnum: false
+  navposition: 'side'
   footer1: ''
   footer2: ''
   footer3: ''
@@ -81,8 +82,16 @@ forms:
 
     fieldsetNavLabels:
       type: fieldset
-      legend: 'Navigation'
+      legend: 'Layout & Navigation'
       fields:
+        navposition:
+          type: select
+          label: 'Navigation position'
+          description: 'Sidebar suits documentation, top navigation suits portfolio-style sites. On small screens both use the menu drawer.'
+          css: 'lg:w-half'
+          options:
+            side: 'Sidebar (left)'
+            top: 'Top bar (horizontal)'
         chapnum:
           type: checkbox
           label: 'Chapter numbers'

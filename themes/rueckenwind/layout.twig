@@ -1,5 +1,6 @@
 {% set theme = settings.themes.rueckenwind %}
 {% set showSidebarNav = showSidebarNav|default(true) %}
+{% set topnav = theme.navposition|default('side') == 'top' %}
 <!DOCTYPE html>
 <html lang="{{ settings.langattr | default('en') }}" class="scroll-smooth scheme-light dark:scheme-dark">
 <head>
@@ -70,6 +71,10 @@
         {% endif %}
       </a>
 
+      {% if topnav %}
+        {% include 'partials/topnav.twig' %}
+      {% endif %}
+
       {# Mobile sidebar toggle #}
       {% block mobile_nav_toggle %}
       <button id="mobile-menu-btn"
@@ -97,7 +102,7 @@
     {% block sidebar_wrapper %}
     <div id="mobile-backdrop" class="hidden fixed inset-0 z-20 bg-gray-950/30 backdrop-blur-sm lg:hidden"></div>
     <aside id="sidebar"
-           class="hidden lg:flex w-72 shrink-0 flex-col border-r border-gray-200/70 bg-white/72 backdrop-blur-sm dark:border-gray-800/80 dark:bg-gray-950/70 xl:w-80">
+           class="hidden {{ topnav ? '' : 'lg:flex' }} w-72 shrink-0 flex-col border-r border-gray-200/70 bg-white/72 backdrop-blur-sm dark:border-gray-800/80 dark:bg-gray-950/70 xl:w-80">
 
       {# Scrollable nav area #}
       <div class="sidebar-scroll flex-1 overflow-y-auto px-3 py-6 sm:px-4">
