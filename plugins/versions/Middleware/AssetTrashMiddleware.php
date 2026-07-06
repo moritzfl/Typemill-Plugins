@@ -83,19 +83,21 @@ class AssetTrashMiddleware implements MiddlewareInterface
         }
 
         $recordId = ($snapshot['success'] ?? false) ? (string) ($snapshot['record_id'] ?? '') : '';
+        $versionId = (string) ($snapshot['version_id'] ?? '');
+        $previousDeleted = $snapshot['previous_deleted'] ?? null;
 
         try {
             $response = $handler->handle($request);
         } catch (\Throwable $exception) {
             if ($recordId !== '') {
-                $this->store->deleteTrashEntry($recordId, 'asset');
+                $this->store->rollbackAssetTrashEntry($recordId, $versionId, $previousDeleted);
             }
 
             throw $exception;
         }
 
         if ($recordId !== '' && $response->getStatusCode() >= 400) {
-            $this->store->deleteTrashEntry($recordId, 'asset');
+            $this->store->rollbackAssetTrashEntry($recordId, $versionId, $previousDeleted);
         }
 
         return $response;

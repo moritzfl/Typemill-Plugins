@@ -41,6 +41,7 @@ class AssetVersionStore
         }
 
         $record = $this->records->loadAssetRecord($recordId);
+        $previousDeleted = $record['deleted'] ?? null;
         $label = $this->resolveLabel($assetType);
 
         $isoNow = gmdate('c');
@@ -111,6 +112,7 @@ class AssetVersionStore
             'success' => true,
             'record_id' => $recordId,
             'version_id' => $entry['id'],
+            'previous_deleted' => $previousDeleted,
         ];
     }
 
@@ -146,6 +148,7 @@ class AssetVersionStore
         $elementType = is_dir($absolute) ? 'folder' : 'file';
 
         $record = $this->records->loadAssetRecord($recordId);
+        $previousDeleted = $record['deleted'] ?? null;
         $label = $this->resolveLabel($assetType);
         $isoNow = gmdate('c');
 
@@ -216,6 +219,7 @@ class AssetVersionStore
             'success' => true,
             'record_id' => $recordId,
             'version_id' => $entry['id'],
+            'previous_deleted' => $previousDeleted,
         ];
     }
 

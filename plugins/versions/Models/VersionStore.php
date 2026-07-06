@@ -549,6 +549,29 @@ class VersionStore
         return $this->records->deleteTrashEntry($recordId, $this->sanitizeRecordType($recordType));
     }
 
+    /**
+     * Undo a single asset trash snapshot (e.g. when the wrapped delete request
+     * failed) without destroying older versions of the same record.
+     */
+    public function rollbackAssetTrashEntry(string $recordId, string $versionId, ?array $previousDeleted = null): void
+    {
+        $record = $this->records->loadAssetRecord($recordId);
+        $record['versions'] = array_values(array_filter(
+            $record['versions'],
+            static fn ($version) => ($version['id'] ?? null) !== $versionId
+        ));
+        $this->assetVersions->cleanupVersionSnapshots($recordId, $versionId);
+        $record['deleted'] = $previousDeleted;
+
+        if (empty($record['versions']) && $previousDeleted === null) {
+            $this->records->deleteTrashEntry($recordId, 'asset');
+
+            return;
+        }
+
+        $this->records->saveAssetRecord($recordId, $record);
+    }
+
     public function emptyTrash(array $pluginSettings = []): array
     {
         $deleted = 0;
