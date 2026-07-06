@@ -536,7 +536,20 @@ class VersionStore
 
         $record['deleted'] = null;
         if ($recordType === 'asset') {
-            $this->records->saveAssetRecord($recordId, $record);
+            // Asset versions only exist for trash restore; once restored the
+            // snapshot is redundant and invisible in the UI, so drop it instead
+            // of leaking snapshot files on disk forever.
+            $record['versions'] = array_values(array_filter(
+                $record['versions'],
+                static fn ($entry) => ($entry['id'] ?? null) !== $versionId
+            ));
+            $this->assetVersions->cleanupVersionSnapshots($recordId, $versionId);
+
+            if (empty($record['versions'])) {
+                $this->records->deleteTrashEntry($recordId, 'asset');
+            } else {
+                $this->records->saveAssetRecord($recordId, $record);
+            }
         } else {
             $this->records->savePageRecord($recordId, $record);
         }
