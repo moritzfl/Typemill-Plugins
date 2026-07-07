@@ -4,7 +4,7 @@
 {% set blogHeroImageAlt = metatabs.meta.heroimagealt|default(title) %}
 {% set blogHeroDescription = blogHeroImage ? metatabs.meta.description|default('') : '' %}
 
-<main id="main-content" class="flex-1 min-w-0 {{ theme.fullwidth ? '' : 'max-w-4xl' }} px-4 py-8 sm:px-6 lg:px-10 xl:px-14">
+<main id="main-content" class="flex-1 min-w-0 {{ theme.fullwidth ? '' : 'max-w-4xl mx-auto' }} px-4 py-8 sm:px-6 lg:px-10 xl:px-14">
 
   {% if blogHeroImage %}
     {% include 'partials/hero.twig' with {
