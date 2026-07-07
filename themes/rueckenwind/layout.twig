@@ -311,6 +311,46 @@
       });
     });
 
+    // ── Topnav dropdowns: first tap opens, second tap navigates ─────
+    (function () {
+      var parents = document.querySelectorAll('[data-topnav-parent]');
+      if (!parents.length) return;
+      var HIDDEN = ['invisible', 'opacity-0'];
+      var HOVER = window.matchMedia('(hover: hover)');
+
+      function setOpen(link, open) {
+        var ul = document.getElementById(link.getAttribute('aria-controls'));
+        if (!ul) return;
+        HIDDEN.forEach(function (c) { ul.classList.toggle(c, !open); });
+        link.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+
+      function closeAll(except) {
+        parents.forEach(function (link) {
+          if (link !== except) setOpen(link, false);
+        });
+      }
+
+      parents.forEach(function (link) {
+        link.addEventListener('click', function (e) {
+          // Already open (previous tap or JS): let the click navigate.
+          if (link.getAttribute('aria-expanded') === 'true') return;
+          // Mouse users see the dropdown via :hover; their click should navigate.
+          var touchLike = e.pointerType === 'touch' || !HOVER.matches;
+          if (!touchLike) return;
+          e.preventDefault();
+          e.stopPropagation();
+          closeAll(link);
+          setOpen(link, true);
+        });
+      });
+
+      document.addEventListener('click', function () { closeAll(); });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeAll();
+      });
+    })();
+
     // ── SVG dark-mode invert ───────────────────────────────────────
     (function () {
       var ALLOWED = /^(none|transparent|currentcolor|inherit|black|white|#000|#000000|#fff|#ffffff|rgb\(\s*0\s*,\s*0\s*,\s*0\s*\)|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))$/i;
