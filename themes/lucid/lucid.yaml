@@ -34,6 +34,79 @@ settings:
   next: 'Next'
   dateFormat: 'd.m.Y'
 
+readymades:
+
+  product:
+    name: 'Product page'
+    description: 'Centred hero with an eyebrow, a rounded button and one tile per section. The layout the theme was designed around.'
+    settings:
+      heroEyebrow: 'New'
+      heroTitle: 'Built for what comes next.'
+      heroSubtitle: 'A calm starting point for a product, a portfolio or a small site. Replace this line with your own.'
+      heroBtnLabel: 'Get started'
+      heroBtnLink: '/'
+      heroLinkLabel: 'Learn more'
+      heroLinkTarget: '/'
+      showTiles: true
+      tilesTitle: 'Explore'
+      tilesLead: 'One card for every section of the site.'
+      tilesLinkLabel: 'Learn more'
+      tilesCountLabel: 'pages'
+      breadcrumb: true
+      showDescription: false
+      dateFormat: d.m.Y
+      footercolumns:
+          - footer1
+          - footer2
+      footer1: "### About\n\nOne or two sentences about the site and who runs it."
+      footer2: "### Elsewhere\n\n* [Imprint](/)\n* [Privacy](/)"
+
+  documentation:
+    name: 'Documentation'
+    description: 'Breadcrumbs, author and date on every page, and section tiles that read as a table of contents.'
+    settings:
+      heroEyebrow: ''
+      heroTitle: 'Documentation'
+      heroSubtitle: 'Guides, references and everything else worth writing down.'
+      heroBtnLabel: 'Start reading'
+      heroBtnLink: '/'
+      heroLinkLabel: ''
+      heroLinkTarget: ''
+      showTiles: true
+      tilesTitle: 'Sections'
+      tilesLead: ''
+      tilesLinkLabel: 'Open'
+      tilesCountLabel: 'pages'
+      breadcrumb: true
+      showDescription: false
+      datePosition:
+          - top
+      dateIntro: 'Updated'
+      authorPosition:
+          - top
+      authorIntro: 'By'
+      previous: 'Previous'
+      next: 'Next'
+      dateFormat: d.m.Y
+
+  journal:
+    name: 'Journal'
+    description: 'Homepage as a grid of posts with images, and a short intro above the list. Point the blog folder at your own.'
+    settings:
+      blog: true
+      blogfolder: '/blog'
+      blogimage: true
+      blogintro: true
+      blogpagesize: 9
+      heroTitle: 'Journal'
+      heroSubtitle: 'Notes, releases and the occasional longer piece.'
+      showTiles: false
+      breadcrumb: true
+      datePosition:
+          - top
+      dateIntro: 'Published'
+      dateFormat: d.m.Y
+
 forms:
   fields:
 

@@ -76,6 +76,20 @@ falling back to Helvetica and Arial. Code uses the platform's monospace font.
 Nothing is loaded over the network, so there is no font flash, no third-party request, and no
 licensed typeface is redistributed.
 
+## Readymades
+
+The theme ships three presets. **System → Themes → Configure → Readymades**, then *load* one and
+save. Each fills in the hero, the cards and the labels so the homepage looks finished immediately,
+and every value stays editable afterwards.
+
+| Readymade | What it sets up |
+|---|---|
+| **Developer product** | Gradient hero with two buttons, numbered section cards, dark call-to-action band, two footer columns |
+| **Documentation** | Solid indigo hero instead of the gradient, no call-to-action band, author and date on every page |
+| **Changelog** | Homepage as a grid of posts under the gradient hero |
+
+Own combinations can be saved as readymades from the same panel.
+
 ## Monochrome SVG in dark mode
 
 Black-and-white line art vanishes against a dark background. Each SVG the page

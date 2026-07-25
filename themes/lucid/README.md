@@ -78,6 +78,20 @@ Grouped in **System → Themes → Lucid**:
 - **Colors** — accent colour and Custom CSS
 - **Footer** — up to three Markdown columns and a custom copyright line
 
+## Readymades
+
+The theme ships three presets. **System → Themes → Configure → Readymades**, then *load* one and
+save. Each fills in the hero, the labels and the footer so the homepage looks finished immediately,
+and every value stays editable afterwards.
+
+| Readymade | What it sets up |
+|---|---|
+| **Product page** | Hero with an eyebrow, a rounded button and a secondary link, section tiles, two footer columns |
+| **Documentation** | Breadcrumbs, author and date on every page, tiles that read as a table of contents |
+| **Journal** | Homepage as a grid of posts with images and a short intro above the list |
+
+Own combinations can be saved as readymades from the same panel.
+
 ## Monochrome SVG in dark mode
 
 Black-and-white line art vanishes against a dark background. Each SVG the page

@@ -40,6 +40,92 @@ settings:
   next: 'Next'
   dateFormat: 'd.m.Y'
 
+readymades:
+
+  saas:
+    name: 'Developer product'
+    description: 'Gradient hero with two buttons, numbered section cards and a dark call-to-action band. Shows the theme at full volume.'
+    settings:
+      heroEyebrow: 'Documentation'
+      heroTitle: 'Everything you need to ship.'
+      heroSubtitle: 'A vivid starting point for a product, an API or a developer tool. Replace this line with your own.'
+      heroBtnLabel: 'Get started'
+      heroBtnLink: '/'
+      heroLinkLabel: 'Read the guide'
+      heroLinkTarget: '/'
+      heroPlain: false
+      showCards: true
+      cardsEyebrow: 'Sections'
+      cardsTitle: 'Start here'
+      cardsLead: 'One card for every section of the site.'
+      cardsLinkLabel: 'Explore'
+      cardsCountLabel: 'pages'
+      ctaTitle: 'Ready when you are.'
+      ctaText: 'Drop the call-to-action heading in the theme settings to hide this band.'
+      ctaBtnLabel: 'Get in touch'
+      ctaBtnLink: '/'
+      breadcrumb: true
+      showDescription: false
+      dateFormat: d.m.Y
+      footercolumns:
+          - footer1
+          - footer2
+      footer1: "### About\n\nOne or two sentences about the site and who runs it."
+      footer2: "### Elsewhere\n\n* [Imprint](/)\n* [Privacy](/)"
+
+  docs:
+    name: 'Documentation'
+    description: 'Solid indigo hero instead of the gradient, no call-to-action band, and author and date on every page.'
+    settings:
+      heroEyebrow: ''
+      heroTitle: 'Documentation'
+      heroSubtitle: 'Guides, references and everything else worth writing down.'
+      heroBtnLabel: 'Start reading'
+      heroBtnLink: '/'
+      heroLinkLabel: ''
+      heroLinkTarget: ''
+      heroPlain: true
+      showCards: true
+      cardsEyebrow: ''
+      cardsTitle: 'Sections'
+      cardsLead: ''
+      cardsLinkLabel: 'Open'
+      cardsCountLabel: 'pages'
+      ctaTitle: ''
+      ctaText: ''
+      ctaBtnLabel: ''
+      ctaBtnLink: ''
+      breadcrumb: true
+      showDescription: false
+      datePosition:
+          - top
+      dateIntro: 'Updated'
+      authorPosition:
+          - top
+      authorIntro: 'By'
+      dateFormat: d.m.Y
+
+  changelog:
+    name: 'Changelog'
+    description: 'Homepage as a grid of posts under the gradient hero. Point the blog folder at your own.'
+    settings:
+      blog: true
+      blogfolder: '/blog'
+      blogimage: true
+      blogintro: true
+      blogpagesize: 9
+      heroEyebrow: 'Updates'
+      heroTitle: 'Changelog'
+      heroSubtitle: 'What shipped, and when.'
+      heroPlain: false
+      showCards: false
+      ctaTitle: ''
+      breadcrumb: true
+      datePosition:
+          - top
+      dateIntro: 'Published'
+      dateFormat: d.m.Y
+
 forms:
   fields:
 
