@@ -476,12 +476,15 @@ a {
     color: var(--md-text);
 }
 
-.md-prose > * + * {
-    margin-top: 1.5rem;
+/* The browser's own block margins are cleared first, so every gap below is a
+   deliberate one. This has to stay a `> *` rule: a `p` selector here would
+   outweigh the rhythm underneath it and leave paragraphs with no gap at all. */
+.md-prose > * {
+    margin-block: 0;
 }
 
-.md-prose p {
-    margin: 0;
+.md-prose > * + * {
+    margin-top: 1.5rem;
 }
 
 .md-prose h2 {
@@ -490,7 +493,6 @@ a {
     font-weight: 700;
     letter-spacing: -0.018em;
     margin-top: 2.2rem;
-    margin-bottom: -0.6rem;
 }
 
 .md-prose h3 {
@@ -499,7 +501,6 @@ a {
     font-weight: 700;
     letter-spacing: -0.012em;
     margin-top: 1.9rem;
-    margin-bottom: -0.7rem;
 }
 
 .md-prose h4,
@@ -509,7 +510,25 @@ a {
     font-size: 17px;
     font-weight: 700;
     margin-top: 1.7rem;
-    margin-bottom: -0.8rem;
+}
+
+/* A heading belongs to the text underneath it, so that gap is tighter than the
+   rhythm. It is set on the block that follows, not as a negative margin on the
+   heading: a negative margin drags whatever comes next up over the heading's
+   own words, which is invisible for plain text but not for anything that
+   paints a background, such as a button, an image or a code block. */
+.md-prose h2 + * {
+    margin-top: 0.9rem;
+}
+
+.md-prose h3 + * {
+    margin-top: 0.8rem;
+}
+
+.md-prose h4 + *,
+.md-prose h5 + *,
+.md-prose h6 + * {
+    margin-top: 0.7rem;
 }
 
 .md-prose ul,

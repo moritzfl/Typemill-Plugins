@@ -709,6 +709,13 @@ a:hover {
     line-height: 1.6;
 }
 
+/* The browser's own block margins are cleared first, so every gap below is a
+   deliberate one. This has to stay a `> *` rule: a `p` selector here would
+   outweigh the rhythm underneath it and leave paragraphs with no gap at all. */
+.lc-prose > * {
+    margin-block: 0;
+}
+
 .lc-prose > * + * {
     margin-top: 1.1em;
 }
@@ -719,7 +726,6 @@ a:hover {
     font-weight: 600;
     letter-spacing: -0.016em;
     margin-top: 1.8em;
-    margin-bottom: 0.4em;
 }
 
 .lc-prose h3 {
@@ -728,14 +734,12 @@ a:hover {
     font-weight: 600;
     letter-spacing: 0.009em;
     margin-top: 1.6em;
-    margin-bottom: 0.35em;
 }
 
 .lc-prose h4 {
     font-size: 19px;
     font-weight: 600;
     margin-top: 1.4em;
-    margin-bottom: 0.3em;
 }
 
 .lc-prose h5,
@@ -745,8 +749,21 @@ a:hover {
     margin-top: 1.3em;
 }
 
-.lc-prose p {
-    margin-block: 0;
+/* A heading belongs to the text underneath it, so that gap is tighter than the
+   rhythm. It is set on the block that follows: a heading's own bottom margin
+   collapses against the rhythm above and would have no effect. */
+.lc-prose h2 + * {
+    margin-top: 0.75em;
+}
+
+.lc-prose h3 + * {
+    margin-top: 0.5em;
+}
+
+.lc-prose h4 + *,
+.lc-prose h5 + *,
+.lc-prose h6 + * {
+    margin-top: 0.34em;
 }
 
 .lc-prose ul,

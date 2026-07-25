@@ -700,12 +700,15 @@ a {
     color: var(--at-text);
 }
 
-.at-prose > * + * {
-    margin-top: 1.4em;
+/* The browser's own block margins are cleared first, so every gap below is a
+   deliberate one. This has to stay a `> *` rule: a `p` selector here would
+   outweigh the rhythm underneath it and leave paragraphs with no gap at all. */
+.at-prose > * {
+    margin-block: 0;
 }
 
-.at-prose p {
-    margin: 0;
+.at-prose > * + * {
+    margin-top: 1.4em;
 }
 
 .at-prose h2 {
@@ -713,14 +716,25 @@ a {
     font-weight: 500;
     letter-spacing: -0.01em;
     margin-top: 2.2em;
-    margin-bottom: -0.5em;
 }
 
 .at-prose h3 {
     font-size: 18px;
     font-weight: 600;
     margin-top: 1.9em;
-    margin-bottom: -0.6em;
+}
+
+/* A heading belongs to the text underneath it, so that gap is tighter than the
+   rhythm. It is set on the block that follows, not as a negative margin on the
+   heading: a negative margin drags whatever comes next up over the heading's
+   own words, which is invisible for plain text but not for anything that
+   paints a background, such as a button, an image or a code block. */
+.at-prose h2 + * {
+    margin-top: 0.9em;
+}
+
+.at-prose h3 + * {
+    margin-top: 0.8em;
 }
 
 .at-prose a {
