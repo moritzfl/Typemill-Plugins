@@ -1,0 +1,38 @@
+{#
+  A list of pages, used for the sections on the homepage, the contents of a
+  folder, and the post feed.
+
+  Each entry is a list item with a heading, so the list is navigable by heading
+  as well as by link. The card is clickable through a stretched pseudo-element
+  on the title link, which keeps one link per entry: repeating the same target
+  as a separate "read more" would put two identical links in the tab order.
+#}
+{% set theme = settings.themes.legible %}
+{% set entries = entries is defined and entries ? entries : [] %}
+
+{% if entries|length > 0 %}
+  <ul class="lg-list">
+    {% for element in entries %}
+      {% set meta = getPageMeta(settings, element).meta|default({}) %}
+      {% set orderDate = element.order is defined and element.order matches '/^\\d{8}$/'
+          ? element.order[0:4] ~ '-' ~ element.order[4:2] ~ '-' ~ element.order[6:2] : '' %}
+      {% set date = meta.manualdate|default(meta.modified|default(orderDate)) %}
+
+      <li class="lg-card">
+        <h3 class="lg-card__title">
+          <a href="{{ element.urlRel }}">{{ meta.title|default(element.name)|e }}</a>
+        </h3>
+
+        {% if meta.description %}
+          <p class="lg-card__text">{{ meta.description|e }}</p>
+        {% endif %}
+
+        {% if date and (theme.listDates ?? true) %}
+          <p class="lg-card__meta">
+            <time datetime="{{ date }}">{{ date|date(theme.dateFormat|default('M j, Y')) }}</time>
+          </p>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}

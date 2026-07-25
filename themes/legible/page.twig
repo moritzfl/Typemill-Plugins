@@ -1,0 +1,58 @@
+{% set theme = settings.themes.legible %}
+{% set published = metatabs.meta.manualdate ? metatabs.meta.manualdate : metatabs.meta.modified %}
+{% set isFolder = item.elementType == 'folder' and item.folderContent|length > 0 %}
+
+<div class="lg-container">
+
+  <article class="lg-article lg-measure">
+
+    {% if (theme.breadcrumb ?? true) %}
+      {% include 'partials/breadcrumb.twig' %}
+    {% endif %}
+
+    <h1 class="lg-article__title">{{ title|e }}</h1>
+
+    {% set showDate = 'top' in theme.datePosition|default([]) %}
+    {% set showAuthor = 'top' in theme.authorPosition|default([]) %}
+    {% if showDate or showAuthor %}
+      <div class="lg-article__meta">
+        {% if showAuthor %}
+          <span>{{ metatabs.meta.author|default(settings.author)|e }}</span>
+        {% endif %}
+        {% if showDate and published %}
+          <span><time datetime="{{ published }}">{{ published|date(theme.dateFormat|default('M j, Y')) }}</time></span>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div class="lg-prose">{{ content }}</div>
+
+  </article>
+
+  {% if isFolder %}
+    <section class="lg-section lg-measure" aria-labelledby="lg-contents-title">
+      <h2 class="lg-section__title" id="lg-contents-title">
+        {{ theme.contentsTitle|default('In this section')|e }}
+      </h2>
+      {% include 'partials/pagelist.twig' with { entries: item.folderContent } %}
+    </section>
+  {% endif %}
+
+  {% if item.prevItem or item.nextItem %}
+    <nav class="lg-pager lg-measure" aria-label="{{ theme.pagerLabel|default('Previous and next page')|e('html_attr') }}">
+      {% if item.prevItem %}
+        <a class="lg-pager__item" href="{{ item.prevItem.urlRel }}">
+          <span class="lg-pager__label">{{ theme.previous|default('Previous')|e }}</span>
+          <span class="lg-pager__title">{{ item.prevItem.name|e }}</span>
+        </a>
+      {% endif %}
+      {% if item.nextItem %}
+        <a class="lg-pager__item lg-pager__item--next" href="{{ item.nextItem.urlRel }}">
+          <span class="lg-pager__label">{{ theme.next|default('Next')|e }}</span>
+          <span class="lg-pager__title">{{ item.nextItem.name|e }}</span>
+        </a>
+      {% endif %}
+    </nav>
+  {% endif %}
+
+</div>

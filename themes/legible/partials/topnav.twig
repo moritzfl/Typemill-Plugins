@@ -1,0 +1,87 @@
+{#
+  Global navigation.
+
+  The bar carries the site name, the sections, and the reader controls. Every
+  target is at least 44px, the current page is marked with an underline as well
+  as a colour, and a section that contains pages opens on hover, on focus and
+  on the first tap.
+#}
+{% set theme = settings.themes.legible %}
+
+<header class="lg-header">
+  <div class="lg-header__inner">
+
+    <a href="{{ base_url }}" class="lg-brand">
+      {% if logo %}
+        <img src="{{ base_url }}/{{ logo|e('html_attr') }}" alt="{{ settings.title|e('html_attr') }}" />
+      {% else %}
+        {{ settings.title|e }}
+      {% endif %}
+    </a>
+
+    <nav class="lg-nav" id="main-navigation" data-nav
+         aria-label="{{ theme.navLabel|default('Main')|e('html_attr') }}">
+
+      <ul class="lg-nav__list">
+        {% for element in navigation %}
+          {% set children = element.elementType == 'folder' ? element.folderContent : [] %}
+          {% set panelId = 'lg-sub-' ~ loop.index %}
+
+          <li class="lg-nav__item" {% if children|length > 0 %}data-nav-item{% endif %}>
+
+            <a href="{{ element.urlRel }}"
+               class="lg-nav__link"
+               {% if element.active %}aria-current="page"{% endif %}
+               {% if children|length > 0 %}
+                 data-nav-parent
+                 aria-expanded="false"
+                 aria-controls="{{ panelId }}"
+               {% endif %}>
+              {{ element.name|e }}
+              {% if children|length > 0 %}
+                <svg class="lg-nav__caret" width="12" height="12" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 8l7 8 7-8" />
+                </svg>
+              {% endif %}
+            </a>
+
+            {% if children|length > 0 %}
+              <div class="lg-dropdown" id="{{ panelId }}">
+                <ul class="lg-dropdown__list">
+                  {% for child in children %}
+                    <li>
+                      <a href="{{ child.urlRel }}"{% if child.active %} aria-current="page"{% endif %}>{{ child.name|e }}</a>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+          </li>
+        {% endfor %}
+
+        {% if multilang is defined and multilang %}
+          {% for lang, link in multilang %}
+            <li class="lg-nav__item"><a class="lg-nav__link" href="{{ base_url }}{{ link }}">{{ lang|upper }}</a></li>
+          {% endfor %}
+        {% endif %}
+      </ul>
+    </nav>
+
+    <div class="lg-header__tools">
+      {% if (theme.readerControls ?? true) %}
+        {% include 'partials/readercontrols.twig' %}
+      {% endif %}
+
+      <button type="button" class="lg-nav__toggle" data-nav-toggle aria-expanded="false"
+              aria-controls="main-navigation">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.4" aria-hidden="true">
+          <path stroke-linecap="round" d="M3 7h18M3 12h18M3 17h18" />
+        </svg>
+        {{ theme.menuLabel|default('Menu')|e }}
+      </button>
+    </div>
+
+  </div>
+</header>

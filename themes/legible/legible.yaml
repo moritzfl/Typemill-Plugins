@@ -1,0 +1,322 @@
+name: Legible
+version: 1.0.0
+description: 'An accessibility-first theme. Large type on a short measure, colours that clear the WCAG AAA contrast ratio, 44px targets and a focus ring you cannot miss. Readers get three controls of their own - text size, spacing and contrast, including a maximum-contrast mode - remembered between visits and applied before the page is painted. No font files, no motion, no colour-only meaning.'
+author: moritz
+homepage: https://github.com/moritzfl/Typemill-Plugins
+license: GPL-2.0
+
+settings:
+  homeTitle: ''
+  homeIntro: ''
+  showSections: true
+  sectionsTitle: 'Sections'
+  contentsTitle: 'In this section'
+  readerControls: true
+  defaultTextSize: 'm'
+  defaultSpacing: 'comfortable'
+  readingFont: 'sans'
+  measure: ''
+  linkColor: ''
+  customcss: ''
+  blog: false
+  blogfolder: '/blog'
+  blogintro: true
+  blogpagesize: 10
+  postsTitle: 'Posts'
+  breadcrumb: true
+  listDates: true
+  dateFormat: 'M j, Y'
+  homeLabel: 'Home'
+  previous: 'Previous'
+  next: 'Next'
+  readerLabel: 'Reading'
+  menuLabel: 'Menu'
+
+readymades:
+
+  accessible:
+    name: 'Accessible site'
+    description: 'The theme as designed: reader controls on, sections listed on the homepage, breadcrumbs, and the sans-serif reading face. The starting point for a public body or anywhere an accessibility statement is expected.'
+    settings:
+      showSections: true
+      sectionsTitle: 'Sections'
+      readerControls: true
+      defaultTextSize: 'm'
+      defaultSpacing: 'comfortable'
+      readingFont: 'sans'
+      breadcrumb: true
+      listDates: true
+      dateFormat: 'M j, Y'
+      datePosition:
+          - top
+      authorPosition:
+          - top
+      footercolumns:
+          - footer1
+          - footer2
+      footer1: "### About\n\nOne or two sentences about this site."
+      footer2: "### Accessibility\n\n* [Accessibility statement](/)\n* [Contact](/)"
+
+  easyread:
+    name: 'Easy read'
+    description: 'Larger type and the wider letter and word spacing from WCAG 1.4.12 as the starting point, on a shorter measure. Suits guidance written for a wide readership.'
+    settings:
+      showSections: true
+      readerControls: true
+      defaultTextSize: 'l'
+      defaultSpacing: 'spacious'
+      readingFont: 'sans'
+      measure: '58ch'
+      breadcrumb: true
+      listDates: false
+      footercolumns:
+          - footer1
+      footer1: "### About\n\nOne or two sentences about this site."
+
+  reading:
+    name: 'Long reads'
+    description: 'The serif reading face on a wider measure, with the homepage as a dated feed of posts. Point the folder at your own.'
+    settings:
+      blog: true
+      blogfolder: '/blog'
+      blogintro: true
+      blogpagesize: 10
+      postsTitle: 'Posts'
+      showSections: false
+      readerControls: true
+      defaultTextSize: 'm'
+      defaultSpacing: 'comfortable'
+      readingFont: 'serif'
+      measure: '70ch'
+      breadcrumb: true
+      listDates: true
+      dateFormat: 'M j, Y'
+      datePosition:
+          - top
+      footercolumns: []
+
+forms:
+  fields:
+
+    fieldsetReader:
+      type: fieldset
+      legend: 'Reader Controls'
+      fields:
+        readerControls:
+          type: checkbox
+          label: 'Reader controls'
+          checkboxlabel: 'Let readers set text size, spacing and contrast themselves'
+          description: 'The choice is kept in the browser and applied before the page is drawn, so it never flashes. Switching this off does not stop the page adapting to the system dark mode.'
+        defaultTextSize:
+          type: select
+          label: 'Starting text size'
+          description: 'What a first-time reader sees. They can still change it.'
+          css: 'lg:w-half'
+          options:
+            s: 'Small (17px)'
+            m: 'Medium (20px)'
+            l: 'Large (23px)'
+            xl: 'Extra large (27px)'
+        defaultSpacing:
+          type: select
+          label: 'Starting spacing'
+          description: 'Spacious uses the letter, word and paragraph spacing named in WCAG 1.4.12.'
+          css: 'lg:w-half'
+          options:
+            compact: 'Compact'
+            comfortable: 'Comfortable'
+            spacious: 'Spacious (WCAG 1.4.12)'
+
+    fieldsetReading:
+      type: fieldset
+      legend: 'Reading'
+      fields:
+        readingFont:
+          type: select
+          label: 'Reading face'
+          description: 'Both are system faces; no font file is loaded.'
+          css: 'lg:w-half'
+          options:
+            sans: 'Sans-serif'
+            serif: 'Serif'
+        measure:
+          type: text
+          label: 'Line length'
+          placeholder: '66ch'
+          description: 'A CSS length. Around 66 characters is the usual advice for comfortable reading.'
+          css: 'lg:w-half'
+        linkColor:
+          type: text
+          label: 'Link colour'
+          description: 'Any CSS colour, also used for the focus ring. Check it still reaches 7:1 against the background before using it.'
+          css: 'lg:w-half'
+        customcss:
+          type: textarea
+          label: 'Custom CSS'
+          description: 'Injected verbatim into a &lt;style&gt; tag.'
+
+    fieldsetHome:
+      type: fieldset
+      legend: 'Homepage'
+      fields:
+        homeTitle:
+          type: text
+          label: 'Title'
+          description: 'Defaults to the homepage title if left blank.'
+          css: 'lg:w-half'
+        homeIntro:
+          type: text
+          label: 'Standfirst'
+          css: 'lg:w-full'
+        showSections:
+          type: checkbox
+          label: 'Sections'
+          checkboxlabel: 'List the top-level sections on the homepage'
+        sectionsTitle:
+          type: text
+          label: 'Heading above the sections'
+          placeholder: 'Sections'
+          css: 'lg:w-half'
+        contentsTitle:
+          type: text
+          label: 'Heading above a folder listing'
+          placeholder: 'In this section'
+          css: 'lg:w-half'
+
+    fieldsetBlog:
+      type: fieldset
+      legend: 'Posts'
+      fields:
+        blog:
+          type: checkbox
+          label: 'Post feed homepage'
+          checkboxlabel: 'Use the homepage as a feed of posts'
+        blogintro:
+          type: checkbox
+          label: 'Page intro'
+          checkboxlabel: 'Show the homepage content above the feed'
+        blogfolder:
+          type: text
+          label: 'Post folder'
+          placeholder: '/blog'
+          css: 'lg:w-half'
+        blogpagesize:
+          type: number
+          label: 'Posts per page'
+          placeholder: '10'
+          css: 'lg:w-half'
+        postsTitle:
+          type: text
+          label: 'Heading above the feed'
+          placeholder: 'Posts'
+          css: 'lg:w-half'
+
+    fieldsetMeta:
+      type: fieldset
+      legend: 'Page Meta'
+      fields:
+        breadcrumb:
+          type: checkbox
+          label: 'Breadcrumb'
+          checkboxlabel: 'Show a breadcrumb above the text'
+        listDates:
+          type: checkbox
+          label: 'Dates in lists'
+          checkboxlabel: 'Show a date under each entry in a list'
+        datePosition:
+          type: checkboxlist
+          label: 'Show date'
+          options:
+            top: Top
+        authorPosition:
+          type: checkboxlist
+          label: 'Show author'
+          options:
+            top: Top
+        dateFormat:
+          type: select
+          label: 'Date format'
+          css: 'lg:w-half'
+          options:
+            'M j, Y': 'Jan 20, 2020'
+            'j F Y': '20 January 2020'
+            'd.m.Y': '20.01.2020'
+            'Y-m-d': '2020-01-20'
+
+    fieldsetLabels:
+      type: fieldset
+      legend: 'Labels'
+      fields:
+        readerLabel:
+          type: text
+          label: 'Reader controls button'
+          placeholder: 'Reading'
+          css: 'lg:w-half'
+        menuLabel:
+          type: text
+          label: 'Menu button'
+          placeholder: 'Menu'
+          css: 'lg:w-half'
+        skipContentText:
+          type: text
+          label: 'Skip to content'
+          placeholder: 'Skip to content'
+          css: 'lg:w-half'
+        skipNavText:
+          type: text
+          label: 'Skip to navigation'
+          placeholder: 'Skip to navigation'
+          css: 'lg:w-half'
+        homeLabel:
+          type: text
+          label: 'Home label'
+          placeholder: 'Home'
+          css: 'lg:w-half'
+        previous:
+          type: text
+          label: 'Previous label'
+          css: 'lg:w-half'
+        next:
+          type: text
+          label: 'Next label'
+          css: 'lg:w-half'
+        notFoundTitle:
+          type: text
+          label: '404 headline'
+          css: 'lg:w-half'
+        notFoundText:
+          type: text
+          label: '404 text'
+          css: 'lg:w-full'
+
+    fieldsetFooter:
+      type: fieldset
+      legend: 'Footer Columns'
+      fields:
+        footercolumns:
+          type: checkboxlist
+          label: 'Active footer columns'
+          options:
+            footer1: 'Column 1'
+            footer2: 'Column 2'
+            footer3: 'Column 3'
+        footer1:
+          type: textarea
+          label: 'Footer column 1 (Markdown)'
+        footer2:
+          type: textarea
+          label: 'Footer column 2 (Markdown)'
+        footer3:
+          type: textarea
+          label: 'Footer column 3 (Markdown)'
+
+    fieldsetCopyright:
+      type: fieldset
+      legend: 'Copyright Line'
+      fields:
+        copyrightline:
+          type: checkbox
+          checkboxlabel: 'Override the default copyright line'
+        copyrightlinetext:
+          type: textarea
+          label: 'Custom copyright text (Markdown)'

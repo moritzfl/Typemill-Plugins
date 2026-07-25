@@ -1,0 +1,26 @@
+{% set theme = settings.themes.legible %}
+
+<div class="lg-container">
+
+  <article class="lg-article lg-measure">
+    <h1 class="lg-article__title">{{ (theme.homeTitle|default('') ?: title)|e }}</h1>
+
+    {% if theme.homeIntro %}
+      <p class="lg-article__lead">{{ theme.homeIntro|e }}</p>
+    {% endif %}
+
+    {% if content|trim %}
+      <div class="lg-prose">{{ content }}</div>
+    {% endif %}
+  </article>
+
+  {% if (theme.showSections ?? true) and navigation|length > 0 %}
+    <section class="lg-section lg-measure" aria-labelledby="lg-sections-title">
+      <h2 class="lg-section__title" id="lg-sections-title">
+        {{ theme.sectionsTitle|default('Sections')|e }}
+      </h2>
+      {% include 'partials/pagelist.twig' with { entries: navigation } %}
+    </section>
+  {% endif %}
+
+</div>

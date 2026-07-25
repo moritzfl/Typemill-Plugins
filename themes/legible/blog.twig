@@ -1,0 +1,51 @@
+{% set theme = settings.themes.legible %}
+
+<div class="lg-container">
+
+  <article class="lg-article lg-measure">
+    <h1 class="lg-article__title">{{ (theme.homeTitle|default('') ?: title)|e }}</h1>
+
+    {% if theme.blogintro and content|trim %}
+      <div class="lg-prose">{{ content }}</div>
+    {% endif %}
+  </article>
+
+  {% set pagelist = getPageList(navigation, theme.blogfolder, base_url) %}
+  {% set pagesize = theme.blogpagesize|default(10) %}
+  {% set pages = (pagelist.folderContent|length / pagesize)|round(0, 'ceil') %}
+  {% set currentpage = currentpage ? currentpage : 1 %}
+  {% set offset = (currentpage - 1) * pagesize %}
+
+  <section class="lg-section lg-measure" aria-labelledby="lg-posts-title">
+    <h2 class="lg-section__title" id="lg-posts-title">
+      {{ theme.postsTitle|default('Posts')|e }}
+    </h2>
+
+    {% if pagelist.contains == 'posts' %}
+
+      {% include 'partials/pagelist.twig' with {
+        entries: pagelist.folderContent|slice(offset, pagesize)
+      } %}
+
+      {% if pages > 1 %}
+        <nav aria-label="{{ theme.paginationLabel|default('Pagination')|e('html_attr') }}">
+          <ul class="lg-pagination">
+            {% for i in 1..pages %}
+              <li>
+                {% if i == currentpage %}
+                  <span aria-current="page">{{ i }}</span>
+                {% else %}
+                  <a href="{{ item.urlRel }}/p/{{ i }}">{{ i }}</a>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        </nav>
+      {% endif %}
+
+    {% else %}
+      <p>{{ theme.blogEmptyText|default('The configured folder does not contain posts. Check the folder in the theme settings.')|e }}</p>
+    {% endif %}
+  </section>
+
+</div>

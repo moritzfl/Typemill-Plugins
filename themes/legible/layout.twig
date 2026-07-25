@@ -1,0 +1,386 @@
+{% set theme = settings.themes.legible %}
+<!DOCTYPE html>
+<html lang="{{ settings.langattr | default('en') }}"
+      data-text-size="{{ theme.defaultTextSize|default('m')|e('html_attr') }}"
+      data-spacing="{{ theme.defaultSpacing|default('comfortable')|e('html_attr') }}">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="description" content="{{ metatabs.meta.description|e('html_attr') }}" />
+  <meta name="author" content="{{ metatabs.meta.author|default(settings.author)|e('html_attr') }}" />
+  <meta name="generator" content="TYPEMILL" />
+  <link rel="canonical" href="{{ item.urlAbs }}" />
+
+  {#
+    Stored reader settings are applied before the first paint. Left until after
+    the stylesheet, the page would be drawn once at the default size and again
+    at the reader's, which is exactly the kind of flash this theme should not
+    produce.
+  #}
+  <script>
+    (function () {
+      try {
+        var root = document.documentElement;
+        var stored = {
+          'data-text-size': localStorage.getItem('legible:text-size'),
+          'data-spacing': localStorage.getItem('legible:spacing'),
+          'data-contrast': localStorage.getItem('legible:contrast')
+        };
+        var allowed = {
+          'data-text-size': ['s', 'm', 'l', 'xl'],
+          'data-spacing': ['compact', 'comfortable', 'spacious'],
+          'data-contrast': ['auto', 'light', 'dark', 'high']
+        };
+        for (var key in stored) {
+          var value = stored[key];
+          if (!value || allowed[key].indexOf(value) === -1) continue;
+          // `auto` is the absence of a choice, so it carries no attribute.
+          if (key === 'data-contrast' && value === 'auto') continue;
+          root.setAttribute(key, value);
+        }
+      } catch (e) {
+        /* Private browsing can refuse localStorage; the defaults still apply. */
+      }
+    })();
+  </script>
+
+  {{ assets.renderMeta() }}
+
+  {% block stylesheets %}
+  <link rel="stylesheet" href="{{ base_url }}/themes/legible/css/legible.css" />
+  <style>
+    {% if theme.measure %}
+    :root { --lg-measure: {{ theme.measure }}; }
+    {% endif %}
+    {% if theme.linkColor %}
+    :root { --lg-link: {{ theme.linkColor }}; --lg-focus: {{ theme.linkColor }}; }
+    {% endif %}
+    {% if theme.readingFont|default('sans') == 'serif' %}
+    :root { --lg-reading: var(--lg-serif); }
+    {% endif %}
+    {% if theme.customcss %}
+    {{ theme.customcss }}
+    {% endif %}
+  </style>
+  {% endblock %}
+</head>
+<body>
+
+  <div class="lg-skips">
+    <a href="#main-content">{{ theme.skipContentText|default('Skip to content')|e }}</a>
+    <a href="#main-navigation">{{ theme.skipNavText|default('Skip to navigation')|e }}</a>
+  </div>
+
+  {% if is_loggedin() %}
+    <div class="lg-admin"><a href="{{ base_url }}/tm/account">&#9881; Admin</a></div>
+  {% endif %}
+
+  {% block nav %}{% include 'partials/topnav.twig' %}{% endblock %}
+
+  <main id="main-content" tabindex="-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include 'partials/footer.twig' %}
+
+  {% block javascripts %}
+  {{ assets.renderCSS() }}
+  {{ assets.renderJS() }}
+  <script>
+    (function () {
+      var nav = document.querySelector('[data-nav]');
+      if (!nav) return;
+
+      // The button lives beside the navigation rather than inside it, so that
+      // it can point at the landmark with aria-controls; look it up from the
+      // document rather than from within the element it controls.
+      var toggle = document.querySelector('[data-nav-toggle]');
+      var items = Array.prototype.slice.call(nav.querySelectorAll('[data-nav-item]'));
+      var hoverCapable = window.matchMedia('(hover: hover)');
+      var wide = window.matchMedia('(min-width: 861px)');
+      var closeTimer = null;
+      var restoringFocus = false;
+
+      function pointerMenus() {
+        return wide.matches && hoverCapable.matches;
+      }
+
+      function setItemOpen(item, open) {
+        item.classList.toggle('is-open', open);
+        var link = item.querySelector('[data-nav-parent]');
+        if (link) link.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+
+      function closeAll(except) {
+        items.forEach(function (item) {
+          if (item !== except) setItemOpen(item, false);
+        });
+      }
+
+      function cancelClose() {
+        if (closeTimer) {
+          clearTimeout(closeTimer);
+          closeTimer = null;
+        }
+      }
+
+      // Closing is deferred, so a diagonal move from the link into the panel or
+      // across to the next section does not flick the menu shut on the way.
+      function scheduleClose() {
+        cancelClose();
+        closeTimer = setTimeout(function () { closeAll(); }, 220);
+      }
+
+      function setDrawer(open) {
+        nav.classList.toggle('lg-nav--open', open);
+        if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (!open) closeAll();
+      }
+
+      if (toggle) {
+        toggle.addEventListener('click', function () {
+          setDrawer(!nav.classList.contains('lg-nav--open'));
+        });
+      }
+
+      items.forEach(function (item) {
+        var link = item.querySelector('[data-nav-parent]');
+        if (!link) return;
+
+        item.addEventListener('mouseenter', function () {
+          if (!pointerMenus()) return;
+          cancelClose();
+          closeAll(item);
+          setItemOpen(item, true);
+        });
+
+        link.addEventListener('click', function (e) {
+          var drawerOpen = nav.classList.contains('lg-nav--open');
+          var touchLike = e.pointerType === 'touch' || !hoverCapable.matches;
+
+          if (!drawerOpen && !touchLike) return;
+          if (item.classList.contains('is-open')) return;
+
+          // The first tap reveals the section; the second follows the link.
+          e.preventDefault();
+          closeAll(item);
+          setItemOpen(item, true);
+        });
+
+        // Opening on focus keeps the pages inside a section on the tab order
+        // for anyone driving the bar from the keyboard.
+        link.addEventListener('focus', function () {
+          if (restoringFocus || !pointerMenus()) return;
+          cancelClose();
+          closeAll(item);
+          setItemOpen(item, true);
+        });
+
+        item.addEventListener('focusout', function (e) {
+          if (!wide.matches) return;
+          if (!item.contains(e.relatedTarget)) setItemOpen(item, false);
+        });
+      });
+
+      nav.addEventListener('mouseleave', function () {
+        if (pointerMenus()) scheduleClose();
+      });
+      nav.addEventListener('mouseenter', cancelClose);
+
+      document.addEventListener('click', function (e) {
+        if (!nav.contains(e.target)) closeAll();
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        var open = items.filter(function (i) { return i.classList.contains('is-open'); })[0];
+        closeAll();
+        setDrawer(false);
+        if (open) {
+          var link = open.querySelector('[data-nav-parent]');
+          if (link) {
+            // Guard the focus handler, or restoring focus would reopen the menu.
+            restoringFocus = true;
+            link.focus();
+            setTimeout(function () { restoringFocus = false; }, 0);
+          }
+        }
+      });
+
+      var onChange = function () {
+        if (wide.matches) { setDrawer(false); closeAll(); }
+      };
+      wide.addEventListener ? wide.addEventListener('change', onChange) : wide.addListener(onChange);
+    })();
+
+    /* Reader controls: text size, spacing and contrast, kept in localStorage. */
+    (function () {
+      var reader = document.querySelector('[data-reader]');
+      if (!reader) return;
+
+      var button = reader.querySelector('[data-reader-toggle]');
+      var panel = reader.querySelector('[data-reader-panel]');
+      var status = reader.querySelector('[data-reader-status]');
+      var root = document.documentElement;
+
+      // The defaults come from the markup, not from the root element: the head
+      // script has already put the reader's stored choice there, so reading it
+      // back would make "reset" mean "keep what you have".
+      var SETTINGS = {
+        'text-size': {
+          attribute: 'data-text-size',
+          fallback: reader.getAttribute('data-reader-default-text-size') || 'm'
+        },
+        spacing: {
+          attribute: 'data-spacing',
+          fallback: reader.getAttribute('data-reader-default-spacing') || 'comfortable'
+        },
+        contrast: { attribute: 'data-contrast', fallback: 'auto' }
+      };
+
+      function store(name, value) {
+        try {
+          localStorage.setItem('legible:' + name, value);
+        } catch (e) {
+          /* Storage may be unavailable; the change still applies to this page. */
+        }
+      }
+
+      function apply(name, value, announce) {
+        var config = SETTINGS[name];
+        if (!config) return;
+
+        if (name === 'contrast' && value === 'auto') {
+          root.removeAttribute(config.attribute);
+        } else {
+          root.setAttribute(config.attribute, value);
+        }
+        store(name, value);
+
+        var group = reader.querySelector('[data-reader-group="' + name + '"]');
+        if (group) {
+          Array.prototype.forEach.call(group.querySelectorAll('[data-reader-value]'), function (option) {
+            var pressed = option.getAttribute('data-reader-value') === value;
+            option.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+            if (pressed && announce && status) {
+              status.textContent = (group.getAttribute('data-reader-label') || name)
+                + ': ' + option.textContent.trim();
+            }
+          });
+        }
+      }
+
+      function currentValue(name) {
+        var config = SETTINGS[name];
+        try {
+          var stored = localStorage.getItem('legible:' + name);
+          if (stored) return stored;
+        } catch (e) {
+          /* fall through to the attribute */
+        }
+        if (name === 'contrast') return root.getAttribute(config.attribute) || 'auto';
+        return root.getAttribute(config.attribute) || config.fallback;
+      }
+
+      function setPanel(open) {
+        panel.hidden = !open;
+        button.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+
+      // Reflect the state the head script already applied.
+      for (var name in SETTINGS) apply(name, currentValue(name), false);
+
+      button.addEventListener('click', function () {
+        setPanel(panel.hidden);
+        if (!panel.hidden) {
+          var first = panel.querySelector('[data-reader-value]');
+          if (first) first.focus();
+        }
+      });
+
+      reader.addEventListener('click', function (e) {
+        var option = e.target.closest('[data-reader-value]');
+        if (option) {
+          var group = option.closest('[data-reader-group]');
+          apply(group.getAttribute('data-reader-group'), option.getAttribute('data-reader-value'), true);
+          return;
+        }
+        if (e.target.closest('[data-reader-reset]')) {
+          apply('text-size', SETTINGS['text-size'].fallback, false);
+          apply('spacing', SETTINGS.spacing.fallback, false);
+          apply('contrast', 'auto', false);
+          if (status) status.textContent = reader.getAttribute('data-reader-reset-message') || 'Reset';
+        }
+      });
+
+      document.addEventListener('click', function (e) {
+        if (!panel.hidden && !reader.contains(e.target)) setPanel(false);
+      });
+
+      reader.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape' || panel.hidden) return;
+        setPanel(false);
+        button.focus();
+      });
+    })();
+
+    (function () {
+      // Only black, white and transparent count as monochrome.
+      var ALLOWED = /^(none|transparent|currentcolor|inherit|black|white|#000|#000000|#fff|#ffffff|rgb\(\s*0\s*,\s*0\s*,\s*0\s*\)|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))$/i;
+      var COLOR_RE = /(?:fill|stroke|stop-color|color)\s*[=:]\s*["']?\s*([^"'\s;,><\/]+)/gi;
+
+      function isMonochrome(text) {
+        var match;
+        COLOR_RE.lastIndex = 0;
+        while ((match = COLOR_RE.exec(text)) !== null) {
+          if (!ALLOWED.test(match[1].trim())) return false;
+        }
+        return true;
+      }
+
+      var cache = new Map();
+
+      function check(img) {
+        var src = img.getAttribute('src');
+        if (!src || !/\.svg(\?|$)/i.test(src)) return;
+
+        var probe = document.createElement('a');
+        probe.href = src;
+        if (probe.hostname && probe.hostname !== location.hostname) return;
+
+        var override = img.getAttribute('data-svg-invert');
+        if (override === 'true' || override === 'bw') { img.classList.add('svg-bw-invert'); return; }
+        if (override === 'false' || override === 'color') return;
+
+        if (cache.has(src)) {
+          if (cache.get(src)) img.classList.add('svg-bw-invert');
+          return;
+        }
+
+        fetch(src, { credentials: 'same-origin' })
+          .then(function (r) { return r.ok ? r.text() : Promise.reject(); })
+          .then(function (text) {
+            var invertable = isMonochrome(text);
+            cache.set(src, invertable);
+            if (invertable) img.classList.add('svg-bw-invert');
+          })
+          .catch(function () { cache.set(src, false); });
+      }
+
+      function run() {
+        Array.prototype.forEach.call(document.querySelectorAll('img'), check);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', run);
+      } else {
+        run();
+      }
+    })();
+  </script>
+  {% endblock %}
+
+</body>
+</html>

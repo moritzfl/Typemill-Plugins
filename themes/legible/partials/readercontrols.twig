@@ -1,0 +1,107 @@
+{#
+  Reader controls.
+
+  Three settings the reader is normally expected to solve with browser zoom or
+  a bookmarklet: type size, spacing and contrast. Each group is a set of toggle
+  buttons rather than a select, so the current choice is visible without opening
+  anything, and the choice is announced through `aria-pressed` and a live region.
+
+  Without JavaScript the panel simply never opens, and the site keeps the
+  defaults chosen in the theme settings.
+#}
+{% set theme = settings.themes.legible %}
+
+{#
+  The defaults are carried in the markup rather than read back from the root
+  element, because by the time the script runs the head has already replaced
+  those attributes with the reader's stored choice - and "reset" has to return
+  to the site's setting, not to whatever is on screen.
+#}
+<div class="lg-reader" data-reader
+     data-reader-default-text-size="{{ theme.defaultTextSize|default('m')|e('html_attr') }}"
+     data-reader-default-spacing="{{ theme.defaultSpacing|default('comfortable')|e('html_attr') }}"
+     data-reader-reset-message="{{ theme.readerResetMessage|default('Reader settings reset')|e('html_attr') }}">
+
+  <button type="button" class="lg-reader__button" data-reader-toggle
+          aria-expanded="false" aria-controls="lg-reader-panel">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.2" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M4 7V5h16v2M9 19h6M12 5v14" />
+    </svg>
+    {{ theme.readerLabel|default('Reading')|e }}
+  </button>
+
+  <div class="lg-reader__panel" id="lg-reader-panel" data-reader-panel hidden>
+
+    <div class="lg-reader__group">
+      <fieldset class="lg-reader__fieldset">
+        <legend class="lg-reader__legend">{{ theme.textSizeLabel|default('Text size')|e }}</legend>
+        {#
+          Named rather than four letter As at different sizes: an unlabelled
+          glyph gives a screen reader nothing to read out, and "A, A, A, A" is
+          no help to speech input either.
+        #}
+        <div class="lg-reader__options" data-reader-group="text-size"
+             data-reader-label="{{ theme.textSizeLabel|default('Text size')|e('html_attr') }}">
+          <button type="button" class="lg-reader__option lg-reader__option--size-s"
+                  data-reader-value="s" aria-pressed="false">{{ theme.textSizeSmallLabel|default('Small')|e }}</button>
+          <button type="button" class="lg-reader__option lg-reader__option--size-m"
+                  data-reader-value="m" aria-pressed="false">{{ theme.textSizeMediumLabel|default('Medium')|e }}</button>
+          <button type="button" class="lg-reader__option lg-reader__option--size-l"
+                  data-reader-value="l" aria-pressed="false">{{ theme.textSizeLargeLabel|default('Large')|e }}</button>
+          <button type="button" class="lg-reader__option lg-reader__option--size-xl"
+                  data-reader-value="xl" aria-pressed="false">{{ theme.textSizeXLargeLabel|default('Extra large')|e }}</button>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="lg-reader__group">
+      <fieldset class="lg-reader__fieldset">
+        <legend class="lg-reader__legend">{{ theme.spacingLabel|default('Spacing')|e }}</legend>
+        <div class="lg-reader__options" data-reader-group="spacing"
+             data-reader-label="{{ theme.spacingLabel|default('Spacing')|e('html_attr') }}">
+          <button type="button" class="lg-reader__option" data-reader-value="compact" aria-pressed="false">
+            {{ theme.spacingCompactLabel|default('Compact')|e }}
+          </button>
+          <button type="button" class="lg-reader__option" data-reader-value="comfortable" aria-pressed="false">
+            {{ theme.spacingComfortableLabel|default('Comfortable')|e }}
+          </button>
+          <button type="button" class="lg-reader__option" data-reader-value="spacious" aria-pressed="false">
+            {{ theme.spacingSpaciousLabel|default('Spacious')|e }}
+          </button>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="lg-reader__group">
+      <fieldset class="lg-reader__fieldset">
+        <legend class="lg-reader__legend">{{ theme.contrastLabel|default('Contrast')|e }}</legend>
+        <div class="lg-reader__options" data-reader-group="contrast"
+             data-reader-label="{{ theme.contrastLabel|default('Contrast')|e('html_attr') }}">
+          <button type="button" class="lg-reader__option" data-reader-value="auto" aria-pressed="false">
+            {{ theme.contrastAutoLabel|default('System')|e }}
+          </button>
+          <button type="button" class="lg-reader__option" data-reader-value="light" aria-pressed="false">
+            {{ theme.contrastLightLabel|default('Light')|e }}
+          </button>
+          <button type="button" class="lg-reader__option" data-reader-value="dark" aria-pressed="false">
+            {{ theme.contrastDarkLabel|default('Dark')|e }}
+          </button>
+          <button type="button" class="lg-reader__option" data-reader-value="high" aria-pressed="false">
+            {{ theme.contrastHighLabel|default('Maximum')|e }}
+          </button>
+        </div>
+      </fieldset>
+    </div>
+
+    <button type="button" class="lg-reader__reset" data-reader-reset>
+      {{ theme.readerResetLabel|default('Reset to defaults')|e }}
+    </button>
+
+    {# Changes are announced, because the buttons stay put while the page changes. #}
+    <p class="lg-reader__status" data-reader-status role="status" aria-live="polite"
+       style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap"></p>
+
+  </div>
+</div>

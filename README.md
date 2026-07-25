@@ -69,6 +69,20 @@ photo journal). Plain CSS with custom properties, so there is no build step.
 
 ---
 
+### `legible` — Legible
+
+An accessibility-first theme: large type on a short measure, colours measured against the WCAG AAA
+ratio rather than AA, 44px targets, a focus ring that is never removed, and no meaning carried by
+colour alone. Readers get three controls of their own — text size, spacing and contrast, including a
+maximum-contrast mode and the letter and word spacing named in WCAG 1.4.12 — remembered between
+visits and applied before the page is painted, so a stored preference never flashes. Two skip links,
+no motion, and no font files. Ships three readymades (accessible site, easy read, long reads). Plain
+CSS with custom properties, so there is no build step.
+
+→ See [`themes/legible/README.md`](themes/legible/README.md) for full documentation.
+
+---
+
 ## Plugins
 
 ### `htmldeveloper` — HTML Developer Mode

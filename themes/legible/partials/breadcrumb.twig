@@ -1,0 +1,20 @@
+{#
+  Breadcrumb as an ordered list: the order is part of the meaning, so it is
+  carried by the markup rather than by the slashes, which are decorative and
+  hidden from assistive technology.
+#}
+<nav class="lg-breadcrumb" aria-label="{{ settings.themes.legible.breadcrumbLabel|default('Breadcrumb')|e('html_attr') }}">
+  <ol>
+    <li><a href="{{ base_url }}">{{ settings.themes.legible.homeLabel|default('Home')|e }}</a></li>
+    {% for crumb in breadcrumb %}
+      <li>
+        <span aria-hidden="true">/</span>
+        {% if loop.last %}
+          <span aria-current="page">{{ crumb.name|e }}</span>
+        {% else %}
+          <a href="{{ crumb.urlRel }}">{{ crumb.name|e }}</a>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ol>
+</nav>

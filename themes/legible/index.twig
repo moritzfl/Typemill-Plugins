@@ -1,0 +1,15 @@
+{% extends 'layout.twig' %}
+
+{% block title %}{{ metatabs.meta.title|e }} | {{ settings.title|e }}{% endblock %}
+
+{% block content %}
+
+  {% if home and settings.themes.legible.blog %}
+    {% include 'blog.twig' %}
+  {% elseif home %}
+    {% include 'home.twig' %}
+  {% else %}
+    {% include 'page.twig' %}
+  {% endif %}
+
+{% endblock %}
