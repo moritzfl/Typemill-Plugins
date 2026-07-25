@@ -246,9 +246,14 @@ a:hover {
 
 /* ── Expanding section menu ───────────────────────────────────────── */
 
-/* Anchored to its own item, unlike Lucid's full-width panel. */
+/* Anchored to its own item, unlike Lucid's full-width panel. The item fills the
+   bar so the card hangs from the bar's edge and no dead strip is left between
+   them for the pointer to cross. */
 .pr-nav__item {
     position: relative;
+    display: flex;
+    align-items: center;
+    align-self: stretch;
 }
 
 .pr-dropdown {

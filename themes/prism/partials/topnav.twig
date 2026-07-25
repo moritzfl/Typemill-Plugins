@@ -36,7 +36,6 @@
                {% if element.active %}aria-current="page"{% endif %}
                {% if children|length > 0 %}
                  data-nav-parent
-                 aria-haspopup="true"
                  aria-expanded="false"
                  aria-controls="{{ panelId }}"
                {% endif %}>{{ element.name|e }}</a>

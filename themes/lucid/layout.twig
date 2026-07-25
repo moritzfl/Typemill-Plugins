@@ -56,6 +56,13 @@
       var items = Array.prototype.slice.call(nav.querySelectorAll('[data-nav-item]'));
       var hoverCapable = window.matchMedia('(hover: hover)');
       var wide = window.matchMedia('(min-width: 834px)');
+      var closeTimer = null;
+      var restoringFocus = false;
+
+      // Hover menus only make sense on a wide viewport with a real pointer.
+      function pointerMenus() {
+        return wide.matches && hoverCapable.matches;
+      }
 
       function setItemOpen(item, open) {
         item.classList.toggle('is-open', open);
@@ -67,6 +74,22 @@
         items.forEach(function (item) {
           if (item !== except) setItemOpen(item, false);
         });
+      }
+
+      function cancelClose() {
+        if (closeTimer) {
+          clearTimeout(closeTimer);
+          closeTimer = null;
+        }
+      }
+
+      // Closing is deferred, so a diagonal move from the link into the panel or
+      // across to the next section does not flick the menu shut on the way.
+      function scheduleClose() {
+        cancelClose();
+        closeTimer = setTimeout(function () {
+          closeAll();
+        }, 220);
       }
 
       function setDrawer(open) {
@@ -86,32 +109,25 @@
         var link = item.querySelector('[data-nav-parent]');
         if (!link) return;
 
-        // On a pointer device the panel follows the cursor. The panel is a
-        // descendant of the item, so hovering it does not count as leaving.
         item.addEventListener('mouseenter', function () {
-          if (wide.matches && hoverCapable.matches) {
-            closeAll(item);
-            setItemOpen(item, true);
-          }
-        });
-
-        item.addEventListener('mouseleave', function () {
-          if (wide.matches && hoverCapable.matches) {
-            setItemOpen(item, false);
-          }
+          if (!pointerMenus()) return;
+          cancelClose();
+          closeAll(item);
+          setItemOpen(item, true);
         });
 
         link.addEventListener('click', function (e) {
           var drawerOpen = nav.classList.contains('lc-nav--open');
           var touchLike = e.pointerType === 'touch' || !hoverCapable.matches;
 
-          // Mouse users already saw the panel on hover, so a click navigates.
+          // With a mouse the panel is already visible from hovering, so the
+          // click follows the link.
           if (!drawerOpen && !touchLike) {
             return;
           }
 
-          // Everywhere else the first tap reveals the section and the second
-          // one follows the link.
+          // By touch the first tap reveals the section and the second one
+          // follows the link.
           if (item.classList.contains('is-open')) {
             return;
           }
@@ -121,31 +137,51 @@
           setItemOpen(item, true);
         });
 
-        // Keyboard users reach the panel by tabbing into the section.
+        // Tabbing into a section reveals it, and leaving it closes it again.
         link.addEventListener('focus', function () {
-          if (wide.matches && hoverCapable.matches) {
-            closeAll(item);
-            setItemOpen(item, true);
-          }
+          if (restoringFocus || !pointerMenus()) return;
+          cancelClose();
+          closeAll(item);
+          setItemOpen(item, true);
+        });
+
+        item.addEventListener('focusout', function (e) {
+          if (!wide.matches) return;
+          if (!item.contains(e.relatedTarget)) setItemOpen(item, false);
         });
       });
 
-      nav.addEventListener('focusout', function (e) {
-        if (wide.matches && !nav.contains(e.relatedTarget)) {
-          closeAll();
-        }
+      // Only leaving the bar closes the menu. Moving anywhere inside it,
+      // including into the open panel, keeps it up.
+      nav.addEventListener('mouseleave', function () {
+        if (pointerMenus()) scheduleClose();
       });
+      nav.addEventListener('mouseenter', cancelClose);
 
       document.addEventListener('click', function (e) {
-        if (!nav.contains(e.target)) {
-          closeAll();
-        }
+        if (!nav.contains(e.target)) closeAll();
       });
 
       document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-          closeAll();
-          setDrawer(false);
+        if (e.key !== 'Escape') return;
+
+        var open = items.filter(function (item) {
+          return item.classList.contains('is-open');
+        })[0];
+
+        closeAll();
+        setDrawer(false);
+
+        // Focus returns to the trigger rather than being dropped on the page.
+        // Guarded, because focusing the trigger would otherwise run the handler
+        // that reopens the section and make Escape a no-op.
+        if (open) {
+          var link = open.querySelector('[data-nav-parent]');
+          if (link) {
+            restoringFocus = true;
+            link.focus();
+            setTimeout(function () { restoringFocus = false; }, 0);
+          }
         }
       });
 

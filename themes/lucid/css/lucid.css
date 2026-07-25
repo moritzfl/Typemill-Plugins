@@ -223,6 +223,18 @@ a:hover {
 /* ── Expanding section menu ───────────────────────────────────────── */
 
 /*
+ * The item fills the bar so its box reaches down to where the panel starts.
+ * Left at its natural height it ends level with the text, leaving a dead strip
+ * between link and panel that the pointer crosses on the way down - which read
+ * as the menu closing the moment you moved toward it.
+ */
+.lc-nav__item {
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+}
+
+/*
  * The panel is absolutely positioned against the header rather than its list
  * item, so it spans the full width of the bar. The item deliberately has no
  * position of its own for that reason.
