@@ -76,7 +76,7 @@
             <ul class="tm-cu-checks">
                 <li v-for="check in status.preflight" :key="check.id" class="tm-cu-check">
                     <span class="tm-cu-check__dot" :class="checkClass(check)"></span>
-                    <span class="tm-cu-check__text">{{ check.detail }}</span>
+                    <span class="tm-cu-check__text">{{ checkText(check) }}</span>
                 </li>
             </ul>
         </section>

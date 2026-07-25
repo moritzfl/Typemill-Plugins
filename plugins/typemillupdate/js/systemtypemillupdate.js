@@ -259,6 +259,30 @@ const app = Vue.createApp({
             return check.blocking ? 'is-error' : 'is-warn';
         },
 
+        /**
+         * Text of an environment check in the admin language.
+         *
+         * The translator resolves a key to a string but cannot fill in values,
+         * so the paths and sizes travel beside the key and are substituted
+         * here. A key with no entry yet resolves to itself, in which case the
+         * English sentence the backend already produced is used instead.
+         */
+        checkText(check) {
+            if (!check.label) {
+                return check.detail;
+            }
+
+            const translated = this.$filters.translate(check.label);
+            if (!translated || translated === check.label) {
+                return check.detail;
+            }
+
+            return Object.keys(check.params || {}).reduce(
+                (text, name) => text.split('{' + name + '}').join(check.params[name]),
+                translated
+            );
+        },
+
         errorText(error, fallback) {
             if (error && error.response && error.response.data && error.response.data.message) {
                 return error.response.data.message;

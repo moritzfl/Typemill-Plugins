@@ -172,9 +172,11 @@ class Environment
     {
         $ok = class_exists('ZipArchive');
 
-        return $this->check('ziparchive', $ok, true, $ok
-            ? 'The PHP zip extension is available.'
-            : 'The PHP zip extension is missing, so the release archive cannot be unpacked.');
+        return $ok
+            ? $this->check('ziparchive', true, true,
+                'The PHP zip extension is available.', 'ziparchive_ok')
+            : $this->check('ziparchive', false, true,
+                'The PHP zip extension is missing, so the release archive cannot be unpacked.', 'ziparchive_missing');
     }
 
     private function checkSystemLayout(): array
@@ -182,16 +184,21 @@ class Environment
         $system = $this->systemPath();
 
         if (is_link($system)) {
-            return $this->check('system_layout', false, true, 'The system directory is a symlink; replacing it is not supported.');
+            return $this->check('system_layout', false, true,
+                'The system directory is a symlink; replacing it is not supported.', 'system_layout_symlink');
         }
 
         $ok = is_dir($system)
             && is_dir($system . DIRECTORY_SEPARATOR . 'typemill')
             && is_dir($system . DIRECTORY_SEPARATOR . 'vendor');
 
-        return $this->check('system_layout', $ok, true, $ok
-            ? 'Found system/typemill and system/vendor in ' . $this->root . '.'
-            : 'Could not find system/typemill and system/vendor in ' . $this->root . '.');
+        return $ok
+            ? $this->check('system_layout', true, true,
+                'Found system/typemill and system/vendor in ' . $this->root . '.',
+                'system_layout_ok', ['root' => $this->root])
+            : $this->check('system_layout', false, true,
+                'Could not find system/typemill and system/vendor in ' . $this->root . '.',
+                'system_layout_missing', ['root' => $this->root]);
     }
 
     /**
@@ -203,9 +210,12 @@ class Environment
         $legacy = is_dir($this->root . DIRECTORY_SEPARATOR . 'vendor')
             && !is_dir($this->systemPath() . DIRECTORY_SEPARATOR . 'vendor');
 
-        return $this->check('vendor_location', !$legacy, true, $legacy
-            ? 'This installation keeps Composer packages in <root>/vendor, which predates Typemill 2.23. Update manually.'
-            : 'Composer packages live in system/vendor, as expected.');
+        return $legacy
+            ? $this->check('vendor_location', false, true,
+                'This installation keeps Composer packages in <root>/vendor, which predates Typemill 2.23. Update manually.',
+                'vendor_location_legacy')
+            : $this->check('vendor_location', true, true,
+                'Composer packages live in system/vendor, as expected.', 'vendor_location_ok');
     }
 
     /**
@@ -219,7 +229,8 @@ class Environment
 
         if (!@mkdir($probe, 0755)) {
             return $this->check('root_writable', false, true,
-                'PHP cannot create entries in ' . $this->root . '. This usually means the files belong to a different user than the web server.');
+                'PHP cannot create entries in ' . $this->root . '. This usually means the files belong to a different user than the web server.',
+                'root_writable_nocreate', ['root' => $this->root]);
         }
 
         $moved = $probe . '-moved';
@@ -227,12 +238,14 @@ class Environment
             @rmdir($probe);
 
             return $this->check('root_writable', false, true,
-                'PHP cannot rename entries in ' . $this->root . ', which the update needs in order to swap the system directory.');
+                'PHP cannot rename entries in ' . $this->root . ', which the update needs in order to swap the system directory.',
+                'root_writable_norename', ['root' => $this->root]);
         }
 
         @rmdir($moved);
 
-        return $this->check('root_writable', true, true, 'PHP can create and rename entries in the project root.');
+        return $this->check('root_writable', true, true,
+            'PHP can create and rename entries in the project root.', 'root_writable_ok');
     }
 
     /**
@@ -250,9 +263,13 @@ class Environment
         $system = $this->systemPath();
         $writable = is_dir($system) && is_writable($system);
 
-        return $this->check('system_writable', true, false, $writable
-            ? 'The system directory is writable, so an in-place copy is possible if the filesystem refuses directory renames.'
-            : 'The system directory is not writable. The update then depends on being able to rename it, which not every filesystem allows.');
+        return $writable
+            ? $this->check('system_writable', true, false,
+                'The system directory is writable, so an in-place copy is possible if the filesystem refuses directory renames.',
+                'system_writable_ok')
+            : $this->check('system_writable', true, false,
+                'The system directory is not writable. The update then depends on being able to rename it, which not every filesystem allows.',
+                'system_writable_readonly');
     }
 
     private function checkDiskSpace(): array
@@ -260,14 +277,22 @@ class Environment
         $free = @disk_free_space($this->root);
 
         if ($free === false) {
-            return $this->check('disk_space', true, false, 'Free disk space could not be determined.');
+            return $this->check('disk_space', true, false,
+                'Free disk space could not be determined.', 'disk_space_unknown');
         }
 
         $ok = $free >= self::MIN_FREE_BYTES;
 
-        return $this->check('disk_space', $ok, true, $ok
-            ? self::formatBytes((int) $free) . ' free.'
-            : 'Only ' . self::formatBytes((int) $free) . ' free; at least ' . self::formatBytes(self::MIN_FREE_BYTES) . ' is required.');
+        return $ok
+            ? $this->check('disk_space', true, true,
+                self::formatBytes((int) $free) . ' free.',
+                'disk_space_ok', ['size' => self::formatBytes((int) $free)])
+            : $this->check('disk_space', false, true,
+                'Only ' . self::formatBytes((int) $free) . ' free; at least ' . self::formatBytes(self::MIN_FREE_BYTES) . ' is required.',
+                'disk_space_low', [
+                    'size' => self::formatBytes((int) $free),
+                    'required' => self::formatBytes(self::MIN_FREE_BYTES),
+                ]);
     }
 
     /**
@@ -278,7 +303,7 @@ class Environment
     private function checkOpcache(): array
     {
         if (!function_exists('opcache_get_status')) {
-            return $this->check('opcache', true, false, 'OPcache is not enabled.');
+            return $this->check('opcache', true, false, 'OPcache is not enabled.', 'opcache_off');
         }
 
         $resettable = function_exists('opcache_reset');
@@ -286,23 +311,39 @@ class Environment
         $validates = $validate === false || (string) $validate === '' || (bool) $validate;
 
         if ($resettable) {
-            return $this->check('opcache', true, false, $validates
-                ? 'OPcache is enabled and will be reset after the swap.'
-                : 'OPcache runs with validate_timestamps off; it will be reset after the swap.');
+            return $validates
+                ? $this->check('opcache', true, false,
+                    'OPcache is enabled and will be reset after the swap.', 'opcache_reset')
+                : $this->check('opcache', true, false,
+                    'OPcache runs with validate_timestamps off; it will be reset after the swap.',
+                    'opcache_reset_stale');
         }
 
-        return $this->check('opcache', $validates, false, $validates
-            ? 'OPcache is enabled and revalidates by timestamp.'
-            : 'OPcache has validate_timestamps off and opcache_reset() is unavailable. Restart PHP after updating.');
+        return $validates
+            ? $this->check('opcache', true, false,
+                'OPcache is enabled and revalidates by timestamp.', 'opcache_revalidates')
+            : $this->check('opcache', false, false,
+                'OPcache has validate_timestamps off and opcache_reset() is unavailable. Restart PHP after updating.',
+                'opcache_manual_restart');
     }
 
-    private function check(string $id, bool $ok, bool $blocking, string $detail): array
+    /**
+     * `detail` stays the English sentence: it is what the log records and what
+     * the panel falls back to when a language file has no entry yet.
+     *
+     * `label` is the translation key for that sentence and `params` carries the
+     * values it interpolates, because the admin translator resolves a key to a
+     * string and cannot fill placeholders itself.
+     */
+    private function check(string $id, bool $ok, bool $blocking, string $detail, string $label = '', array $params = []): array
     {
         return [
             'id' => $id,
             'ok' => $ok,
             'blocking' => $blocking,
             'detail' => $detail,
+            'label' => $label === '' ? '' : 'typemillupdate.check.' . $label,
+            'params' => $params,
         ];
     }
 

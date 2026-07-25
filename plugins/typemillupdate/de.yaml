@@ -33,3 +33,23 @@ TYPEMILLUPDATE_CONFIRM_UPLOAD_TITLE: Diese Version installieren?
 TYPEMILLUPDATE_CONFIRM_UPLOAD_TEXT: Der system-Ordner wird durch den Core aus dieser Datei ersetzt. Inhalte, Medien, Einstellungen, Plugins und Themes bleiben unverändert, und der aktuelle Core wird zur Wiederherstellung aufbewahrt.
 TYPEMILLUPDATE_DOWNGRADE_WARNING: Diese Version ist älter als die aktuell installierte.
 TYPEMILLUPDATE_REINSTALL_WARNING: Diese Version ist bereits installiert.
+TYPEMILLUPDATE_CHECK_ZIPARCHIVE_OK: Die PHP-Erweiterung zip ist vorhanden.
+TYPEMILLUPDATE_CHECK_ZIPARCHIVE_MISSING: Die PHP-Erweiterung zip fehlt, daher kann das Release-Archiv nicht entpackt werden.
+TYPEMILLUPDATE_CHECK_SYSTEM_LAYOUT_OK: system/typemill und system/vendor wurden in {root} gefunden.
+TYPEMILLUPDATE_CHECK_SYSTEM_LAYOUT_MISSING: system/typemill und system/vendor wurden in {root} nicht gefunden.
+TYPEMILLUPDATE_CHECK_SYSTEM_LAYOUT_SYMLINK: Das system-Verzeichnis ist ein Symlink; es zu ersetzen wird nicht unterstützt.
+TYPEMILLUPDATE_CHECK_VENDOR_LOCATION_OK: Die Composer-Pakete liegen wie erwartet in system/vendor.
+TYPEMILLUPDATE_CHECK_VENDOR_LOCATION_LEGACY: Diese Installation hält die Composer-Pakete in <root>/vendor, was älter ist als Typemill 2.23. Bitte manuell aktualisieren.
+TYPEMILLUPDATE_CHECK_ROOT_WRITABLE_OK: PHP kann im Projektverzeichnis Einträge anlegen und umbenennen.
+TYPEMILLUPDATE_CHECK_ROOT_WRITABLE_NOCREATE: PHP kann in {root} keine Einträge anlegen. Meist gehören die Dateien einem anderen Benutzer als dem Webserver.
+TYPEMILLUPDATE_CHECK_ROOT_WRITABLE_NORENAME: PHP kann in {root} keine Einträge umbenennen, was das Update braucht, um das system-Verzeichnis auszutauschen.
+TYPEMILLUPDATE_CHECK_SYSTEM_WRITABLE_OK: Das system-Verzeichnis ist beschreibbar, eine Kopie an Ort und Stelle ist also möglich, falls das Dateisystem das Umbenennen von Verzeichnissen verweigert.
+TYPEMILLUPDATE_CHECK_SYSTEM_WRITABLE_READONLY: Das system-Verzeichnis ist nicht beschreibbar. Das Update hängt dann davon ab, dass es umbenannt werden kann, was nicht jedes Dateisystem erlaubt.
+TYPEMILLUPDATE_CHECK_DISK_SPACE_OK: "{size} frei."
+TYPEMILLUPDATE_CHECK_DISK_SPACE_LOW: "Nur {size} frei; benötigt werden mindestens {required}."
+TYPEMILLUPDATE_CHECK_DISK_SPACE_UNKNOWN: Der freie Speicherplatz konnte nicht ermittelt werden.
+TYPEMILLUPDATE_CHECK_OPCACHE_OFF: OPcache ist nicht aktiv.
+TYPEMILLUPDATE_CHECK_OPCACHE_RESET: OPcache ist aktiv und wird nach dem Austausch zurückgesetzt.
+TYPEMILLUPDATE_CHECK_OPCACHE_RESET_STALE: "OPcache läuft mit abgeschaltetem validate_timestamps; er wird nach dem Austausch zurückgesetzt."
+TYPEMILLUPDATE_CHECK_OPCACHE_REVALIDATES: OPcache ist aktiv und prüft anhand des Zeitstempels erneut.
+TYPEMILLUPDATE_CHECK_OPCACHE_MANUAL_RESTART: Bei OPcache ist validate_timestamps abgeschaltet und opcache_reset() steht nicht zur Verfügung. PHP nach dem Update bitte neu starten.
