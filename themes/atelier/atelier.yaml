@@ -1,0 +1,317 @@
+name: Atelier
+version: 1.0.0
+description: 'An image-led theme for portfolios, studios and photo essays. Full-bleed hero with the navigation floating over it, a masonry or strict gallery wall built from your pages, and a lightbox with keyboard control. Type is small and widely tracked so the pictures carry the page. Three gallery surfaces, no font files, automatic dark mode.'
+author: moritz
+homepage: https://github.com/moritzfl/Typemill-Plugins
+license: GPL-2.0
+
+settings:
+  heroImage: ''
+  heroTitle: ''
+  heroEyebrow: ''
+  heroCaption: ''
+  pageHero: true
+  showGallery: true
+  galleryTitle: ''
+  galleryNote: ''
+  galleryLayout: 'masonry'
+  galleryCaptions: 'below'
+  galleryDates: true
+  surface: 'white'
+  ratio: ''
+  gap: ''
+  maxwidth: ''
+  blog: false
+  blogfolder: '/blog'
+  blogintro: false
+  blogpagesize: 12
+  breadcrumb: true
+  accentColor: ''
+  customcss: ''
+  homeLabel: 'Home'
+  previous: 'Previous'
+  next: 'Next'
+  dateFormat: 'Y'
+
+readymades:
+
+  portfolio:
+    name: 'Portfolio'
+    description: 'Full-bleed opening picture with the navigation floating over it, then a masonry wall of every page that has an image. The layout the theme was built for.'
+    settings:
+      heroEyebrow: 'Selected work'
+      heroTitle: ''
+      heroCaption: 'A short line about the work, the studio or the person behind it.'
+      pageHero: true
+      showGallery: true
+      galleryTitle: 'Work'
+      galleryNote: ''
+      galleryLayout: masonry
+      galleryCaptions: below
+      galleryDates: true
+      surface: white
+      breadcrumb: true
+      dateFormat: 'Y'
+      footercolumns:
+          - footer1
+          - footer2
+      footer1: "### Studio\n\nOne or two sentences about the studio and what it does."
+      footer2: "### Contact\n\n* [Email](/)\n* [Instagram](/)"
+
+  exhibition:
+    name: 'Exhibition'
+    description: 'A strict grid cropped to one ratio, captions revealed over the picture, on a dark gallery wall. Suits a single body of work shown as a series.'
+    settings:
+      heroEyebrow: ''
+      heroCaption: ''
+      pageHero: true
+      showGallery: true
+      galleryTitle: ''
+      galleryLayout: grid
+      galleryCaptions: overlay
+      galleryDates: false
+      surface: dark
+      ratio: '1 / 1'
+      gap: 10px
+      breadcrumb: false
+      dateFormat: 'Y'
+      footercolumns: []
+
+  journal:
+    name: 'Photo journal'
+    description: 'Homepage as a dated wall of entries on a warm paper surface. Point the folder at your own.'
+    settings:
+      blog: true
+      blogfolder: '/blog'
+      blogintro: true
+      blogpagesize: 12
+      heroEyebrow: 'Journal'
+      heroCaption: 'Pictures, in the order they were made.'
+      pageHero: true
+      showGallery: false
+      galleryLayout: masonry
+      galleryCaptions: below
+      galleryDates: true
+      surface: warm
+      breadcrumb: true
+      dateFormat: 'M Y'
+      datePosition:
+          - top
+      footercolumns:
+          - footer1
+      footer1: "### About\n\nOne or two sentences about the journal."
+
+forms:
+  fields:
+
+    fieldsetHero:
+      type: fieldset
+      legend: 'Opening'
+      fields:
+        heroImage:
+          type: image
+          label: 'Homepage picture'
+          description: 'Shown full bleed with the navigation floating over it. Without one the homepage opens with type only.'
+        heroTitle:
+          type: text
+          label: 'Title'
+          description: 'Defaults to the homepage title if left blank.'
+          css: 'lg:w-half'
+        heroEyebrow:
+          type: text
+          label: 'Label above the title'
+          placeholder: 'Selected work'
+          css: 'lg:w-half'
+        heroCaption:
+          type: text
+          label: 'Caption under the title'
+          css: 'lg:w-full'
+        pageHero:
+          type: checkbox
+          label: 'Pictures on inner pages'
+          checkboxlabel: 'Open a page with its own image full bleed, when it has one'
+
+    fieldsetGallery:
+      type: fieldset
+      legend: 'Gallery'
+      fields:
+        showGallery:
+          type: checkbox
+          label: 'Homepage wall'
+          checkboxlabel: 'Show every page that has a picture as one wall on the homepage'
+        galleryLayout:
+          type: select
+          label: 'Arrangement'
+          description: 'Masonry keeps each picture at its own proportions. The grid crops to a single ratio.'
+          css: 'lg:w-half'
+          options:
+            masonry: 'Masonry (uncropped)'
+            grid: 'Grid (cropped to one ratio)'
+        galleryCaptions:
+          type: select
+          label: 'Captions'
+          css: 'lg:w-half'
+          options:
+            below: 'Below the picture'
+            overlay: 'Over the picture, on hover'
+        ratio:
+          type: text
+          label: 'Grid ratio'
+          placeholder: '4 / 3'
+          description: 'Any CSS aspect ratio, used by the cropped grid.'
+          css: 'lg:w-half'
+        gap:
+          type: text
+          label: 'Gap between pictures'
+          placeholder: '22px'
+          css: 'lg:w-half'
+        galleryTitle:
+          type: text
+          label: 'Heading above the wall'
+          placeholder: 'Work'
+          css: 'lg:w-half'
+        galleryNote:
+          type: text
+          label: 'Note beside the heading'
+          css: 'lg:w-half'
+        galleryDates:
+          type: checkbox
+          label: 'Dates'
+          checkboxlabel: 'Show a date beside each caption'
+
+    fieldsetSurface:
+      type: fieldset
+      legend: 'Surface'
+      fields:
+        surface:
+          type: select
+          label: 'Gallery wall'
+          description: 'The surface the pictures hang on. Dark suits a single body of work; warm suits printed or film work.'
+          css: 'lg:w-half'
+          options:
+            white: 'White'
+            warm: 'Warm paper'
+            dark: 'Dark'
+        maxwidth:
+          type: text
+          label: 'Page width'
+          placeholder: '1600px'
+          css: 'lg:w-half'
+        accentColor:
+          type: text
+          label: 'Accent color'
+          description: 'Used for focus rings. Any CSS color.'
+          css: 'lg:w-half'
+        customcss:
+          type: textarea
+          label: 'Custom CSS'
+          description: 'Injected verbatim into a &lt;style&gt; tag.'
+
+    fieldsetBlog:
+      type: fieldset
+      legend: 'Journal / Posts'
+      fields:
+        blog:
+          type: checkbox
+          label: 'Journal homepage'
+          checkboxlabel: 'Use the homepage as a dated wall of entries'
+        blogintro:
+          type: checkbox
+          label: 'Page intro'
+          checkboxlabel: 'Show the homepage content above the wall'
+        blogfolder:
+          type: text
+          label: 'Journal folder'
+          placeholder: '/blog'
+          css: 'lg:w-half'
+        blogpagesize:
+          type: number
+          label: 'Pictures per page'
+          placeholder: '12'
+          css: 'lg:w-half'
+
+    fieldsetMeta:
+      type: fieldset
+      legend: 'Page Meta'
+      fields:
+        breadcrumb:
+          type: checkbox
+          label: 'Breadcrumb'
+          checkboxlabel: 'Show a breadcrumb above the text'
+        datePosition:
+          type: checkboxlist
+          label: 'Show date'
+          options:
+            top: Top
+        authorPosition:
+          type: checkboxlist
+          label: 'Show author'
+          options:
+            top: Top
+        dateFormat:
+          type: select
+          label: 'Date format'
+          css: 'lg:w-half'
+          options:
+            'Y': '2020'
+            'M Y': 'Jan 2020'
+            'M j, Y': 'Jan 20, 2020'
+            'd.m.Y': '20.01.2020'
+
+    fieldsetLabels:
+      type: fieldset
+      legend: 'Labels'
+      fields:
+        homeLabel:
+          type: text
+          label: 'Home label'
+          placeholder: 'Home'
+          css: 'lg:w-half'
+        previous:
+          type: text
+          label: 'Previous label'
+          css: 'lg:w-half'
+        next:
+          type: text
+          label: 'Next label'
+          css: 'lg:w-half'
+        notFoundTitle:
+          type: text
+          label: '404 headline'
+          css: 'lg:w-half'
+        notFoundText:
+          type: text
+          label: '404 text'
+          css: 'lg:w-full'
+
+    fieldsetFooter:
+      type: fieldset
+      legend: 'Footer Columns'
+      fields:
+        footercolumns:
+          type: checkboxlist
+          label: 'Active footer columns'
+          options:
+            footer1: 'Column 1'
+            footer2: 'Column 2'
+            footer3: 'Column 3'
+        footer1:
+          type: textarea
+          label: 'Footer column 1 (Markdown)'
+        footer2:
+          type: textarea
+          label: 'Footer column 2 (Markdown)'
+        footer3:
+          type: textarea
+          label: 'Footer column 3 (Markdown)'
+
+    fieldsetCopyright:
+      type: fieldset
+      legend: 'Copyright Line'
+      fields:
+        copyrightline:
+          type: checkbox
+          checkboxlabel: 'Override the default copyright line'
+        copyrightlinetext:
+          type: textarea
+          label: 'Custom copyright text (Markdown)'

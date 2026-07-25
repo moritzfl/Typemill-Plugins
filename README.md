@@ -55,6 +55,20 @@ images in dark mode, and ships three readymades (publication, single-author blog
 
 ---
 
+### `atelier` — Atelier
+
+An image-led theme for portfolios, photo essays and studio sites: a full-bleed opening picture with
+the navigation floating over it, and a wall of every page that carries a hero image below — as a
+masonry wall that keeps each proportion, or a strict grid cropped to one. Captions sit below the
+picture or over it. A full-screen image viewer walks the pictures of an article with the arrow keys
+and is reachable by keyboard. Three surfaces (white, warm paper, dark gallery wall). Ships no font
+files, inverts monochrome SVG images in dark mode, and ships three readymades (portfolio, exhibition,
+photo journal). Plain CSS with custom properties, so there is no build step.
+
+→ See [`themes/atelier/README.md`](themes/atelier/README.md) for full documentation.
+
+---
+
 ## Plugins
 
 ### `htmldeveloper` — HTML Developer Mode

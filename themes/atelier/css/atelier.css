@@ -1,0 +1,1051 @@
+/*
+ * Atelier — an image-led theme for Typemill.
+ *
+ * The pictures carry the page. Type is small, quiet and widely tracked; the
+ * chrome is a hairline and a wordmark; the surface is a neutral gallery wall so
+ * nothing competes with the work.
+ *
+ * No font files are shipped; the interface uses the system UI font.
+ */
+
+:root {
+    --at-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --at-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    --at-text: #16161a;
+    --at-text-secondary: #6f6f78;
+    --at-text-tertiary: #9a9aa2;
+    --at-bg: #ffffff;
+    --at-bg-alt: #f4f4f2;
+    --at-border: #e4e4e0;
+    --at-accent: #16161a;
+    --at-overlay: rgba(12, 12, 14, 0.94);
+    --at-on-dark: #f6f6f4;
+
+    --at-wide: 1600px;
+    --at-measure: 660px;
+    --at-nav-height: 68px;
+    --at-gutter: 28px;
+    --at-gap: 22px;
+
+    /* Small, widely tracked labels are the only type that competes with a
+       picture, so they are defined once and reused. */
+    --at-label-size: 11px;
+    --at-label-tracking: 0.14em;
+
+    color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --at-text: #f2f2f0;
+        --at-text-secondary: #a6a6ad;
+        --at-text-tertiary: #7c7c85;
+        --at-bg: #0e0e10;
+        --at-bg-alt: #17171a;
+        --at-border: #26262b;
+        --at-accent: #f2f2f0;
+        --at-on-dark: #f6f6f4;
+    }
+}
+
+/* A gallery-wall surface, chosen in the theme settings. */
+body[data-surface="warm"] {
+    --at-bg: #f7f5f1;
+    --at-bg-alt: #efece6;
+    --at-border: #e2ded6;
+}
+
+body[data-surface="dark"] {
+    --at-text: #f2f2f0;
+    --at-text-secondary: #a6a6ad;
+    --at-text-tertiary: #7c7c85;
+    --at-bg: #0e0e10;
+    --at-bg-alt: #17171a;
+    --at-border: #26262b;
+    --at-accent: #f2f2f0;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--at-nav-height) + 16px);
+}
+
+body {
+    margin: 0;
+    background: var(--at-bg);
+    color: var(--at-text);
+    font-family: var(--at-sans);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body > main {
+    flex: 1 0 auto;
+}
+
+img,
+video {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+:focus-visible {
+    outline: 2px solid var(--at-accent);
+    outline-offset: 3px;
+}
+
+.at-skip {
+    position: absolute;
+    left: -9999px;
+    background: var(--at-bg);
+    color: var(--at-text);
+    padding: 12px 20px;
+    border: 1px solid var(--at-border);
+    z-index: 100;
+}
+
+.at-skip:focus {
+    left: 12px;
+    top: 12px;
+}
+
+.at-container {
+    max-width: var(--at-wide);
+    margin-inline: auto;
+    padding-inline: var(--at-gutter);
+}
+
+.at-measure {
+    max-width: var(--at-measure);
+    margin-inline: auto;
+}
+
+.at-label {
+    font-size: var(--at-label-size);
+    letter-spacing: var(--at-label-tracking);
+    text-transform: uppercase;
+    color: var(--at-text-tertiary);
+}
+
+/* ── Navigation ───────────────────────────────────────────────────── */
+
+.at-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--at-nav-height);
+    display: flex;
+    align-items: center;
+    background: var(--at-bg);
+    border-bottom: 1px solid var(--at-border);
+}
+
+/* Over a full-bleed hero the bar floats on the picture. */
+.at-nav--overlay {
+    background: transparent;
+    border-bottom-color: transparent;
+    margin-bottom: calc(var(--at-nav-height) * -1);
+    color: var(--at-on-dark);
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
+}
+
+.at-nav__inner {
+    width: 100%;
+    max-width: var(--at-wide);
+    margin-inline: auto;
+    padding-inline: var(--at-gutter);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.at-nav__brand {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.at-nav--overlay .at-nav__brand,
+.at-nav--overlay .at-nav__link,
+.at-nav--overlay .at-nav__toggle {
+    color: var(--at-on-dark);
+}
+
+/* Once the picture has scrolled out of the way the bar has to become solid
+   again: pale lettering on the pale page underneath would be unreadable. The
+   negative margin stays as it is, so nothing shifts when the state flips. */
+.at-nav--overlay.is-solid {
+    background: var(--at-bg);
+    border-bottom-color: var(--at-border);
+    text-shadow: none;
+}
+
+.at-nav--overlay.is-solid .at-nav__brand,
+.at-nav--overlay.is-solid .at-nav__link,
+.at-nav--overlay.is-solid .at-nav__toggle {
+    color: var(--at-text);
+}
+
+.at-nav__brand img {
+    height: 26px;
+    width: auto;
+}
+
+.at-nav__links {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* Items fill the bar so a panel hangs from its edge with no dead strip. */
+.at-nav__item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+}
+
+.at-nav__link {
+    color: var(--at-text-secondary);
+    white-space: nowrap;
+    transition: color 0.15s ease;
+}
+
+.at-nav__link:hover,
+.at-nav__link[aria-current="page"] {
+    color: var(--at-text);
+}
+
+.at-nav__toggle {
+    display: none;
+    background: none;
+    border: 0;
+    padding: 6px;
+    color: inherit;
+    cursor: pointer;
+    line-height: 0;
+}
+
+.at-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translate(-50%, -6px);
+    min-width: 220px;
+    padding: 10px 0;
+    /* Always the light surface: over a photograph a translucent panel would
+       leave the links unreadable. */
+    background: var(--at-bg);
+    border: 1px solid var(--at-border);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.10);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
+    z-index: 60;
+    text-shadow: none;
+}
+
+.at-nav__item--has-menu.is-open .at-dropdown {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate(-50%, 0);
+}
+
+/* The navigation sits flush against the right margin, so a centred panel on the
+   last entry would hang past the edge of the window and widen the page. Anchor
+   that one to the right instead. The mobile rules below reset this. */
+.at-nav__item:last-child .at-dropdown {
+    left: auto;
+    right: 0;
+    transform: translate(0, -6px);
+}
+
+.at-nav__item:last-child.is-open .at-dropdown {
+    transform: translate(0, 0);
+}
+
+.at-dropdown__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.at-dropdown__list a {
+    display: block;
+    padding: 9px 20px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--at-text-secondary);
+    white-space: nowrap;
+}
+
+.at-dropdown__list a:hover,
+.at-dropdown__list a[aria-current="page"] {
+    color: var(--at-text);
+    background: var(--at-bg-alt);
+}
+
+.at-nav__link[data-nav-parent]::after {
+    content: "";
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    margin-left: 7px;
+    vertical-align: 2px;
+    border-right: 1.2px solid currentColor;
+    border-bottom: 1.2px solid currentColor;
+    transform: rotate(45deg);
+    opacity: 0.7;
+    transition: transform 0.16s ease;
+}
+
+.at-nav__item.is-open > .at-nav__link[data-nav-parent]::after {
+    transform: rotate(-135deg);
+}
+
+@media (max-width: 860px) {
+    .at-nav__links {
+        display: none;
+    }
+
+    .at-nav__toggle {
+        display: inline-flex;
+    }
+
+    .at-nav--open {
+        background: var(--at-bg);
+        color: var(--at-text);
+        text-shadow: none;
+    }
+
+    .at-nav--open .at-nav__brand,
+    .at-nav--open .at-nav__link {
+        color: var(--at-text);
+    }
+
+    .at-nav--open .at-nav__links {
+        display: flex;
+        position: fixed;
+        inset: var(--at-nav-height) 0 0 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 8px var(--at-gutter) 32px;
+        background: var(--at-bg);
+        overflow-y: auto;
+        font-size: 14px;
+    }
+
+    .at-nav--open .at-nav__item {
+        display: block;
+        align-self: auto;
+    }
+
+    .at-nav--open .at-nav__link {
+        display: block;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--at-border);
+    }
+
+    .at-nav--open .at-dropdown {
+        position: static;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        min-width: 0;
+        padding: 0 0 0 16px;
+        border: 0;
+        box-shadow: none;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.28s ease;
+    }
+
+    .at-nav--open .at-nav__item.is-open .at-dropdown {
+        transform: none;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .at-nav--open .at-dropdown__list a {
+        padding: 13px 0;
+        border-bottom: 1px solid var(--at-border);
+        white-space: normal;
+    }
+
+    .at-nav--open .at-nav__link[data-nav-parent] {
+        position: relative;
+    }
+
+    .at-nav--open .at-nav__link[data-nav-parent]::after {
+        position: absolute;
+        right: 4px;
+        top: 50%;
+        margin: -4px 0 0;
+        width: 6px;
+        height: 6px;
+        vertical-align: initial;
+    }
+
+    .at-nav--open .at-nav__item.is-open > .at-nav__link[data-nav-parent]::after {
+        margin-top: -1px;
+    }
+}
+
+/* ── Full-bleed hero ──────────────────────────────────────────────── */
+
+.at-hero {
+    position: relative;
+    min-height: 78vh;
+    display: grid;
+    align-items: end;
+    overflow: hidden;
+    background: var(--at-bg-alt);
+}
+
+.at-hero__media {
+    position: absolute;
+    inset: 0;
+}
+
+.at-hero__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* A gradient scrim, so overlaid type stays readable whatever the picture. */
+.at-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.32) 0%, rgba(0, 0, 0, 0) 34%,
+        rgba(0, 0, 0, 0) 46%, rgba(0, 0, 0, 0.62) 100%);
+    pointer-events: none;
+}
+
+.at-hero__inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: var(--at-wide);
+    margin-inline: auto;
+    padding: 0 var(--at-gutter) 56px;
+    color: var(--at-on-dark);
+    text-shadow: 0 1px 18px rgba(0, 0, 0, 0.4);
+}
+
+.at-hero__eyebrow {
+    font-size: var(--at-label-size);
+    letter-spacing: var(--at-label-tracking);
+    text-transform: uppercase;
+    opacity: 0.85;
+    margin: 0 0 12px;
+}
+
+.at-hero__title {
+    font-size: clamp(34px, 5.6vw, 68px);
+    line-height: 1.04;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    margin: 0;
+    max-width: 16ch;
+}
+
+.at-hero__caption {
+    font-size: 15px;
+    margin: 14px 0 0;
+    max-width: 46ch;
+    opacity: 0.9;
+}
+
+/* Without a picture the hero becomes a quiet typographic band. */
+.at-hero--plain {
+    min-height: 0;
+    background: none;
+    padding-block: 96px 40px;
+}
+
+.at-hero--plain::after {
+    display: none;
+}
+
+.at-hero--plain .at-hero__inner {
+    color: var(--at-text);
+    text-shadow: none;
+    padding-bottom: 0;
+}
+
+.at-hero--plain .at-hero__eyebrow {
+    color: var(--at-text-tertiary);
+    opacity: 1;
+}
+
+.at-hero--plain .at-hero__caption {
+    color: var(--at-text-secondary);
+    opacity: 1;
+}
+
+/* ── Gallery ──────────────────────────────────────────────────────── */
+
+.at-gallery {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* Columns keep pictures at their own proportions, so nothing is cropped. */
+.at-gallery--masonry {
+    columns: 3;
+    column-gap: var(--at-gap);
+}
+
+.at-gallery--masonry .at-tile {
+    break-inside: avoid;
+    margin-bottom: var(--at-gap);
+}
+
+/* The grid crops to a common ratio, for a strict wall. */
+.at-gallery--grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--at-gap);
+}
+
+.at-gallery--grid .at-tile__media img {
+    width: 100%;
+    aspect-ratio: var(--at-ratio, 4 / 3);
+    object-fit: cover;
+}
+
+@media (max-width: 1100px) {
+    .at-gallery--masonry {
+        columns: 2;
+    }
+
+    .at-gallery--grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .at-gallery--masonry {
+        columns: 1;
+    }
+
+    .at-gallery--grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.at-tile {
+    position: relative;
+}
+
+.at-tile__media {
+    display: block;
+    overflow: hidden;
+    background: var(--at-bg-alt);
+}
+
+.at-tile__media img {
+    width: 100%;
+    transition: transform 0.5s cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+
+.at-tile:hover .at-tile__media img {
+    transform: scale(1.03);
+}
+
+.at-tile__body {
+    padding-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+}
+
+.at-tile__title {
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    margin: 0;
+}
+
+.at-tile__meta {
+    font-size: var(--at-label-size);
+    letter-spacing: var(--at-label-tracking);
+    text-transform: uppercase;
+    color: var(--at-text-tertiary);
+    white-space: nowrap;
+}
+
+/* Captions can sit over the picture instead, revealed on hover. */
+.at-gallery--overlay .at-tile__body {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 18px;
+    color: var(--at-on-dark);
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.62));
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.at-gallery--overlay .at-tile:hover .at-tile__body,
+.at-gallery--overlay .at-tile:focus-within .at-tile__body {
+    opacity: 1;
+}
+
+.at-gallery--overlay .at-tile__meta {
+    color: rgba(246, 246, 244, 0.8);
+}
+
+/* ── Sections ─────────────────────────────────────────────────────── */
+
+.at-section {
+    padding-block: 72px;
+}
+
+.at-section--tight {
+    padding-block: 44px;
+}
+
+.at-section__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 30px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--at-border);
+}
+
+.at-section__title {
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin: 0;
+}
+
+/* ── Article ──────────────────────────────────────────────────────── */
+
+.at-article {
+    max-width: var(--at-measure);
+    margin-inline: auto;
+    padding-block: 56px 72px;
+}
+
+.at-article__title {
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: 1.12;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    margin: 0 0 14px;
+}
+
+.at-article__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    font-size: var(--at-label-size);
+    letter-spacing: var(--at-label-tracking);
+    text-transform: uppercase;
+    color: var(--at-text-tertiary);
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--at-border);
+    margin-bottom: 34px;
+}
+
+.at-prose {
+    font-size: 17px;
+    line-height: 1.72;
+    color: var(--at-text);
+}
+
+.at-prose > * + * {
+    margin-top: 1.4em;
+}
+
+.at-prose p {
+    margin: 0;
+}
+
+.at-prose h2 {
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin-top: 2.2em;
+    margin-bottom: -0.5em;
+}
+
+.at-prose h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-top: 1.9em;
+    margin-bottom: -0.6em;
+}
+
+.at-prose a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--at-text-tertiary);
+}
+
+.at-prose a:hover {
+    text-decoration-color: currentColor;
+}
+
+.at-prose ul,
+.at-prose ol {
+    padding-left: 1.3em;
+}
+
+.at-prose blockquote {
+    margin-inline: 0;
+    padding-left: 20px;
+    border-left: 1px solid var(--at-text);
+    color: var(--at-text-secondary);
+}
+
+.at-prose figure {
+    margin-inline: 0;
+}
+
+.at-prose figcaption,
+.at-figcaption {
+    margin-top: 10px;
+    font-size: var(--at-label-size);
+    letter-spacing: var(--at-label-tracking);
+    text-transform: uppercase;
+    color: var(--at-text-tertiary);
+}
+
+.at-prose hr {
+    border: 0;
+    border-top: 1px solid var(--at-border);
+    margin-block: 2.6em;
+}
+
+.at-prose code {
+    font-family: var(--at-mono);
+    font-size: 0.88em;
+    background: var(--at-bg-alt);
+    padding: 0.15em 0.4em;
+}
+
+.at-prose pre {
+    background: var(--at-bg-alt);
+    padding: 18px 20px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.at-prose pre code {
+    background: none;
+    padding: 0;
+}
+
+.at-prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.at-prose th,
+.at-prose td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--at-border);
+}
+
+/* Only pictures the viewer actually picked up get the magnifying cursor; a
+   picture wrapped in a link keeps the ordinary pointer. The class is set by
+   the script, so with JavaScript switched off nothing promises a zoom. */
+.at-prose img.at-zoomable {
+    cursor: zoom-in;
+}
+
+.at-prose .at-wide {
+    max-width: none;
+    width: 100%;
+}
+
+/* ── Lightbox ─────────────────────────────────────────────────────── */
+
+.at-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: var(--at-overlay);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.at-lightbox.is-open {
+    display: flex;
+}
+
+.at-lightbox__figure {
+    margin: 0;
+    max-width: 100%;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.at-lightbox__figure img {
+    max-width: 100%;
+    max-height: 82vh;
+    width: auto;
+    object-fit: contain;
+}
+
+.at-lightbox__caption {
+    color: rgba(246, 246, 244, 0.78);
+    font-size: var(--at-label-size);
+    letter-spacing: var(--at-label-tracking);
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.at-lightbox__btn {
+    position: absolute;
+    background: none;
+    border: 0;
+    color: var(--at-on-dark);
+    font-size: 26px;
+    line-height: 1;
+    padding: 14px 18px;
+    cursor: pointer;
+    opacity: 0.75;
+}
+
+.at-lightbox__btn:hover {
+    opacity: 1;
+}
+
+.at-lightbox__btn--close {
+    top: 10px;
+    right: 14px;
+}
+
+.at-lightbox__btn--prev {
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.at-lightbox__btn--next {
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.at-lightbox__count {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(246, 246, 244, 0.6);
+    font-size: var(--at-label-size);
+    letter-spacing: var(--at-label-tracking);
+}
+
+/* ── Pager and footer ─────────────────────────────────────────────── */
+
+.at-pager {
+    max-width: var(--at-measure);
+    margin-inline: auto;
+    padding-block: 28px 72px;
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    border-top: 1px solid var(--at-border);
+    padding-top: 26px;
+}
+
+.at-pager__item--next {
+    margin-left: auto;
+    text-align: right;
+}
+
+.at-pager__label {
+    display: block;
+    font-size: var(--at-label-size);
+    letter-spacing: var(--at-label-tracking);
+    text-transform: uppercase;
+    color: var(--at-text-tertiary);
+    margin-bottom: 4px;
+}
+
+.at-pager__title {
+    font-size: 16px;
+}
+
+.at-breadcrumb {
+    max-width: var(--at-measure);
+    margin: 0 auto 18px;
+    font-size: var(--at-label-size);
+    letter-spacing: var(--at-label-tracking);
+    text-transform: uppercase;
+    color: var(--at-text-tertiary);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.at-breadcrumb a:hover {
+    color: var(--at-text);
+}
+
+.at-footer {
+    flex-shrink: 0;
+    border-top: 1px solid var(--at-border);
+    padding-block: 44px 32px;
+    font-size: 13px;
+    color: var(--at-text-secondary);
+}
+
+.at-footer__cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 32px;
+    padding-bottom: 26px;
+}
+
+.at-footer__cols :where(h1, h2, h3, h4) {
+    font-size: var(--at-label-size);
+    letter-spacing: var(--at-label-tracking);
+    text-transform: uppercase;
+    color: var(--at-text);
+    margin: 0 0 12px;
+}
+
+.at-footer__cols ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.at-footer__cols li + li {
+    margin-top: 8px;
+}
+
+.at-footer a:hover {
+    color: var(--at-text);
+}
+
+.at-footer__base {
+    padding-top: 18px;
+    border-top: 1px solid var(--at-border);
+    font-size: 12px;
+    color: var(--at-text-tertiary);
+}
+
+/* ── Admin bar ────────────────────────────────────────────────────── */
+
+.at-admin {
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 70;
+    background: var(--at-text);
+    color: var(--at-bg);
+    font-size: 11px;
+    padding: 5px 12px;
+}
+
+.at-admin a {
+    color: inherit;
+}
+
+/* ── Monochrome SVG inversion ─────────────────────────────────────── */
+
+@media (prefers-color-scheme: dark) {
+    .svg-bw-invert {
+        filter: invert(1);
+    }
+}
+
+body[data-surface="dark"] .svg-bw-invert {
+    filter: invert(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+
+    .at-tile:hover .at-tile__media img {
+        transform: none;
+    }
+}
+
+@media print {
+    .at-nav,
+    .at-footer,
+    .at-pager,
+    .at-admin,
+    .at-lightbox {
+        display: none;
+    }
+
+    body {
+        color: #000;
+        background: #fff;
+    }
+
+    .at-hero {
+        min-height: 0;
+    }
+}

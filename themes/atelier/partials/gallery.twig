@@ -1,0 +1,48 @@
+{#
+  Gallery of pages that carry a hero image.
+
+  `entries` is a list of navigation elements. Pages without a picture are
+  skipped rather than rendered as an empty frame, so a half-illustrated folder
+  still looks deliberate.
+#}
+{% set theme = settings.themes.atelier %}
+{% set entries = entries is defined and entries ? entries : item.folderContent %}
+{% set layout = theme.galleryLayout|default('masonry') %}
+{% set captions = theme.galleryCaptions|default('below') %}
+
+{# Filtered rather than accumulated in a loop: Twig scopes a set inside a for
+   block to that block, so the collected list would be empty afterwards. #}
+{% set shown = entries|filter(element => getPageMeta(settings, element).meta.heroimage) %}
+
+{% if shown|length > 0 %}
+  <ul class="at-gallery at-gallery--{{ layout }}{{ captions == 'overlay' ? ' at-gallery--overlay' : '' }}">
+    {% for element in shown %}
+      {% set meta = getPageMeta(settings, element).meta %}
+      {% set orderDate = element.order is defined and element.order matches '/^\\d{8}$/'
+          ? element.order[0:4] ~ '-' ~ element.order[4:2] ~ '-' ~ element.order[6:2] : '' %}
+      {% set date = meta.manualdate|default(meta.modified|default(orderDate)) %}
+
+      <li class="at-tile">
+        <a class="at-tile__media" href="{{ element.urlRel }}">
+          {#
+            The stored picture is used as it is. Typemill's resize crops to an
+            exact box - it has no proportional mode - which would defeat a
+            masonry wall, and the grid is cropped in CSS anyway so the ratio
+            stays a setting rather than being baked into a file.
+          #}
+          <img src="{{ base_url }}/{{ meta.heroimage|e('html_attr') }}"
+               alt="{{ meta.heroimagealt|default(meta.title|default(element.name))|e('html_attr') }}"
+               loading="lazy" decoding="async" />
+        </a>
+        <div class="at-tile__body">
+          <h3 class="at-tile__title">
+            <a href="{{ element.urlRel }}">{{ meta.title|default(element.name)|e }}</a>
+          </h3>
+          {% if date and (theme.galleryDates ?? true) %}
+            <span class="at-tile__meta"><time datetime="{{ date }}">{{ date|date(theme.dateFormat|default('Y')) }}</time></span>
+          {% endif %}
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}

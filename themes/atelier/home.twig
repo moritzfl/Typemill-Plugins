@@ -1,0 +1,63 @@
+{% set theme = settings.themes.atelier %}
+{% set heroImage = theme.heroImage|default('') ?: metatabs.meta.heroimage|default('') %}
+{% set heroTitle = theme.heroTitle|default('') ?: title %}
+
+{% if heroImage %}
+  <section class="at-hero">
+    <div class="at-hero__media">
+      <img src="{{ base_url }}/{{ heroImage|e('html_attr') }}"
+           alt="{{ metatabs.meta.heroimagealt|default('')|e('html_attr') }}" />
+    </div>
+    <div class="at-hero__inner">
+      {% if theme.heroEyebrow %}
+        <p class="at-hero__eyebrow">{{ theme.heroEyebrow|e }}</p>
+      {% endif %}
+      <h1 class="at-hero__title">{{ heroTitle|e }}</h1>
+      {% if theme.heroCaption %}
+        <p class="at-hero__caption">{{ theme.heroCaption|e }}</p>
+      {% endif %}
+    </div>
+  </section>
+{% else %}
+  <section class="at-hero at-hero--plain">
+    <div class="at-hero__inner">
+      {% if theme.heroEyebrow %}
+        <p class="at-hero__eyebrow">{{ theme.heroEyebrow|e }}</p>
+      {% endif %}
+      <h1 class="at-hero__title">{{ heroTitle|e }}</h1>
+      {% if theme.heroCaption %}
+        <p class="at-hero__caption">{{ theme.heroCaption|e }}</p>
+      {% endif %}
+    </div>
+  </section>
+{% endif %}
+
+<div class="at-container">
+
+  {% if content|trim %}
+    <div class="at-article" style="padding-block:48px 8px">
+      <div class="at-prose">{{ content }}</div>
+    </div>
+  {% endif %}
+
+  {# The homepage wall: every picture from every section, in one grid. #}
+  {% if (theme.showGallery ?? true) %}
+    {# Reduced rather than accumulated in a loop: Twig scopes a set inside a
+       for block to that block, so the wall would come out empty. #}
+    {% set wall = navigation|reduce((carry, element) =>
+        carry|merge(element.elementType == 'folder' and element.folderContent|length > 0
+            ? element.folderContent : [element]), []) %}
+
+    <section class="at-section">
+      {% if theme.galleryTitle %}
+        <div class="at-section__head">
+          <h2 class="at-section__title">{{ theme.galleryTitle|e }}</h2>
+          {% if theme.galleryNote %}<span class="at-label">{{ theme.galleryNote|e }}</span>{% endif %}
+        </div>
+      {% endif %}
+
+      {% include 'partials/gallery.twig' with { entries: wall } %}
+    </section>
+  {% endif %}
+
+</div>

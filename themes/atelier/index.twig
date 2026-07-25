@@ -1,0 +1,23 @@
+{% extends 'layout.twig' %}
+
+{% block title %}{{ metatabs.meta.title|e }} | {{ settings.title|e }}{% endblock %}
+
+{# The bar floats over a full-bleed picture, and sits on the surface without one. #}
+{% block nav %}
+  {% set hasHero = home
+      ? (settings.themes.atelier.heroImage|default('') ?: metatabs.meta.heroimage|default(''))
+      : ((settings.themes.atelier.pageHero ?? true) ? metatabs.meta.heroimage|default('') : '') %}
+  {% include 'partials/topnav.twig' with { overlay: hasHero ? true : false } %}
+{% endblock %}
+
+{% block content %}
+
+  {% if home and settings.themes.atelier.blog %}
+    {% include 'blog.twig' %}
+  {% elseif home %}
+    {% include 'home.twig' %}
+  {% else %}
+    {% include 'page.twig' %}
+  {% endif %}
+
+{% endblock %}

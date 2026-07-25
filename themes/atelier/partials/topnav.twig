@@ -1,0 +1,70 @@
+{#
+  Global navigation. Small, widely tracked labels so the bar never competes
+  with a picture. Over a full-bleed hero it floats on the image; elsewhere it
+  sits on the surface with a hairline under it.
+#}
+{% set overlay = overlay|default(false) %}
+
+<header class="at-nav{{ overlay ? ' at-nav--overlay' : '' }}" data-nav>
+  <div class="at-nav__inner">
+
+    <a href="{{ base_url }}" class="at-nav__brand">
+      {% if logo %}
+        <img src="{{ base_url }}/{{ logo }}" alt="{{ settings.title|e('html_attr') }}" />
+      {% else %}
+        {{ settings.title|e }}
+      {% endif %}
+    </a>
+
+    <nav aria-label="{{ settings.themes.atelier.navLabel|default('Main')|e('html_attr') }}">
+      <ul class="at-nav__links">
+        {% for element in navigation %}
+          {% set children = element.elementType == 'folder' ? element.folderContent : [] %}
+          {% set panelId = 'at-sub-' ~ loop.index %}
+
+          <li class="at-nav__item{{ children|length > 0 ? ' at-nav__item--has-menu' : '' }}"
+              {% if children|length > 0 %}data-nav-item{% endif %}>
+
+            <a href="{{ element.urlRel }}"
+               class="at-nav__link"
+               {% if element.active %}aria-current="page"{% endif %}
+               {% if children|length > 0 %}
+                 data-nav-parent
+                 aria-expanded="false"
+                 aria-controls="{{ panelId }}"
+               {% endif %}>{{ element.name|e }}</a>
+
+            {% if children|length > 0 %}
+              <div class="at-dropdown" id="{{ panelId }}" data-nav-panel>
+                <ul class="at-dropdown__list">
+                  {% for child in children %}
+                    <li>
+                      <a href="{{ child.urlRel }}"{% if child.active %} aria-current="page"{% endif %}>{{ child.name|e }}</a>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+          </li>
+        {% endfor %}
+
+        {% if multilang is defined and multilang %}
+          {% for lang, link in multilang %}
+            <li class="at-nav__item"><a class="at-nav__link" href="{{ base_url }}{{ link }}">{{ lang|upper }}</a></li>
+          {% endfor %}
+        {% endif %}
+      </ul>
+    </nav>
+
+    <button type="button"
+            class="at-nav__toggle"
+            data-nav-toggle
+            aria-expanded="false"
+            aria-label="{{ settings.themes.atelier.menuLabel|default('Menu')|e('html_attr') }}">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+        <path stroke-linecap="round" d="M3 7h18M3 12h18M3 17h18" />
+      </svg>
+    </button>
+
+  </div>
+</header>

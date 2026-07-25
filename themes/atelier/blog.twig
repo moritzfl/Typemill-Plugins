@@ -1,0 +1,55 @@
+{% set theme = settings.themes.atelier %}
+
+<section class="at-hero at-hero--plain">
+  <div class="at-hero__inner">
+    {% if theme.heroEyebrow %}
+      <p class="at-hero__eyebrow">{{ theme.heroEyebrow|e }}</p>
+    {% endif %}
+    <h1 class="at-hero__title">{{ (theme.heroTitle|default('') ?: title)|e }}</h1>
+    {% if theme.heroCaption %}
+      <p class="at-hero__caption">{{ theme.heroCaption|e }}</p>
+    {% endif %}
+  </div>
+</section>
+
+<div class="at-container">
+
+  {% if theme.blogintro and content|trim %}
+    <div class="at-article" style="padding-block:40px 8px">
+      <div class="at-prose">{{ content }}</div>
+    </div>
+  {% endif %}
+
+  {% set pagelist = getPageList(navigation, theme.blogfolder, base_url) %}
+  {% set pagesize = theme.blogpagesize|default(12) %}
+  {% set pages = (pagelist.folderContent|length / pagesize)|round(0, 'ceil') %}
+  {% set currentpage = currentpage ? currentpage : 1 %}
+  {% set offset = (currentpage - 1) * pagesize %}
+
+  <section class="at-section">
+    {% if pagelist.contains == 'posts' %}
+
+      {% include 'partials/gallery.twig' with {
+        entries: pagelist.folderContent|slice(offset, pagesize)
+      } %}
+
+      {% if pages > 1 %}
+        <nav class="at-pager" style="justify-content:center;gap:18px;border:0" aria-label="Pagination">
+          {% for i in 1..pages %}
+            {% if i == currentpage %}
+              <span class="at-label" style="color:var(--at-text)">{{ i }}</span>
+            {% else %}
+              <a class="at-label" href="{{ item.urlRel }}/p/{{ i }}">{{ i }}</a>
+            {% endif %}
+          {% endfor %}
+        </nav>
+      {% endif %}
+
+    {% else %}
+      <p class="at-label">
+        {{ theme.blogEmptyText|default('The configured folder does not contain posts. Check the folder in the theme settings.')|e }}
+      </p>
+    {% endif %}
+  </section>
+
+</div>

@@ -1,0 +1,74 @@
+{% set theme = settings.themes.atelier %}
+{% set published = metatabs.meta.manualdate ? metatabs.meta.manualdate : metatabs.meta.modified %}
+{% set heroImage = metatabs.meta.heroimage|default('') %}
+{% set isFolder = item.elementType == 'folder' and item.folderContent|length > 0 %}
+
+{# A page with a picture opens full-bleed, and the bar floats over it. #}
+{% if heroImage and (theme.pageHero ?? true) %}
+  <section class="at-hero">
+    <div class="at-hero__media">
+      <img src="{{ base_url }}/{{ heroImage|e('html_attr') }}"
+           alt="{{ metatabs.meta.heroimagealt|default(title)|e('html_attr') }}" />
+    </div>
+    <div class="at-hero__inner">
+      <h1 class="at-hero__title">{{ title|e }}</h1>
+      {% if metatabs.meta.heroimagealt %}
+        <p class="at-hero__caption">{{ metatabs.meta.heroimagealt|e }}</p>
+      {% endif %}
+    </div>
+  </section>
+{% endif %}
+
+<div class="at-container">
+
+  <article class="at-article">
+
+    {% if (theme.breadcrumb ?? true) %}
+      {% include 'partials/breadcrumb.twig' %}
+    {% endif %}
+
+    {% if not (heroImage and (theme.pageHero ?? true)) %}
+      <h1 class="at-article__title">{{ title|e }}</h1>
+    {% endif %}
+
+    {% set showDate = 'top' in theme.datePosition|default([]) %}
+    {% set showAuthor = 'top' in theme.authorPosition|default([]) %}
+    {% if showDate or showAuthor %}
+      <div class="at-article__meta">
+        {% if showAuthor %}
+          <span>{{ metatabs.meta.author|default(settings.author)|e }}</span>
+        {% endif %}
+        {% if showDate and published %}
+          <span><time datetime="{{ published }}">{{ published|date(theme.dateFormat|default('Y')) }}</time></span>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div class="at-prose">{{ content }}</div>
+
+  </article>
+
+  {% if isFolder %}
+    <section class="at-section at-section--tight">
+      {% include 'partials/gallery.twig' %}
+    </section>
+  {% endif %}
+
+  {% if item.prevItem or item.nextItem %}
+    <nav class="at-pager" aria-label="{{ theme.pagerLabel|default('Page')|e('html_attr') }}">
+      {% if item.prevItem %}
+        <a class="at-pager__item" href="{{ item.prevItem.urlRel }}">
+          <span class="at-pager__label">{{ theme.previous|default('Previous')|e }}</span>
+          <span class="at-pager__title">{{ item.prevItem.name|e }}</span>
+        </a>
+      {% endif %}
+      {% if item.nextItem %}
+        <a class="at-pager__item at-pager__item--next" href="{{ item.nextItem.urlRel }}">
+          <span class="at-pager__label">{{ theme.next|default('Next')|e }}</span>
+          <span class="at-pager__title">{{ item.nextItem.name|e }}</span>
+        </a>
+      {% endif %}
+    </nav>
+  {% endif %}
+
+</div>

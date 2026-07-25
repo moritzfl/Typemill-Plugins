@@ -1,0 +1,22 @@
+{% extends 'layout.twig' %}
+
+{% block title %}{{ settings.themes.atelier.notFoundTitle|default('Page not found')|e }} | {{ settings.title|e }}{% endblock %}
+
+{% block nav %}{% include 'partials/topnav.twig' with { overlay: false } %}{% endblock %}
+
+{% block content %}
+  <div class="at-container">
+    <section class="at-hero at-hero--plain">
+      <div class="at-hero__inner">
+        <p class="at-hero__eyebrow">404</p>
+        <h1 class="at-hero__title">{{ settings.themes.atelier.notFoundTitle|default('Page not found')|e }}</h1>
+        <p class="at-hero__caption">
+          {{ settings.themes.atelier.notFoundText|default('The page you were looking for is not here.')|e }}
+        </p>
+      </div>
+    </section>
+    <div class="at-article" style="padding-top:0">
+      <p><a class="at-label" href="{{ base_url }}">&larr; {{ settings.themes.atelier.homeLabel|default('Home')|e }}</a></p>
+    </div>
+  </div>
+{% endblock %}

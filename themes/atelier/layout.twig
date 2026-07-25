@@ -1,0 +1,381 @@
+{% set theme = settings.themes.atelier %}
+<!DOCTYPE html>
+<html lang="{{ settings.langattr | default('en') }}">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="description" content="{{ metatabs.meta.description|e('html_attr') }}" />
+  <meta name="author" content="{{ metatabs.meta.author|default(settings.author)|e('html_attr') }}" />
+  <meta name="generator" content="TYPEMILL" />
+  <link rel="canonical" href="{{ item.urlAbs }}" />
+
+  {{ assets.renderMeta() }}
+
+  {% block stylesheets %}
+  <link rel="stylesheet" href="{{ base_url }}/themes/atelier/css/atelier.css" />
+  <style>
+    {% if theme.accentColor %}
+    :root { --at-accent: {{ theme.accentColor }}; }
+    {% endif %}
+    {% if theme.maxwidth %}
+    :root { --at-wide: {{ theme.maxwidth }}; }
+    {% endif %}
+    {% if theme.gap %}
+    :root { --at-gap: {{ theme.gap }}; }
+    {% endif %}
+    {% if theme.ratio %}
+    :root { --at-ratio: {{ theme.ratio }}; }
+    {% endif %}
+    {% if theme.customcss %}
+    {{ theme.customcss }}
+    {% endif %}
+  </style>
+  {% endblock %}
+</head>
+<body data-surface="{{ theme.surface|default('white')|e('html_attr') }}">
+
+  <a href="#main-content" class="at-skip">{{ theme.skipText|default('Skip to content')|e }}</a>
+
+  {% if is_loggedin() %}
+    <div class="at-admin"><a href="{{ base_url }}/tm/account">&#9881; Admin</a></div>
+  {% endif %}
+
+  {% block nav %}{% include 'partials/topnav.twig' %}{% endblock %}
+
+  <main id="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include 'partials/footer.twig' %}
+
+  {# The lightbox markup is inert until a picture is opened. #}
+  <div class="at-lightbox" data-lightbox role="dialog" aria-modal="true"
+       aria-label="{{ theme.lightboxLabel|default('Image viewer')|e('html_attr') }}" hidden>
+    <button type="button" class="at-lightbox__btn at-lightbox__btn--close" data-lightbox-close
+            aria-label="{{ theme.closeLabel|default('Close')|e('html_attr') }}">&times;</button>
+    <button type="button" class="at-lightbox__btn at-lightbox__btn--prev" data-lightbox-prev
+            aria-label="{{ theme.previous|default('Previous')|e('html_attr') }}">&#8249;</button>
+    <figure class="at-lightbox__figure">
+      <img alt="" data-lightbox-image />
+      <figcaption class="at-lightbox__caption" data-lightbox-caption></figcaption>
+    </figure>
+    <button type="button" class="at-lightbox__btn at-lightbox__btn--next" data-lightbox-next
+            aria-label="{{ theme.next|default('Next')|e('html_attr') }}">&#8250;</button>
+    <p class="at-lightbox__count" data-lightbox-count></p>
+  </div>
+
+  {% block javascripts %}
+  {{ assets.renderCSS() }}
+  {{ assets.renderJS() }}
+  <script>
+    (function () {
+      var nav = document.querySelector('[data-nav]');
+      if (!nav) return;
+
+      var toggle = nav.querySelector('[data-nav-toggle]');
+      var items = Array.prototype.slice.call(nav.querySelectorAll('[data-nav-item]'));
+      var hoverCapable = window.matchMedia('(hover: hover)');
+      var wide = window.matchMedia('(min-width: 861px)');
+      var closeTimer = null;
+      var restoringFocus = false;
+
+      function pointerMenus() {
+        return wide.matches && hoverCapable.matches;
+      }
+
+      function setItemOpen(item, open) {
+        item.classList.toggle('is-open', open);
+        var link = item.querySelector('[data-nav-parent]');
+        if (link) link.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+
+      function closeAll(except) {
+        items.forEach(function (item) {
+          if (item !== except) setItemOpen(item, false);
+        });
+      }
+
+      function cancelClose() {
+        if (closeTimer) {
+          clearTimeout(closeTimer);
+          closeTimer = null;
+        }
+      }
+
+      // Closing is deferred, so a diagonal move from the link into the panel or
+      // across to the next section does not flick the menu shut on the way.
+      function scheduleClose() {
+        cancelClose();
+        closeTimer = setTimeout(function () { closeAll(); }, 220);
+      }
+
+      function setDrawer(open) {
+        nav.classList.toggle('at-nav--open', open);
+        if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        document.body.style.overflow = open ? 'hidden' : '';
+        if (!open) closeAll();
+      }
+
+      if (toggle) {
+        toggle.addEventListener('click', function () {
+          setDrawer(!nav.classList.contains('at-nav--open'));
+        });
+      }
+
+      items.forEach(function (item) {
+        var link = item.querySelector('[data-nav-parent]');
+        if (!link) return;
+
+        item.addEventListener('mouseenter', function () {
+          if (!pointerMenus()) return;
+          cancelClose();
+          closeAll(item);
+          setItemOpen(item, true);
+        });
+
+        link.addEventListener('click', function (e) {
+          var drawerOpen = nav.classList.contains('at-nav--open');
+          var touchLike = e.pointerType === 'touch' || !hoverCapable.matches;
+
+          if (!drawerOpen && !touchLike) return;
+          if (item.classList.contains('is-open')) return;
+
+          e.preventDefault();
+          closeAll(item);
+          setItemOpen(item, true);
+        });
+
+        link.addEventListener('focus', function () {
+          if (restoringFocus || !pointerMenus()) return;
+          cancelClose();
+          closeAll(item);
+          setItemOpen(item, true);
+        });
+
+        item.addEventListener('focusout', function (e) {
+          if (!wide.matches) return;
+          if (!item.contains(e.relatedTarget)) setItemOpen(item, false);
+        });
+      });
+
+      nav.addEventListener('mouseleave', function () {
+        if (pointerMenus()) scheduleClose();
+      });
+      nav.addEventListener('mouseenter', cancelClose);
+
+      document.addEventListener('click', function (e) {
+        if (!nav.contains(e.target)) closeAll();
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        var open = items.filter(function (i) { return i.classList.contains('is-open'); })[0];
+        closeAll();
+        setDrawer(false);
+        if (open) {
+          var link = open.querySelector('[data-nav-parent]');
+          if (link) {
+            restoringFocus = true;
+            link.focus();
+            setTimeout(function () { restoringFocus = false; }, 0);
+          }
+        }
+      });
+
+      var onChange = function () {
+        if (wide.matches) { setDrawer(false); closeAll(); }
+      };
+      wide.addEventListener ? wide.addEventListener('change', onChange) : wide.addListener(onChange);
+    })();
+
+    /* A bar that floats on a picture has to go solid as soon as the picture is
+       gone, or the pale lettering ends up on the pale page below. */
+    (function () {
+      var nav = document.querySelector('[data-nav]');
+      if (!nav || !nav.classList.contains('at-nav--overlay')) return;
+
+      var hero = document.querySelector('.at-hero');
+      if (!hero) return;
+
+      var navHeight = nav.offsetHeight || 64;
+
+      function apply(solid) {
+        nav.classList.toggle('is-solid', solid);
+      }
+
+      if ('IntersectionObserver' in window) {
+        // The hero counts as gone once its lower edge slips behind the bar.
+        new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) { apply(!entry.isIntersecting); });
+        }, { rootMargin: (-navHeight) + 'px 0px 0px 0px', threshold: 0 }).observe(hero);
+      } else {
+        var onScroll = function () {
+          apply(hero.getBoundingClientRect().bottom <= navHeight);
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      }
+    })();
+
+    /* Lightbox. Every picture inside an article becomes a step in one sequence,
+       so the arrows walk the whole page. Gallery tiles are left out on purpose:
+       they are links to other pages, not pictures to be viewed. */
+    (function () {
+      var box = document.querySelector('[data-lightbox]');
+      if (!box) return;
+
+      var image = box.querySelector('[data-lightbox-image]');
+      var caption = box.querySelector('[data-lightbox-caption]');
+      var counter = box.querySelector('[data-lightbox-count]');
+      var sources = [];
+      var index = 0;
+      var lastFocused = null;
+
+      function collect() {
+        sources = [];
+        var seen = document.querySelectorAll('[data-zoom] img, .at-prose img');
+        Array.prototype.forEach.call(seen, function (img) {
+          if (img.closest('[data-lightbox]')) return;
+          // A picture that is already a link keeps its own job.
+          if (img.closest('a')) return;
+          var full = img.getAttribute('data-full') || img.currentSrc || img.src;
+          sources.push({
+            src: full,
+            alt: img.getAttribute('alt') || '',
+            caption: img.getAttribute('data-caption') || img.getAttribute('alt') || '',
+            node: img
+          });
+        });
+      }
+
+      function show(i) {
+        if (!sources.length) return;
+        index = (i + sources.length) % sources.length;
+        var entry = sources[index];
+        image.setAttribute('src', entry.src);
+        image.setAttribute('alt', entry.alt);
+        caption.textContent = entry.caption;
+        caption.hidden = !entry.caption;
+        counter.textContent = sources.length > 1 ? (index + 1) + ' / ' + sources.length : '';
+      }
+
+      function open(i) {
+        lastFocused = document.activeElement;
+        box.hidden = false;
+        box.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+        show(i);
+        box.querySelector('[data-lightbox-close]').focus();
+      }
+
+      function close() {
+        box.classList.remove('is-open');
+        box.hidden = true;
+        document.body.style.overflow = '';
+        // Send focus back to the picture that was opened, not to the top.
+        if (lastFocused && lastFocused.focus) lastFocused.focus();
+      }
+
+      collect();
+      sources.forEach(function (entry, i) {
+        // A picture is not focusable on its own, so without this the viewer
+        // could only be reached with a mouse, and closing it would drop the
+        // focus ring back to the top of the document.
+        entry.node.setAttribute('tabindex', '0');
+        entry.node.setAttribute('role', 'button');
+        entry.node.classList.add('at-zoomable');
+        entry.node.addEventListener('click', function (e) {
+          e.preventDefault();
+          open(i);
+        });
+        entry.node.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+            e.preventDefault();
+            open(i);
+          }
+        });
+      });
+
+      box.querySelector('[data-lightbox-close]').addEventListener('click', close);
+      box.querySelector('[data-lightbox-prev]').addEventListener('click', function () { show(index - 1); });
+      box.querySelector('[data-lightbox-next]').addEventListener('click', function () { show(index + 1); });
+      box.addEventListener('click', function (e) {
+        if (e.target === box) close();
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (box.hidden) return;
+        if (e.key === 'Escape') { close(); return; }
+        if (e.key === 'ArrowLeft') show(index - 1);
+        if (e.key === 'ArrowRight') show(index + 1);
+        // Keep the tab ring inside the dialog while it is open.
+        if (e.key === 'Tab') {
+          var focusables = box.querySelectorAll('button');
+          var first = focusables[0];
+          var last = focusables[focusables.length - 1];
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+      });
+    })();
+
+    (function () {
+      // Only black, white and transparent count as monochrome.
+      var ALLOWED = /^(none|transparent|currentcolor|inherit|black|white|#000|#000000|#fff|#ffffff|rgb\(\s*0\s*,\s*0\s*,\s*0\s*\)|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))$/i;
+      var COLOR_RE = /(?:fill|stroke|stop-color|color)\s*[=:]\s*["']?\s*([^"'\s;,><\/]+)/gi;
+
+      function isMonochrome(text) {
+        var match;
+        COLOR_RE.lastIndex = 0;
+        while ((match = COLOR_RE.exec(text)) !== null) {
+          if (!ALLOWED.test(match[1].trim())) return false;
+        }
+        return true;
+      }
+
+      var cache = new Map();
+
+      function check(img) {
+        var src = img.getAttribute('src');
+        if (!src || !/\.svg(\?|$)/i.test(src)) return;
+
+        var probe = document.createElement('a');
+        probe.href = src;
+        if (probe.hostname && probe.hostname !== location.hostname) return;
+
+        var override = img.getAttribute('data-svg-invert');
+        if (override === 'true' || override === 'bw') { img.classList.add('svg-bw-invert'); return; }
+        if (override === 'false' || override === 'color') return;
+
+        if (cache.has(src)) {
+          if (cache.get(src)) img.classList.add('svg-bw-invert');
+          return;
+        }
+
+        fetch(src, { credentials: 'same-origin' })
+          .then(function (r) { return r.ok ? r.text() : Promise.reject(); })
+          .then(function (text) {
+            var invertable = isMonochrome(text);
+            cache.set(src, invertable);
+            if (invertable) img.classList.add('svg-bw-invert');
+          })
+          .catch(function () { cache.set(src, false); });
+      }
+
+      function run() {
+        Array.prototype.forEach.call(document.querySelectorAll('img'), check);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', run);
+      } else {
+        run();
+      }
+    })();
+  </script>
+  {% endblock %}
+
+</body>
+</html>
