@@ -106,6 +106,138 @@ async function assertPageLoads(page, spec) {
     assert(criticalErrors.length === 0, `${spec.name} console errors:\n${criticalErrors.join('\n')}`)
 }
 
+/**
+ * Find a real content page to open in the editor.
+ *
+ * Discovered from the editor's own navigation rather than hardcoded, so the
+ * test does not depend on which demo content the instance was seeded with.
+ */
+async function findFirstEditablePage(page) {
+    await page.goto(`${BASE_URL}/tm/content/visual`, { waitUntil: 'networkidle2' })
+    await page.waitForSelector('#publisher', { timeout: 15000 })
+
+    return page.evaluate(() => {
+        const isPageLink = (href) =>
+            href
+            && href.includes('/tm/content/')
+            && !/\/tm\/content\/(visual|raw)\/?(\?.*)?$/.test(href)
+
+        const link = Array.from(document.querySelectorAll('a[href]'))
+            .map((anchor) => anchor.getAttribute('href'))
+            .find(isPageLink)
+
+        if (!link) {
+            return null
+        }
+
+        return link.startsWith('http') ? new URL(link).pathname : link
+    })
+}
+
+/**
+ * The versions plugin replaces the core publisher's deleteArticle so deleted
+ * pages are snapshotted into the recycle bin first. That override patches core
+ * Vue internals, so it can break silently when core, Vue, or the Vue build
+ * flavour changes - it already did once, in production Vue builds, where
+ * app._instance is not assigned.
+ *
+ * The check is behavioural: tmaxios.delete is swapped for a spy that records
+ * its arguments and returns a promise that never settles, so no request is ever
+ * issued and no page is deleted.
+ */
+async function assertDeleteOverride(page, editorPath, label) {
+    const consoleErrors = []
+    const pageErrors = []
+    const onConsole = (message) => {
+        if (message.type() === 'error') {
+            const location = message.location()?.url || ''
+            consoleErrors.push(`${message.text()} ${location}`.trim())
+        }
+    }
+    const onPageError = (error) => pageErrors.push(error.message)
+
+    page.on('console', onConsole)
+    page.on('pageerror', onPageError)
+
+    try {
+        await page.goto(`${BASE_URL}${editorPath}`, { waitUntil: 'networkidle2' })
+        await page.waitForSelector('#publisher', { timeout: 15000 })
+
+        // The override attaches on a timeout, so wait for it instead of sleeping.
+        await page
+            .waitForFunction(
+                () => typeof publisher !== 'undefined'
+                    && publisher
+                    && publisher._versionsDeleteOverridden === true,
+                { timeout: 10000 }
+            )
+            .catch(() => {
+                throw new Error(`${label}: versions delete override was never attached`)
+            })
+
+        const result = await page.evaluate(() => {
+            const instance = publisher._instance
+                || (publisher._container && publisher._container._vnode
+                    ? publisher._container._vnode.component
+                    : null)
+
+            if (!instance || !instance.ctx) {
+                return { error: 'publisher instance could not be resolved' }
+            }
+
+            const deleteArticle = instance.ctx.deleteArticle
+            if (typeof deleteArticle !== 'function') {
+                return { error: 'deleteArticle is not a function' }
+            }
+
+            const originalDelete = tmaxios.delete
+            const captured = []
+            tmaxios.delete = function (url, config) {
+                captured.push({ url: url, data: config && config.data ? config.data : null })
+                return new Promise(function () {})
+            }
+
+            let threw = null
+            try {
+                deleteArticle.call(instance.proxy, false)
+            } catch (error) {
+                threw = String(error && error.message ? error.message : error)
+            } finally {
+                tmaxios.delete = originalDelete
+            }
+
+            return {
+                threw: threw,
+                calledUrl: captured.length ? captured[0].url : null,
+                payloadKeys: captured.length && captured[0].data ? Object.keys(captured[0].data) : [],
+            }
+        })
+
+        assert(!result.error, `${label}: ${result.error}`)
+        assert(!result.threw, `${label}: deleteArticle threw: ${result.threw}`)
+        assert(
+            result.calledUrl === '/api/v1/versions/article',
+            `${label}: deleteArticle called ${result.calledUrl}, expected /api/v1/versions/article`
+        )
+        assert(
+            result.payloadKeys.includes('force_delete'),
+            `${label}: delete payload lacks force_delete, so the snapshot-too-large `
+                + `confirmation is unreachable (payload: ${result.payloadKeys.join(', ') || 'none'})`
+        )
+
+        const criticalErrors = [...pageErrors, ...consoleErrors].filter((entry) => {
+            if (/DevTools/i.test(entry)) return false
+            if (/Failed to load resource/i.test(entry) && /favicon/i.test(entry)) return false
+            return true
+        })
+
+        assert(criticalErrors.length === 0, `${label} console errors:\n${criticalErrors.join('\n')}`)
+    } finally {
+        page.off('console', onConsole)
+        page.off('pageerror', onPageError)
+    }
+}
+
 async function main() {
     const launchOptions = {
         headless: true,
@@ -125,6 +257,15 @@ async function main() {
         for (const spec of pages) {
             await assertPageLoads(page, spec)
             console.log(`ok: ${spec.name}`)
+        }
+
+        const editorPath = await findFirstEditablePage(page)
+        assert(editorPath, 'Could not find a content page link in the editor navigation')
+
+        for (const editor of ['visual', 'raw']) {
+            const path = editorPath.replace(/\/tm\/content\/(visual|raw)\//, `/tm/content/${editor}/`)
+            await assertDeleteOverride(page, path, `Editor delete override (${editor})`)
+            console.log(`ok: Editor delete override (${editor})`)
         }
     } finally {
         await browser.close()
