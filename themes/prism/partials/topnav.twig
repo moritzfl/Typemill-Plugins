@@ -4,6 +4,10 @@
   Over a coloured hero the bar sits on top of it with transparent background and
   white text; everywhere else it is solid with a hairline border. Templates that
   open with a hero pass overlay: true.
+
+  Sections that contain pages expand into a floating card anchored under the
+  item. The panel is nested in its list item so the same markup can serve as an
+  accordion in the mobile drawer.
 #}
 {% set overlay = overlay|default(home|default(false)) %}
 
@@ -21,15 +25,41 @@
     <nav aria-label="{{ settings.themes.prism.navLabel|default('Main')|e('html_attr') }}">
       <ul class="pr-nav__links">
         {% for element in navigation %}
-          <li>
+          {% set children = element.elementType == 'folder' ? element.folderContent : [] %}
+          {% set panelId = 'pr-sub-' ~ loop.index %}
+
+          <li class="pr-nav__item{{ children|length > 0 ? ' pr-nav__item--has-menu' : '' }}"
+              {% if children|length > 0 %}data-nav-item{% endif %}>
+
             <a href="{{ element.urlRel }}"
-               {% if element.active %}aria-current="page"{% endif %}>{{ element.name|e }}</a>
+               class="pr-nav__link"
+               {% if element.active %}aria-current="page"{% endif %}
+               {% if children|length > 0 %}
+                 data-nav-parent
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-controls="{{ panelId }}"
+               {% endif %}>{{ element.name|e }}</a>
+
+            {% if children|length > 0 %}
+              <div class="pr-dropdown" id="{{ panelId }}" data-nav-panel>
+                <ul class="pr-dropdown__list">
+                  {% for child in children %}
+                    <li>
+                      <a href="{{ child.urlRel }}"{% if child.active %} aria-current="page"{% endif %}>
+                        <span class="pr-dropdown__name">{{ child.name|e }}</span>
+                      </a>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
           </li>
         {% endfor %}
 
         {% if multilang is defined and multilang %}
           {% for lang, link in multilang %}
-            <li><a href="{{ base_url }}{{ link }}">{{ lang|upper }}</a></li>
+            <li class="pr-nav__item"><a class="pr-nav__link" href="{{ base_url }}{{ link }}">{{ lang|upper }}</a></li>
           {% endfor %}
         {% endif %}
       </ul>

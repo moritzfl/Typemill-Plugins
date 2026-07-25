@@ -206,8 +206,10 @@ a:hover {
     gap: 8px;
 }
 
+/* Scoped to the bar's own links: a descendant selector would also repaint the
+   links inside the dropdown card, which sits on a light surface. */
 .pr-nav--overlay .pr-nav__brand,
-.pr-nav--overlay .pr-nav__links a {
+.pr-nav--overlay .pr-nav__link {
     color: var(--pr-on-dark);
 }
 
@@ -227,19 +229,109 @@ a:hover {
     font-weight: 600;
 }
 
-.pr-nav__links a {
+.pr-nav__link {
     color: var(--pr-text);
     transition: opacity 0.15s ease;
 }
 
-.pr-nav__links a:hover {
+.pr-nav__link:hover {
     opacity: 0.7;
 }
 
-.pr-nav__links a[aria-current="page"] {
+.pr-nav__link[aria-current="page"] {
     text-decoration: underline;
     text-underline-offset: 6px;
     text-decoration-thickness: 2px;
+}
+
+/* ── Expanding section menu ───────────────────────────────────────── */
+
+/* Anchored to its own item, unlike Lucid's full-width panel. */
+.pr-nav__item {
+    position: relative;
+}
+
+.pr-dropdown {
+    position: absolute;
+    top: calc(100% + 14px);
+    left: 50%;
+    transform: translate(-50%, -6px);
+    min-width: 260px;
+    padding: 10px;
+    /* Always the light surface: over the gradient hero a translucent panel
+       would leave the links unreadable. */
+    background: var(--pr-surface);
+    border-radius: var(--pr-radius-lg);
+    box-shadow: var(--pr-shadow-lg);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+    z-index: 60;
+}
+
+/* Bridges the gap between the bar and the card so the pointer can travel
+   without the card closing underneath it. */
+.pr-dropdown::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -14px;
+    height: 14px;
+}
+
+.pr-nav__item--has-menu.is-open .pr-dropdown {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate(-50%, 0);
+}
+
+.pr-dropdown__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.pr-dropdown__list a {
+    display: block;
+    padding: 10px 14px;
+    border-radius: var(--pr-radius-md);
+    color: var(--pr-text);
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.pr-dropdown__list a:hover {
+    background: var(--pr-brand-50);
+    color: var(--pr-brand-700);
+}
+
+.pr-dropdown__list a[aria-current="page"] {
+    color: var(--pr-accent);
+    text-decoration: none;
+}
+
+/* Small caret pointing at the parent item. */
+.pr-nav__link[data-nav-parent]::after {
+    content: "";
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    margin-left: 6px;
+    vertical-align: 2px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg);
+    opacity: 0.6;
+    transition: transform 0.18s ease;
+}
+
+.pr-nav__item.is-open > .pr-nav__link[data-nav-parent]::after {
+    transform: rotate(-135deg);
 }
 
 .pr-nav__toggle {
@@ -267,7 +359,7 @@ a:hover {
     }
 
     .pr-nav--open .pr-nav__brand,
-    .pr-nav--open .pr-nav__links a {
+    .pr-nav--open .pr-nav__link {
         color: var(--pr-text);
     }
 
@@ -284,11 +376,72 @@ a:hover {
         font-size: 17px;
     }
 
-    .pr-nav--open .pr-nav__links a {
+    .pr-nav--open .pr-nav__link {
         /* Block, or the padding and divider only span the text width. */
         display: block;
         padding: 15px 0;
         border-bottom: 1px solid var(--pr-border);
+    }
+
+    /* In the drawer the card becomes an accordion rather than a popover. */
+    .pr-nav--open .pr-dropdown {
+        position: static;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        min-width: 0;
+        padding: 0 0 0 14px;
+        background: none;
+        border-radius: 0;
+        box-shadow: none;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.28s ease;
+    }
+
+    .pr-nav--open .pr-dropdown::before {
+        display: none;
+    }
+
+    .pr-nav--open .pr-nav__item.is-open .pr-dropdown {
+        /* The open state carries the popover's centring transform, which would
+           drag the accordion half its width off-screen. */
+        transform: none;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .pr-nav--open .pr-dropdown__list a {
+        padding: 12px 0;
+        border-radius: 0;
+        border-bottom: 1px solid var(--pr-border);
+        font-weight: 400;
+        color: var(--pr-text-secondary);
+        white-space: normal;
+    }
+
+    .pr-nav--open .pr-dropdown__list a:hover {
+        background: none;
+    }
+
+    /* The caret sits at the end of the row in the drawer. */
+    .pr-nav--open .pr-nav__link[data-nav-parent] {
+        position: relative;
+    }
+
+    .pr-nav--open .pr-nav__link[data-nav-parent]::after {
+        position: absolute;
+        right: 4px;
+        top: 50%;
+        margin: -5px 0 0;
+        width: 7px;
+        height: 7px;
+        vertical-align: initial;
+    }
+
+    .pr-nav--open .pr-nav__item.is-open > .pr-nav__link[data-nav-parent]::after {
+        margin-top: -2px;
     }
 }
 
