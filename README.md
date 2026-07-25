@@ -11,7 +11,8 @@ Custom themes and plugins for [Typemill](https://typemill.net), a flat-file CMS.
 A clean theme built with Tailwind CSS. Features a sticky top bar, collapsible sidebar navigation, automatic dark mode
 with a Light / Dark / System toggle, an optional homepage hero, blog mode, per-page meta bar (author, date, edit link,
 print button), customizable accent colors, and up to three Markdown footer columns. SVG images containing only
-black/white/transparent colors are automatically inverted in dark mode.
+black/white/transparent colors are automatically inverted in dark mode. Ships four readymades (handbook, website,
+blog, open source docs) that set the theme up in one click.
 
 → See [`themes/rueckenwind/README.md`](themes/rueckenwind/README.md) for full documentation.
 

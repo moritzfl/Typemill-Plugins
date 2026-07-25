@@ -33,6 +33,24 @@ npm run build:rueckenwind
 
 Use `npm run watch:rueckenwind` for continuous rebuilds while iterating locally.
 
+## Readymades
+
+The theme ships four presets. **System → Themes → Configure → Readymades**, then *load* one and
+save. Each sets the navigation, the meta bar, the labels and the footer in one go, and every value
+stays editable afterwards.
+
+| Readymade | What it sets up |
+|---|---|
+| **Handbook** | Sidebar navigation with chapter numbers, author and date on every page, previous/next links |
+| **Website** | Horizontal top navigation and a homepage hero instead of the sidebar |
+| **Blog** | Homepage as a list of posts with hero images and an intro above them |
+| **Open source docs** | Handbook layout plus an edit link back to the repository and a print button |
+
+Two of them need one value filled in afterwards: **Blog** expects the blog folder to point at your
+own, and **Open source docs** ships a placeholder repository URL.
+
+Own combinations can be saved as readymades from the same panel.
+
 ## Configuration
 
 All settings are in the Typemill admin under **Theme Settings → Rückenwind**. Everything is self-explanatory in the UI —

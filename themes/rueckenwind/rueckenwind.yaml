@@ -29,6 +29,107 @@ settings:
   next: 'Next'
   previous: 'Previous'
 
+readymades:
+
+  handbook:
+    name: 'Handbook'
+    description: 'Sidebar navigation with chapter numbers, author and date on every page, and previous/next links at the foot. The layout the theme was built for.'
+    settings:
+      navposition: side
+      chapnum: true
+      fullwidth: false
+      blog: false
+      heroTitle: 'Handbook'
+      heroSubtitle: 'Everything worth writing down, in order.'
+      heroBtnLabel: 'Start reading'
+      heroBtnLink: '/'
+      datePosition:
+          - top
+      dateIntro: 'Updated'
+      dateFormat: d.m.Y
+      authorPosition:
+          - top
+      authorIntro: 'By'
+      previous: 'Previous'
+      next: 'Next'
+      footercolumns:
+          - footer1
+          - footer2
+      footer1: "### About\n\nOne or two sentences about this handbook and who maintains it."
+      footer2: "### Elsewhere\n\n* [Imprint](/)\n* [Privacy](/)"
+
+  website:
+    name: 'Website'
+    description: 'Horizontal top navigation and a homepage hero instead of the sidebar. Suits a portfolio or a small site rather than a manual.'
+    settings:
+      navposition: top
+      chapnum: false
+      fullwidth: false
+      blog: false
+      heroTitle: 'Hello.'
+      heroSubtitle: 'A short line about the site, the product or the person behind it.'
+      heroBtnLabel: 'Get in touch'
+      heroBtnLink: '/'
+      datePosition: []
+      authorPosition: []
+      footercolumns:
+          - footer1
+          - footer2
+          - footer3
+      footer1: "### About\n\nOne or two sentences about the site."
+      footer2: "### Sections\n\n* [Start](/)\n"
+      footer3: "### Elsewhere\n\n* [Imprint](/)\n* [Privacy](/)"
+
+  blog:
+    name: 'Blog'
+    description: 'Homepage as a list of posts with hero images and a short intro above them. Point the blog folder at your own.'
+    settings:
+      navposition: side
+      blog: true
+      blogfolder: '/blog'
+      blogimage: true
+      blogintro: true
+      chapnum: false
+      datePosition:
+          - top
+      dateIntro: 'Published'
+      dateFormat: d.m.Y
+      authorPosition:
+          - top
+      authorIntro: 'By'
+      footercolumns:
+          - footer1
+      footer1: "### About\n\nOne or two sentences about this blog."
+
+  opensource:
+    name: 'Open source docs'
+    description: 'Handbook layout plus an edit link back to the repository and a print button, at the top and bottom of every page. Set the repository URL after loading.'
+    settings:
+      navposition: side
+      chapnum: true
+      fullwidth: false
+      blog: false
+      gitLink: 'https://github.com/user/repo/blob/main/content'
+      editText: 'Edit this page'
+      gitPosition:
+          - top
+          - bottom
+      printText: 'Print'
+      printPosition:
+          - bottom
+      datePosition:
+          - top
+      dateIntro: 'Updated'
+      dateFormat: d.m.Y
+      authorPosition: []
+      previous: 'Previous'
+      next: 'Next'
+      footercolumns:
+          - footer1
+          - footer2
+      footer1: "### Project\n\nA line about the project and its licence."
+      footer2: "### Links\n\n* [Repository](https://github.com/user/repo)\n* [Issues](https://github.com/user/repo/issues)"
+
 forms:
   fields:
 
