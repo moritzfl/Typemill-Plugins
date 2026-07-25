@@ -197,6 +197,65 @@
       };
       wide.addEventListener ? wide.addEventListener('change', onChange) : wide.addListener(onChange);
     })();
+
+    (function () {
+      // Only black, white and transparent count as monochrome.
+      var ALLOWED = /^(none|transparent|currentcolor|inherit|black|white|#000|#000000|#fff|#ffffff|rgb\(\s*0\s*,\s*0\s*,\s*0\s*\)|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))$/i;
+      var COLOR_RE = /(?:fill|stroke|stop-color|color)\s*[=:]\s*["']?\s*([^"'\s;,><\/]+)/gi;
+
+      function isMonochrome(text) {
+        var match;
+        COLOR_RE.lastIndex = 0;
+        while ((match = COLOR_RE.exec(text)) !== null) {
+          if (!ALLOWED.test(match[1].trim())) return false;
+        }
+        return true;
+      }
+
+      var cache = new Map();
+
+      function check(img) {
+        var src = img.getAttribute('src');
+        if (!src || !/\.svg(\?|$)/i.test(src)) return;
+
+        // Reading the file cross-origin would fail, so leave those alone.
+        var probe = document.createElement('a');
+        probe.href = src;
+        if (probe.hostname && probe.hostname !== location.hostname) return;
+
+        // data-svg-invert overrides the guess in either direction.
+        var override = img.getAttribute('data-svg-invert');
+        if (override === 'true' || override === 'bw') {
+          img.classList.add('svg-bw-invert');
+          return;
+        }
+        if (override === 'false' || override === 'color') return;
+
+        if (cache.has(src)) {
+          if (cache.get(src)) img.classList.add('svg-bw-invert');
+          return;
+        }
+
+        fetch(src, { credentials: 'same-origin' })
+          .then(function (r) { return r.ok ? r.text() : Promise.reject(); })
+          .then(function (text) {
+            var invertable = isMonochrome(text);
+            cache.set(src, invertable);
+            if (invertable) img.classList.add('svg-bw-invert');
+          })
+          .catch(function () { cache.set(src, false); });
+      }
+
+      function run() {
+        Array.prototype.forEach.call(document.querySelectorAll('img'), check);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', run);
+      } else {
+        run();
+      }
+    })();
   </script>
   {% endblock %}
 

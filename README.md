@@ -21,8 +21,9 @@ black/white/transparent colors are automatically inverted in dark mode.
 
 A calm, spacious product-page theme: a translucent sticky header, full-bleed sections that alternate between white
 and light grey, large tightly tracked headlines, fully rounded buttons, rounded section tiles, and automatic dark
-mode. Ships no font files — the system font stack lets each platform render its own interface typeface. Plain CSS
-with custom properties, so there is no build step.
+mode. Ships no font files — the system font stack lets each platform render its own interface typeface. SVG images
+using only black, white and transparent are inverted in dark mode. Plain CSS with custom properties, so there is no
+build step.
 
 → See [`themes/lucid/README.md`](themes/lucid/README.md) for full documentation.
 
@@ -33,8 +34,8 @@ with custom properties, so there is no build step.
 A vivid, developer-facing product theme: an angled gradient hero with the navigation floating over
 it, a saturated indigo accent, deep navy bands, blue-tinted greys, tight corner radii, layered
 shadows and terminal-style code blocks. Numbered section cards and an optional dark call-to-action
-band on the homepage. Ships no font files, and automatic dark mode deepens the navy palette. Plain
-CSS with custom properties, so there is no build step.
+band on the homepage. Ships no font files, and automatic dark mode deepens the navy palette and inverts monochrome
+SVG images. Plain CSS with custom properties, so there is no build step.
 
 → See [`themes/prism/README.md`](themes/prism/README.md) for full documentation.
 

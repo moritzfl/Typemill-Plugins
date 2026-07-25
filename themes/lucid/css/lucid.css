@@ -1047,6 +1047,20 @@ a:hover {
     white-space: nowrap;
 }
 
+/* ── Monochrome SVG inversion ─────────────────────────────────────── */
+
+/*
+ * Black-and-white line art disappears against a dark background. Images whose
+ * SVG source only uses black, white and transparent are detected in the layout
+ * script and flipped here. Anything with real colour is left alone, so logos
+ * and illustrations keep their palette.
+ */
+@media (prefers-color-scheme: dark) {
+    .svg-bw-invert {
+        filter: invert(1);
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     html {
         scroll-behavior: auto;

@@ -76,6 +76,22 @@ falling back to Helvetica and Arial. Code uses the platform's monospace font.
 Nothing is loaded over the network, so there is no font flash, no third-party request, and no
 licensed typeface is redistributed.
 
+## Monochrome SVG in dark mode
+
+Black-and-white line art vanishes against a dark background. Each SVG the page
+loads from this site is read once and, if its source only uses black, white and
+transparent, it is flipped in dark mode. Anything with real colour is left
+alone, so logos and illustrations keep their palette.
+
+Override the guess per image with a data attribute:
+
+```html
+<img src="/media/files/diagram.svg" data-svg-invert="true">   <!-- always flip -->
+<img src="/media/files/logo.svg"    data-svg-invert="false">  <!-- never flip -->
+```
+
+Cross-origin images are skipped, since their source cannot be read.
+
 ## Notes
 
 - Dark mode follows `prefers-color-scheme`: the navy palette deepens and the accent lightens so it
