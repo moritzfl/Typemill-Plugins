@@ -5,7 +5,7 @@
 <article class="lc-section lc-section--tight">
   <div class="lc-container">
 
-    {% if theme.breadcrumb|default(true) and not home %}
+    {% if (theme.breadcrumb ?? true) and not home %}
       {% include 'partials/breadcrumb.twig' %}
     {% endif %}
 

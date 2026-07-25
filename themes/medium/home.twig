@@ -28,7 +28,7 @@
   {% endif %}
 
   {# The homepage lists the sections as a feed, in the same shape as posts. #}
-  {% if theme.showSections|default(true) and navigation|length > 0 %}
+  {% if (theme.showSections ?? true) and navigation|length > 0 %}
     {% if theme.sectionsLabel %}
       <p class="md-section-label">{{ theme.sectionsLabel|e }}</p>
     {% endif %}

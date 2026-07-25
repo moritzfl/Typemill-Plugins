@@ -18,7 +18,7 @@
 
       <li class="lc-post">
 
-        {% if theme.blogimage|default(true) and post.meta.heroimage %}
+        {% if (theme.blogimage ?? true) and post.meta.heroimage %}
           <a class="lc-post__media" href="{{ element.urlRel }}" tabindex="-1" aria-hidden="true">
             <img src="{{ assets.image(post.meta.heroimage).resize(820, 462).src() }}"
                  alt="{{ post.meta.heroimagealt|default('')|e('html_attr') }}"

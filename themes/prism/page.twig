@@ -5,7 +5,7 @@
 <article class="pr-section pr-section--tight">
   <div class="pr-container">
 
-    {% if theme.breadcrumb|default(true) %}
+    {% if (theme.breadcrumb ?? true) %}
       {% include 'partials/breadcrumb.twig' %}
     {% endif %}
 

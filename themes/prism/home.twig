@@ -38,7 +38,7 @@
   </section>
 {% endif %}
 
-{% if theme.showCards|default(true) and navigation|length > 0 %}
+{% if (theme.showCards ?? true) and navigation|length > 0 %}
   <section class="pr-section pr-section--alt">
     <div class="pr-container">
       {% if theme.cardsEyebrow %}

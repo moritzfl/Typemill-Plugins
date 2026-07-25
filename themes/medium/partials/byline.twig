@@ -12,7 +12,7 @@
 {% set minutes = max(1, (words / 200)|round(0, 'ceil')) %}
 
 <div class="md-byline">
-  {% if theme.showAvatar|default(true) and bylineAuthor %}
+  {% if (theme.showAvatar ?? true) and bylineAuthor %}
     <span class="md-byline__avatar" aria-hidden="true">{{ bylineAuthor|slice(0, 1) }}</span>
   {% endif %}
 
@@ -24,7 +24,7 @@
       {% if published %}
         <span><time datetime="{{ published }}">{{ published|date(theme.dateFormat|default('M j, Y')) }}</time></span>
       {% endif %}
-      {% if theme.showReadingTime|default(true) %}
+      {% if (theme.showReadingTime ?? true) %}
         <span>{{ minutes }} {{ theme.readingTimeLabel|default('min read')|e }}</span>
       {% endif %}
     </div>

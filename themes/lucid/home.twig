@@ -47,7 +47,7 @@
   </section>
 {% endif %}
 
-{% if theme.showTiles|default(true) and navigation|length > 0 %}
+{% if (theme.showTiles ?? true) and navigation|length > 0 %}
   <section class="lc-section">
     <div class="lc-container">
       {% if theme.tilesTitle %}
