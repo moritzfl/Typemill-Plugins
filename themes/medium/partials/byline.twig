@@ -1,0 +1,32 @@
+{#
+  Byline: a round monogram, the author, then date and reading time.
+
+  Reading time is counted from the rendered article rather than stored, so it
+  stays right when the page is edited. 200 words a minute is the usual figure
+  for prose on screen.
+#}
+{% set theme = settings.themes.medium %}
+{% set bylineAuthor = metatabs.meta.author|default(settings.author)|default('') %}
+{% set published = metatabs.meta.manualdate ? metatabs.meta.manualdate : metatabs.meta.modified %}
+{% set words = content|striptags|trim|split(' ')|length %}
+{% set minutes = max(1, (words / 200)|round(0, 'ceil')) %}
+
+<div class="md-byline">
+  {% if theme.showAvatar|default(true) and bylineAuthor %}
+    <span class="md-byline__avatar" aria-hidden="true">{{ bylineAuthor|slice(0, 1) }}</span>
+  {% endif %}
+
+  <div>
+    {% if bylineAuthor %}
+      <div class="md-byline__who">{{ bylineAuthor|e }}</div>
+    {% endif %}
+    <div class="md-byline__meta">
+      {% if published %}
+        <span><time datetime="{{ published }}">{{ published|date(theme.dateFormat|default('M j, Y')) }}</time></span>
+      {% endif %}
+      {% if theme.showReadingTime|default(true) %}
+        <span>{{ minutes }} {{ theme.readingTimeLabel|default('min read')|e }}</span>
+      {% endif %}
+    </div>
+  </div>
+</div>

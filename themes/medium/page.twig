@@ -1,0 +1,83 @@
+{% set theme = settings.themes.medium %}
+{% set heroImage = metatabs.meta.heroimage|default('') %}
+{% set tagList = metatabs.meta.tags|default('') %}
+
+<article class="md-container">
+
+  {% if theme.breadcrumb|default(true) %}
+    {% include 'partials/breadcrumb.twig' %}
+  {% endif %}
+
+  <div class="md-article">
+
+    <h1 class="md-article__title">{{ title|e }}</h1>
+
+    {# Off by default: Typemill generates descriptions from the page body and
+       truncates them, which reads as a broken sentence under a title. #}
+    {% if theme.showDescription|default(false) and metatabs.meta.description %}
+      <p class="md-article__standfirst">{{ metatabs.meta.description|e }}</p>
+    {% endif %}
+
+    {% if theme.showByline|default(true) %}
+      {% include 'partials/byline.twig' %}
+    {% endif %}
+
+    {% if heroImage %}
+      <figure class="md-article__hero">
+        <img src="{{ base_url }}/{{ heroImage }}"
+             alt="{{ metatabs.meta.heroimagealt|default(title)|e('html_attr') }}" />
+        {% if metatabs.meta.heroimagealt %}
+          <figcaption>{{ metatabs.meta.heroimagealt|e }}</figcaption>
+        {% endif %}
+      </figure>
+    {% endif %}
+
+    <div class="md-prose">{{ content }}</div>
+
+    {% if tagList %}
+      <ul class="md-tags">
+        {% for tag in tagList|split(',') %}
+          {% if tag|trim %}
+            <li><span class="md-tag">{{ tag|trim|e }}</span></li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+  </div>
+
+  {# Folder pages list what they hold, as a feed rather than a grid. #}
+  {% if item.elementType == 'folder' and item.folderContent|length > 0 %}
+    {% if item.contains == 'posts' %}
+      {% include 'partials/posts.twig' %}
+    {% else %}
+      <ul class="md-feed">
+        {% for child in item.folderContent %}
+          <li class="md-post">
+            <div class="md-post__body">
+              <h2 class="md-post__title"><a href="{{ child.urlRel }}">{{ child.name|e }}</a></h2>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endif %}
+
+  {% if item.prevItem or item.nextItem %}
+    <nav class="md-pager" aria-label="{{ theme.pagerLabel|default('Page')|e('html_attr') }}">
+      {% if item.prevItem %}
+        <a class="md-pager__item" href="{{ item.prevItem.urlRel }}">
+          <span class="md-pager__label">{{ theme.previous|default('Previous') }}</span>
+          <span class="md-pager__title">{{ item.prevItem.name|e }}</span>
+        </a>
+      {% endif %}
+      {% if item.nextItem %}
+        <a class="md-pager__item md-pager__item--next" href="{{ item.nextItem.urlRel }}">
+          <span class="md-pager__label">{{ theme.next|default('Next') }}</span>
+          <span class="md-pager__title">{{ item.nextItem.name|e }}</span>
+        </a>
+      {% endif %}
+    </nav>
+  {% endif %}
+
+</article>

@@ -44,6 +44,17 @@ click. Plain CSS with custom properties, so there is no build step.
 
 ---
 
+### `medium` — Medium
+
+A long-form reading theme: a serif column at 21px on a generous line-height, held to a narrow measure, near-black on
+white, with the interface kept quiet so the article carries the page. Byline with an estimated reading time counted
+from the article itself, tag pills, and a post feed with small thumbnails. Ships no font files, inverts monochrome SVG
+images in dark mode, and ships three readymades (publication, single-author blog, bare essays).
+
+→ See [`themes/medium/README.md`](themes/medium/README.md) for full documentation.
+
+---
+
 ## Plugins
 
 ### `htmldeveloper` — HTML Developer Mode

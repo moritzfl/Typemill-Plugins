@@ -1,0 +1,11 @@
+<nav class="md-breadcrumb" aria-label="Breadcrumb">
+  <a href="{{ base_url }}">{{ settings.themes.medium.homeLabel|default('Home')|e }}</a>
+  {% for crumb in breadcrumb %}
+    <span aria-hidden="true">/</span>
+    {% if loop.last %}
+      <span aria-current="page">{{ crumb.name|e }}</span>
+    {% else %}
+      <a href="{{ crumb.urlRel }}">{{ crumb.name|e }}</a>
+    {% endif %}
+  {% endfor %}
+</nav>

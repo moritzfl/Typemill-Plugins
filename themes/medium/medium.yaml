@@ -1,0 +1,304 @@
+name: Medium
+version: 1.0.0
+description: 'A long-form reading theme: a serif column at 21px on a generous line-height, held to a narrow measure, near-black on white, with the interface kept quiet so the article carries the page. Byline with reading time, tag pills, and a post feed with small thumbnails. Ships no font files. Automatic dark mode.'
+author: moritz
+homepage: https://github.com/moritzfl/Typemill-Plugins
+license: GPL-2.0
+
+settings:
+  mastheadTitle: ''
+  mastheadTagline: ''
+  mastheadBtnLabel: ''
+  mastheadBtnLink: ''
+  showSections: true
+  sectionsLabel: ''
+  sectionCountLabel: 'stories'
+  showByline: true
+  showAvatar: true
+  showReadingTime: true
+  readingTimeLabel: 'min read'
+  blog: false
+  blogfolder: '/blog'
+  blogimage: true
+  blogintro: false
+  blogpagesize: 10
+  breadcrumb: true
+  showDescription: false
+  measure: ''
+  bodysize: ''
+  sansbody: false
+  accentColor: ''
+  customcss: ''
+  homeLabel: 'Home'
+  previous: 'Previous'
+  next: 'Next'
+  dateFormat: 'M j, Y'
+
+readymades:
+
+  publication:
+    name: 'Publication'
+    description: 'Masthead, a feed of sections on the homepage, and a byline with author, date and reading time on every article. The layout the theme was built for.'
+    settings:
+      mastheadTitle: ''
+      mastheadTagline: 'Writing worth the time it takes to read.'
+      mastheadBtnLabel: 'Start reading'
+      mastheadBtnLink: '/'
+      showSections: true
+      sectionsLabel: 'Sections'
+      sectionCountLabel: 'stories'
+      showByline: true
+      showAvatar: true
+      showReadingTime: true
+      readingTimeLabel: 'min read'
+      breadcrumb: true
+      showDescription: false
+      sansbody: false
+      dateFormat: 'M j, Y'
+      footercolumns:
+          - footer1
+          - footer2
+      footer1: "### About\n\nOne or two sentences about the publication and who writes it."
+      footer2: "### Elsewhere\n\n* [Imprint](/)\n* [Privacy](/)"
+
+  singleauthor:
+    name: 'Single-author blog'
+    description: 'Homepage as a feed of posts with small thumbnails. Point the blog folder at your own.'
+    settings:
+      blog: true
+      blogfolder: '/blog'
+      blogimage: true
+      blogintro: true
+      blogpagesize: 10
+      mastheadTagline: 'Notes, essays and the occasional longer piece.'
+      showSections: false
+      showByline: true
+      showAvatar: true
+      showReadingTime: true
+      breadcrumb: true
+      dateFormat: 'M j, Y'
+      footercolumns:
+          - footer1
+      footer1: "### About\n\nOne or two sentences about the author."
+
+  essays:
+    name: 'Bare essays'
+    description: 'Everything stripped back to the text: no monogram, no reading time, no breadcrumb, and a slightly wider measure.'
+    settings:
+      showSections: true
+      sectionsLabel: ''
+      showByline: true
+      showAvatar: false
+      showReadingTime: false
+      breadcrumb: false
+      showDescription: false
+      measure: 740px
+      sansbody: false
+      dateFormat: 'F j, Y'
+      footercolumns: []
+
+forms:
+  fields:
+
+    fieldsetMasthead:
+      type: fieldset
+      legend: 'Homepage Masthead'
+      fields:
+        mastheadTitle:
+          type: text
+          label: 'Masthead title'
+          description: 'Defaults to the homepage title if left blank.'
+          css: 'lg:w-half'
+        mastheadTagline:
+          type: text
+          label: 'Tagline'
+          description: 'Falls back to the page description if left blank.'
+          css: 'lg:w-half'
+        mastheadBtnLabel:
+          type: text
+          label: 'Button label'
+          placeholder: 'Start reading'
+          css: 'lg:w-half'
+        mastheadBtnLink:
+          type: text
+          label: 'Button link'
+          placeholder: '/'
+          css: 'lg:w-half'
+        showSections:
+          type: checkbox
+          label: 'Section feed'
+          checkboxlabel: 'List the top-level sections on the homepage'
+        sectionsLabel:
+          type: text
+          label: 'Label above the section feed'
+          placeholder: 'Sections'
+          css: 'lg:w-half'
+        sectionCountLabel:
+          type: text
+          label: 'Word used after the page count'
+          placeholder: 'stories'
+          css: 'lg:w-half'
+
+    fieldsetReading:
+      type: fieldset
+      legend: 'Reading'
+      fields:
+        measure:
+          type: text
+          label: 'Column width'
+          placeholder: '680px'
+          description: 'Any CSS length. The reading column, not the page. Leave blank for the default.'
+          css: 'lg:w-half'
+        bodysize:
+          type: text
+          label: 'Body text size'
+          placeholder: '21px'
+          description: 'Any CSS length. Leave blank for the default.'
+          css: 'lg:w-half'
+        sansbody:
+          type: checkbox
+          label: 'Typeface'
+          checkboxlabel: 'Set the article in the interface sans-serif instead of a serif'
+        showDescription:
+          type: checkbox
+          label: 'Standfirst'
+          checkboxlabel: 'Show the page description under the title'
+          description: 'Only useful when descriptions are written by hand. Descriptions generated by Typemill are cut off mid-sentence.'
+        breadcrumb:
+          type: checkbox
+          label: 'Breadcrumb'
+          checkboxlabel: 'Show a breadcrumb above the article'
+
+    fieldsetByline:
+      type: fieldset
+      legend: 'Byline'
+      fields:
+        showByline:
+          type: checkbox
+          label: 'Byline'
+          checkboxlabel: 'Show author, date and reading time above the article'
+        showAvatar:
+          type: checkbox
+          label: 'Monogram'
+          checkboxlabel: "Show a round monogram with the author's initial"
+        showReadingTime:
+          type: checkbox
+          label: 'Reading time'
+          checkboxlabel: 'Estimate reading time from the length of the article'
+        readingTimeLabel:
+          type: text
+          label: 'Reading time wording'
+          placeholder: 'min read'
+          css: 'lg:w-half'
+        dateFormat:
+          type: select
+          label: 'Date format'
+          css: 'lg:w-half'
+          options:
+            'M j, Y': 'Jan 20, 2020'
+            'F j, Y': 'January 20, 2020'
+            'd.m.Y': '20.01.2020'
+            'Y-m-d': '2020-01-20'
+
+    fieldsetBlog:
+      type: fieldset
+      legend: 'Blog / Posts'
+      fields:
+        blog:
+          type: checkbox
+          label: 'Blog homepage'
+          checkboxlabel: 'Use the homepage as a post feed'
+        blogintro:
+          type: checkbox
+          label: 'Page intro'
+          checkboxlabel: 'Show the homepage content above the feed'
+        blogimage:
+          type: checkbox
+          label: 'Thumbnails'
+          checkboxlabel: 'Show a small image beside each post'
+        blogfolder:
+          type: text
+          label: 'Blog folder'
+          placeholder: '/blog'
+          css: 'lg:w-half'
+        blogpagesize:
+          type: number
+          label: 'Posts per page'
+          placeholder: '10'
+          css: 'lg:w-half'
+
+    fieldsetLabels:
+      type: fieldset
+      legend: 'Labels'
+      fields:
+        homeLabel:
+          type: text
+          label: 'Home label'
+          placeholder: 'Home'
+          css: 'lg:w-half'
+        previous:
+          type: text
+          label: 'Previous label'
+          placeholder: 'Previous'
+          css: 'lg:w-half'
+        next:
+          type: text
+          label: 'Next label'
+          placeholder: 'Next'
+          css: 'lg:w-half'
+        notFoundTitle:
+          type: text
+          label: '404 headline'
+          placeholder: 'Page not found'
+          css: 'lg:w-half'
+        notFoundText:
+          type: text
+          label: '404 text'
+          css: 'lg:w-full'
+
+    fieldsetColors:
+      type: fieldset
+      legend: 'Colors'
+      fields:
+        accentColor:
+          type: text
+          label: 'Accent color'
+          placeholder: '#1a8917'
+          description: 'Used for focus rings and the admin bar. Any CSS color.'
+          css: 'lg:w-half'
+        customcss:
+          type: textarea
+          label: 'Custom CSS'
+          description: 'Injected verbatim into a &lt;style&gt; tag.'
+
+    fieldsetFooter:
+      type: fieldset
+      legend: 'Footer Columns'
+      fields:
+        footercolumns:
+          type: checkboxlist
+          label: 'Active footer columns'
+          options:
+            footer1: 'Column 1'
+            footer2: 'Column 2'
+            footer3: 'Column 3'
+        footer1:
+          type: textarea
+          label: 'Footer column 1 (Markdown)'
+        footer2:
+          type: textarea
+          label: 'Footer column 2 (Markdown)'
+        footer3:
+          type: textarea
+          label: 'Footer column 3 (Markdown)'
+
+    fieldsetCopyright:
+      type: fieldset
+      legend: 'Copyright Line'
+      fields:
+        copyrightline:
+          type: checkbox
+          checkboxlabel: 'Override the default copyright line'
+        copyrightlinetext:
+          type: textarea
+          label: 'Custom copyright text (Markdown)'

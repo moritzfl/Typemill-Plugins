@@ -1,0 +1,17 @@
+{% extends 'layout.twig' %}
+
+{% block title %}{{ settings.themes.medium.notFoundTitle|default('Page not found')|e }} | {{ settings.title|e }}{% endblock %}
+
+{% block content %}
+  <div class="md-container">
+    <div class="md-article">
+      <h1 class="md-article__title">{{ settings.themes.medium.notFoundTitle|default('Page not found')|e }}</h1>
+      <div class="md-prose">
+        <p>{{ settings.themes.medium.notFoundText|default('The page you were looking for is not here.')|e }}</p>
+      </div>
+      <p style="margin-top:32px">
+        <a class="md-btn" href="{{ base_url }}">{{ settings.themes.medium.homeLabel|default('Home')|e }}</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% set theme = settings.themes.medium %}
+
+<section class="md-masthead">
+  <div class="md-container">
+    <h1 class="md-masthead__title">{{ theme.mastheadTitle|default('') ?: title|e }}</h1>
+    {% if theme.mastheadTagline %}
+      <p class="md-masthead__tagline">{{ theme.mastheadTagline|e }}</p>
+    {% elseif metatabs.meta.description %}
+      <p class="md-masthead__tagline">{{ metatabs.meta.description|e }}</p>
+    {% endif %}
+  </div>
+</section>
+
+<div class="md-container">
+
+  {% if theme.blogintro and content|trim %}
+    <div class="md-article" style="padding-block:48px 16px">
+      <div class="md-prose">{{ content }}</div>
+    </div>
+  {% endif %}
+
+  {% set pagelist = getPageList(navigation, theme.blogfolder, base_url) %}
+  {% set pagesize = theme.blogpagesize|default(10) %}
+  {% set pages = (pagelist.folderContent|length / pagesize)|round(0, 'ceil') %}
+  {% set currentpage = currentpage ? currentpage : 1 %}
+  {% set offset = (currentpage - 1) * pagesize %}
+
+  {% if pagelist.contains == 'posts' %}
+
+    {% include 'partials/posts.twig' with {
+      postitems: pagelist.folderContent|slice(offset, pagesize)
+    } %}
+
+    {% if pages > 1 %}
+      <nav class="md-pager" aria-label="Pagination" style="justify-content:center;gap:10px">
+        {% for i in 1..pages %}
+          {% if i == currentpage %}
+            <span class="md-btn" aria-current="page">{{ i }}</span>
+          {% else %}
+            <a class="md-btn md-btn--ghost" href="{{ item.urlRel }}/p/{{ i }}">{{ i }}</a>
+          {% endif %}
+        {% endfor %}
+      </nav>
+    {% endif %}
+
+  {% else %}
+    <div class="md-article">
+      <p class="md-post__excerpt">
+        {{ theme.blogEmptyText|default('The configured folder does not contain posts. Check the blog folder in the theme settings.')|e }}
+      </p>
+    </div>
+  {% endif %}
+
+</div>

@@ -1,0 +1,268 @@
+{% set theme = settings.themes.medium %}
+<!DOCTYPE html>
+<html lang="{{ settings.langattr | default('en') }}">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="description" content="{{ metatabs.meta.description|e('html_attr') }}" />
+  <meta name="author" content="{{ metatabs.meta.author|default(settings.author)|e('html_attr') }}" />
+  <meta name="generator" content="TYPEMILL" />
+  <link rel="canonical" href="{{ item.urlAbs }}" />
+
+  {{ assets.renderMeta() }}
+
+  {% block stylesheets %}
+  <link rel="stylesheet" href="{{ base_url }}/themes/medium/css/medium.css" />
+  <style>
+    {% if theme.accentColor %}
+    :root { --md-accent: {{ theme.accentColor }}; --md-accent-hover: {{ theme.accentColor }}; }
+    {% endif %}
+    {% if theme.measure %}
+    :root { --md-measure: {{ theme.measure }}; }
+    {% endif %}
+    {% if theme.bodysize %}
+    .md-prose { font-size: {{ theme.bodysize }}; }
+    {% endif %}
+    {% if theme.sansbody %}
+    .md-prose, .md-article__title, .md-article__standfirst, .md-post__title,
+    .md-post__excerpt, .md-masthead__title, .md-masthead__tagline,
+    .md-pager__title, .md-nav__brand { font-family: var(--md-sans); }
+    {% endif %}
+    {% if theme.customcss %}
+    {{ theme.customcss }}
+    {% endif %}
+  </style>
+  {% endblock %}
+</head>
+<body>
+
+  <a href="#main-content" class="md-skip">{{ theme.skipText|default('Skip to content') }}</a>
+
+  {% if is_loggedin() %}
+    <div class="md-admin"><a href="{{ base_url }}/tm/account">&#9881; Admin</a></div>
+  {% endif %}
+
+  {% block nav %}{% include 'partials/topnav.twig' %}{% endblock %}
+
+  <main id="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include 'partials/footer.twig' %}
+
+  {% block javascripts %}
+  {{ assets.renderCSS() }}
+  {{ assets.renderJS() }}
+  <script>
+    (function () {
+      var nav = document.querySelector('[data-nav]');
+      if (!nav) return;
+
+      var toggle = nav.querySelector('[data-nav-toggle]');
+      var items = Array.prototype.slice.call(nav.querySelectorAll('[data-nav-item]'));
+      var hoverCapable = window.matchMedia('(hover: hover)');
+      var wide = window.matchMedia('(min-width: 821px)');
+      var closeTimer = null;
+      var restoringFocus = false;
+
+      // Hover menus only make sense on a wide viewport with a real pointer.
+      function pointerMenus() {
+        return wide.matches && hoverCapable.matches;
+      }
+
+      function setItemOpen(item, open) {
+        item.classList.toggle('is-open', open);
+        var link = item.querySelector('[data-nav-parent]');
+        if (link) link.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+
+      function closeAll(except) {
+        items.forEach(function (item) {
+          if (item !== except) setItemOpen(item, false);
+        });
+      }
+
+      function cancelClose() {
+        if (closeTimer) {
+          clearTimeout(closeTimer);
+          closeTimer = null;
+        }
+      }
+
+      // Closing is deferred, so a diagonal move from the link into the panel or
+      // across to the next section does not flick the menu shut on the way.
+      function scheduleClose() {
+        cancelClose();
+        closeTimer = setTimeout(function () {
+          closeAll();
+        }, 220);
+      }
+
+      function setDrawer(open) {
+        nav.classList.toggle('md-nav--open', open);
+        if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        document.body.style.overflow = open ? 'hidden' : '';
+        if (!open) closeAll();
+      }
+
+      if (toggle) {
+        toggle.addEventListener('click', function () {
+          setDrawer(!nav.classList.contains('md-nav--open'));
+        });
+      }
+
+      items.forEach(function (item) {
+        var link = item.querySelector('[data-nav-parent]');
+        if (!link) return;
+
+        item.addEventListener('mouseenter', function () {
+          if (!pointerMenus()) return;
+          cancelClose();
+          closeAll(item);
+          setItemOpen(item, true);
+        });
+
+        link.addEventListener('click', function (e) {
+          var drawerOpen = nav.classList.contains('md-nav--open');
+          var touchLike = e.pointerType === 'touch' || !hoverCapable.matches;
+
+          // With a mouse the panel is already visible from hovering, so the
+          // click follows the link.
+          if (!drawerOpen && !touchLike) {
+            return;
+          }
+
+          // By touch the first tap reveals the section and the second one
+          // follows the link.
+          if (item.classList.contains('is-open')) {
+            return;
+          }
+
+          e.preventDefault();
+          closeAll(item);
+          setItemOpen(item, true);
+        });
+
+        // Tabbing into a section reveals it, and leaving it closes it again.
+        link.addEventListener('focus', function () {
+          if (restoringFocus || !pointerMenus()) return;
+          cancelClose();
+          closeAll(item);
+          setItemOpen(item, true);
+        });
+
+        item.addEventListener('focusout', function (e) {
+          if (!wide.matches) return;
+          if (!item.contains(e.relatedTarget)) setItemOpen(item, false);
+        });
+      });
+
+      // Only leaving the bar closes the menu. Moving anywhere inside it,
+      // including into the open panel, keeps it up.
+      nav.addEventListener('mouseleave', function () {
+        if (pointerMenus()) scheduleClose();
+      });
+      nav.addEventListener('mouseenter', cancelClose);
+
+      document.addEventListener('click', function (e) {
+        if (!nav.contains(e.target)) closeAll();
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+
+        var open = items.filter(function (item) {
+          return item.classList.contains('is-open');
+        })[0];
+
+        closeAll();
+        setDrawer(false);
+
+        // Focus returns to the trigger rather than being dropped on the page.
+        // Guarded, because focusing the trigger would otherwise run the handler
+        // that reopens the section and make Escape a no-op.
+        if (open) {
+          var link = open.querySelector('[data-nav-parent]');
+          if (link) {
+            restoringFocus = true;
+            link.focus();
+            setTimeout(function () { restoringFocus = false; }, 0);
+          }
+        }
+      });
+
+      // Leaving the mobile breakpoint must not strand the drawer open.
+      var onChange = function () {
+        if (wide.matches) {
+          setDrawer(false);
+          closeAll();
+        }
+      };
+      wide.addEventListener ? wide.addEventListener('change', onChange) : wide.addListener(onChange);
+    })();
+
+    (function () {
+      // Only black, white and transparent count as monochrome.
+      var ALLOWED = /^(none|transparent|currentcolor|inherit|black|white|#000|#000000|#fff|#ffffff|rgb\(\s*0\s*,\s*0\s*,\s*0\s*\)|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))$/i;
+      var COLOR_RE = /(?:fill|stroke|stop-color|color)\s*[=:]\s*["']?\s*([^"'\s;,><\/]+)/gi;
+
+      function isMonochrome(text) {
+        var match;
+        COLOR_RE.lastIndex = 0;
+        while ((match = COLOR_RE.exec(text)) !== null) {
+          if (!ALLOWED.test(match[1].trim())) return false;
+        }
+        return true;
+      }
+
+      var cache = new Map();
+
+      function check(img) {
+        var src = img.getAttribute('src');
+        if (!src || !/\.svg(\?|$)/i.test(src)) return;
+
+        // Reading the file cross-origin would fail, so leave those alone.
+        var probe = document.createElement('a');
+        probe.href = src;
+        if (probe.hostname && probe.hostname !== location.hostname) return;
+
+        // data-svg-invert overrides the guess in either direction.
+        var override = img.getAttribute('data-svg-invert');
+        if (override === 'true' || override === 'bw') {
+          img.classList.add('svg-bw-invert');
+          return;
+        }
+        if (override === 'false' || override === 'color') return;
+
+        if (cache.has(src)) {
+          if (cache.get(src)) img.classList.add('svg-bw-invert');
+          return;
+        }
+
+        fetch(src, { credentials: 'same-origin' })
+          .then(function (r) { return r.ok ? r.text() : Promise.reject(); })
+          .then(function (text) {
+            var invertable = isMonochrome(text);
+            cache.set(src, invertable);
+            if (invertable) img.classList.add('svg-bw-invert');
+          })
+          .catch(function () { cache.set(src, false); });
+      }
+
+      function run() {
+        Array.prototype.forEach.call(document.querySelectorAll('img'), check);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', run);
+      } else {
+        run();
+      }
+    })();
+  </script>
+  {% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,46 @@
+{#
+  Post feed: a stack of rows, text on the left and a small square thumbnail on
+  the right, rather than a grid of cards.
+#}
+{% set theme = settings.themes.medium %}
+{% set postitems = postitems is defined and postitems ? postitems : item.folderContent %}
+
+{% if postitems|length > 0 %}
+  <ul class="md-feed">
+    {% for element in postitems %}
+      {% set post = getPageMeta(settings, element) %}
+      {% set orderDate = element.order is defined and element.order matches '/^\\d{8}$/'
+          ? element.order[0:4] ~ '-' ~ element.order[4:2] ~ '-' ~ element.order[6:2] : '' %}
+      {% set date = post.meta.manualdate|default(post.meta.modified|default(orderDate)) %}
+
+      <li class="md-post">
+        <div class="md-post__body">
+          <p class="md-post__meta">
+            {% if post.meta.author|default(settings.author) %}
+              <span>{{ post.meta.author|default(settings.author)|e }}</span>
+            {% endif %}
+            {% if date %}
+              <span><time datetime="{{ date }}">{{ date|date(theme.dateFormat|default('M j, Y')) }}</time></span>
+            {% endif %}
+          </p>
+
+          <h2 class="md-post__title">
+            <a href="{{ element.urlRel }}">{{ post.meta.title|default(element.name)|e }}</a>
+          </h2>
+
+          {% if post.meta.description %}
+            <p class="md-post__excerpt">{{ post.meta.description|e }}</p>
+          {% endif %}
+        </div>
+
+        {% if theme.blogimage|default(true) and post.meta.heroimage %}
+          <a class="md-post__media" href="{{ element.urlRel }}" tabindex="-1" aria-hidden="true">
+            <img src="{{ assets.image(post.meta.heroimage).resize(320, 214).src() }}"
+                 alt="{{ post.meta.heroimagealt|default('')|e('html_attr') }}"
+                 loading="lazy" decoding="async" />
+          </a>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}
