@@ -50,27 +50,113 @@
   <script>
     (function () {
       var nav = document.querySelector('[data-nav]');
-      var toggle = document.querySelector('[data-nav-toggle]');
-      if (!nav || !toggle) return;
+      if (!nav) return;
 
-      function setOpen(open) {
-        nav.classList.toggle('lc-nav--open', open);
-        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-        document.body.style.overflow = open ? 'hidden' : '';
+      var toggle = nav.querySelector('[data-nav-toggle]');
+      var items = Array.prototype.slice.call(nav.querySelectorAll('[data-nav-item]'));
+      var hoverCapable = window.matchMedia('(hover: hover)');
+      var wide = window.matchMedia('(min-width: 834px)');
+
+      function setItemOpen(item, open) {
+        item.classList.toggle('is-open', open);
+        var link = item.querySelector('[data-nav-parent]');
+        if (link) link.setAttribute('aria-expanded', open ? 'true' : 'false');
       }
 
-      toggle.addEventListener('click', function () {
-        setOpen(!nav.classList.contains('lc-nav--open'));
+      function closeAll(except) {
+        items.forEach(function (item) {
+          if (item !== except) setItemOpen(item, false);
+        });
+      }
+
+      function setDrawer(open) {
+        nav.classList.toggle('lc-nav--open', open);
+        if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        document.body.style.overflow = open ? 'hidden' : '';
+        if (!open) closeAll();
+      }
+
+      if (toggle) {
+        toggle.addEventListener('click', function () {
+          setDrawer(!nav.classList.contains('lc-nav--open'));
+        });
+      }
+
+      items.forEach(function (item) {
+        var link = item.querySelector('[data-nav-parent]');
+        if (!link) return;
+
+        // On a pointer device the panel follows the cursor. The panel is a
+        // descendant of the item, so hovering it does not count as leaving.
+        item.addEventListener('mouseenter', function () {
+          if (wide.matches && hoverCapable.matches) {
+            closeAll(item);
+            setItemOpen(item, true);
+          }
+        });
+
+        item.addEventListener('mouseleave', function () {
+          if (wide.matches && hoverCapable.matches) {
+            setItemOpen(item, false);
+          }
+        });
+
+        link.addEventListener('click', function (e) {
+          var drawerOpen = nav.classList.contains('lc-nav--open');
+          var touchLike = e.pointerType === 'touch' || !hoverCapable.matches;
+
+          // Mouse users already saw the panel on hover, so a click navigates.
+          if (!drawerOpen && !touchLike) {
+            return;
+          }
+
+          // Everywhere else the first tap reveals the section and the second
+          // one follows the link.
+          if (item.classList.contains('is-open')) {
+            return;
+          }
+
+          e.preventDefault();
+          closeAll(item);
+          setItemOpen(item, true);
+        });
+
+        // Keyboard users reach the panel by tabbing into the section.
+        link.addEventListener('focus', function () {
+          if (wide.matches && hoverCapable.matches) {
+            closeAll(item);
+            setItemOpen(item, true);
+          }
+        });
+      });
+
+      nav.addEventListener('focusout', function (e) {
+        if (wide.matches && !nav.contains(e.relatedTarget)) {
+          closeAll();
+        }
+      });
+
+      document.addEventListener('click', function (e) {
+        if (!nav.contains(e.target)) {
+          closeAll();
+        }
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          closeAll();
+          setDrawer(false);
+        }
       });
 
       // Leaving the mobile breakpoint must not strand the drawer open.
-      var wide = window.matchMedia('(min-width: 834px)');
-      var onChange = function () { if (wide.matches) setOpen(false); };
+      var onChange = function () {
+        if (wide.matches) {
+          setDrawer(false);
+          closeAll();
+        }
+      };
       wide.addEventListener ? wide.addEventListener('change', onChange) : wide.addListener(onChange);
-
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') setOpen(false);
-      });
     })();
   </script>
   {% endblock %}

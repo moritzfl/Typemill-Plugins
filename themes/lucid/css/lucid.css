@@ -203,21 +203,107 @@ a:hover {
     overflow: hidden;
 }
 
-.lc-nav__links a {
+.lc-nav__link {
     color: var(--lc-text);
     opacity: 0.88;
     white-space: nowrap;
     transition: opacity 0.2s ease;
 }
 
-.lc-nav__links a:hover {
+.lc-nav__link:hover {
     opacity: 1;
     text-decoration: none;
 }
 
-.lc-nav__links a[aria-current="page"] {
+.lc-nav__link[aria-current="page"] {
     opacity: 1;
     font-weight: 600;
+}
+
+/* ── Expanding section menu ───────────────────────────────────────── */
+
+/*
+ * The panel is absolutely positioned against the header rather than its list
+ * item, so it spans the full width of the bar. The item deliberately has no
+ * position of its own for that reason.
+ */
+.lc-mega {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    /*
+     * Opaque rather than translucent. A backdrop-filter here would sample the
+     * header's already-filtered backdrop rather than the page, so the panel
+     * would stay see-through and the content behind it would read through the
+     * links.
+     */
+    background: var(--lc-bg);
+    border-bottom: 1px solid var(--lc-border-subtle);
+    box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s;
+    pointer-events: none;
+}
+
+.lc-nav__item--has-menu.is-open .lc-mega {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.lc-mega__inner {
+    max-width: var(--lc-container);
+    margin-inline: auto;
+    padding: 30px var(--lc-gutter) 40px;
+}
+
+.lc-mega__eyebrow {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--lc-text-tertiary);
+    margin: 0 0 14px;
+}
+
+.lc-mega__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    columns: 2;
+    column-gap: 40px;
+    max-width: 620px;
+}
+
+.lc-mega__list li {
+    break-inside: avoid;
+    margin-bottom: 10px;
+}
+
+.lc-mega__list a {
+    font-size: 21px;
+    line-height: 1.3;
+    font-weight: 600;
+    letter-spacing: -0.016em;
+    color: var(--lc-text);
+    opacity: 1;
+}
+
+.lc-mega__list a:hover {
+    color: var(--lc-accent);
+    text-decoration: none;
+}
+
+.lc-mega__list a[aria-current="page"] {
+    color: var(--lc-accent);
+}
+
+@media (max-width: 640px) {
+    .lc-mega__list {
+        columns: 1;
+    }
 }
 
 .lc-nav__toggle {
@@ -269,10 +355,86 @@ a:hover {
         font-size: 17px;
     }
 
-    .lc-nav--open .lc-nav__links a {
+    .lc-nav--open .lc-nav__link {
+        /* Block, or the padding and divider only span the text width. */
         display: block;
         padding: 14px 0;
         border-bottom: 1px solid var(--lc-border-subtle);
+    }
+
+    /* In the drawer the same panel becomes an accordion rather than an overlay. */
+    .lc-nav--open .lc-mega {
+        position: static;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        pointer-events: auto;
+        background: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        border-bottom: 0;
+        box-shadow: none;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.28s ease;
+    }
+
+    .lc-nav--open .lc-nav__item.is-open .lc-mega {
+        transform: none;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .lc-nav--open .lc-mega__inner {
+        padding: 4px 0 8px 14px;
+        max-width: none;
+    }
+
+    .lc-nav--open .lc-mega__eyebrow {
+        display: none;
+    }
+
+    .lc-nav--open .lc-mega__list {
+        columns: 1;
+        max-width: none;
+    }
+
+    .lc-nav--open .lc-mega__list li {
+        margin-bottom: 0;
+    }
+
+    .lc-nav--open .lc-mega__list a {
+        display: block;
+        font-size: 17px;
+        font-weight: 400;
+        padding: 11px 0;
+        border-bottom: 1px solid var(--lc-border-subtle);
+        color: var(--lc-text-secondary);
+    }
+
+    /* Chevron marks the rows that expand, and turns when open. */
+    .lc-nav--open .lc-nav__link[data-nav-parent] {
+        position: relative;
+    }
+
+    .lc-nav--open .lc-nav__link[data-nav-parent]::after {
+        content: "";
+        position: absolute;
+        right: 4px;
+        top: 50%;
+        width: 7px;
+        height: 7px;
+        margin-top: -5px;
+        border-right: 1.5px solid currentColor;
+        border-bottom: 1.5px solid currentColor;
+        transform: rotate(45deg);
+        opacity: 0.4;
+        transition: transform 0.2s ease;
+    }
+
+    .lc-nav--open .lc-nav__item.is-open > .lc-nav__link[data-nav-parent]::after {
+        transform: rotate(-135deg);
+        margin-top: -2px;
     }
 }
 

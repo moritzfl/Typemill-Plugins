@@ -1,9 +1,10 @@
 {#
   Global navigation.
 
-  The header is a single flat row of small links, so only the top level of
-  the Typemill navigation tree is rendered here. Deeper pages are reached from
-  the folder listings on the section pages themselves.
+  Top-level sections that contain pages expand into a full-width panel below the
+  bar. The panel markup is nested inside its list item so the same structure can
+  serve as an accordion in the mobile drawer; on desktop it is positioned
+  against the header, which spans the full width.
 #}
 <header class="lc-nav" data-nav>
   <div class="lc-nav__inner">
@@ -19,15 +20,44 @@
     <nav aria-label="{{ settings.themes.lucid.navLabel|default('Main')|e('html_attr') }}">
       <ul class="lc-nav__links">
         {% for element in navigation %}
-          <li>
+          {% set children = element.elementType == 'folder' ? element.folderContent : [] %}
+          {% set panelId = 'lc-sub-' ~ loop.index %}
+
+          <li class="lc-nav__item{{ children|length > 0 ? ' lc-nav__item--has-menu' : '' }}"
+              {% if children|length > 0 %}data-nav-item{% endif %}>
+
             <a href="{{ element.urlRel }}"
-               {% if element.active %}aria-current="page"{% endif %}>{{ element.name|e }}</a>
+               class="lc-nav__link"
+               {% if element.active %}aria-current="page"{% endif %}
+               {% if children|length > 0 %}
+                 data-nav-parent
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-controls="{{ panelId }}"
+               {% endif %}>{{ element.name|e }}</a>
+
+            {% if children|length > 0 %}
+              <div class="lc-mega" id="{{ panelId }}" data-nav-panel>
+                <div class="lc-mega__inner">
+                  <p class="lc-mega__eyebrow">{{ element.name|e }}</p>
+                  <ul class="lc-mega__list">
+                    {% for child in children %}
+                      <li>
+                        <a href="{{ child.urlRel }}"{% if child.active %} aria-current="page"{% endif %}>
+                          {{ child.name|e }}
+                        </a>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+            {% endif %}
           </li>
         {% endfor %}
 
         {% if multilang is defined and multilang %}
           {% for lang, link in multilang %}
-            <li><a href="{{ base_url }}{{ link }}">{{ lang|upper }}</a></li>
+            <li class="lc-nav__item"><a class="lc-nav__link" href="{{ base_url }}{{ link }}">{{ lang|upper }}</a></li>
           {% endfor %}
         {% endif %}
       </ul>
