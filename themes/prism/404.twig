@@ -1,0 +1,23 @@
+{% extends 'layout.twig' %}
+
+{% block title %}{{ settings.themes.prism.notFoundTitle|default('Page not found')|e }} | {{ settings.title|e }}{% endblock %}
+
+{# The 404 opens with the same coloured hero, so the bar sits over it. #}
+{% block nav %}{% include 'partials/topnav.twig' with {overlay: true} %}{% endblock %}
+
+{% block content %}
+  <section class="pr-hero pr-hero--tall">
+    <div class="pr-container">
+      <div class="pr-hero__inner">
+        <p class="pr-eyebrow">404</p>
+        <h1 class="pr-hero__title">{{ settings.themes.prism.notFoundTitle|default('Page not found')|e }}</h1>
+        <p class="pr-hero__subtitle">
+          {{ settings.themes.prism.notFoundText|default('The page you were looking for is not here.')|e }}
+        </p>
+        <div class="pr-hero__actions">
+          <a class="pr-btn pr-btn--light" href="{{ base_url }}">{{ settings.themes.prism.homeLabel|default('Home')|e }}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

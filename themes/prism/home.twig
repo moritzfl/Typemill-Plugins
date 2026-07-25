@@ -1,0 +1,86 @@
+{% set theme = settings.themes.prism %}
+{% set heroTitle = theme.heroTitle|default('') ?: title %}
+
+<section class="pr-hero{{ theme.heroPlain ? ' pr-hero--plain' : '' }}">
+  <div class="pr-container">
+    <div class="pr-hero__inner">
+      {% if theme.heroEyebrow %}
+        <p class="pr-eyebrow">{{ theme.heroEyebrow|e }}</p>
+      {% endif %}
+
+      <h1 class="pr-hero__title">{{ heroTitle|e }}</h1>
+
+      {% if theme.heroSubtitle %}
+        <p class="pr-hero__subtitle">{{ theme.heroSubtitle|e }}</p>
+      {% elseif metatabs.meta.description %}
+        <p class="pr-hero__subtitle">{{ metatabs.meta.description|e }}</p>
+      {% endif %}
+
+      {% if (theme.heroBtnLabel and theme.heroBtnLink) or (theme.heroLinkLabel and theme.heroLinkTarget) %}
+        <div class="pr-hero__actions">
+          {% if theme.heroBtnLabel and theme.heroBtnLink %}
+            <a class="pr-btn pr-btn--light" href="{{ theme.heroBtnLink }}">{{ theme.heroBtnLabel|e }}</a>
+          {% endif %}
+          {% if theme.heroLinkLabel and theme.heroLinkTarget %}
+            <a class="pr-btn pr-btn--ghost" href="{{ theme.heroLinkTarget }}">{{ theme.heroLinkLabel|e }}</a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% if content|trim %}
+  <section class="pr-section pr-section--tight">
+    <div class="pr-container">
+      <div class="pr-article pr-prose" style="margin-top:0">{{ content }}</div>
+    </div>
+  </section>
+{% endif %}
+
+{% if theme.showCards|default(true) and navigation|length > 0 %}
+  <section class="pr-section pr-section--alt">
+    <div class="pr-container">
+      {% if theme.cardsEyebrow %}
+        <p class="pr-eyebrow pr-eyebrow--brand">{{ theme.cardsEyebrow|e }}</p>
+      {% endif %}
+      <div class="pr-rule"></div>
+      {% if theme.cardsTitle %}
+        <h2 class="pr-section__title">{{ theme.cardsTitle|e }}</h2>
+      {% endif %}
+      {% if theme.cardsLead %}
+        <p class="pr-section__lead">{{ theme.cardsLead|e }}</p>
+      {% endif %}
+
+      <ul class="pr-grid">
+        {% for element in navigation %}
+          <li class="pr-card">
+            <p class="pr-card__index">{{ '%02d'|format(loop.index) }}</p>
+            <h3 class="pr-card__title"><a href="{{ element.urlRel }}">{{ element.name|e }}</a></h3>
+            <p class="pr-card__text">
+              {% if element.elementType == 'folder' and element.folderContent|length > 0 %}
+                {{ element.folderContent|length }} {{ theme.cardsCountLabel|default('pages')|e }}
+              {% endif %}
+            </p>
+            <div><a class="pr-link" href="{{ element.urlRel }}">{{ theme.cardsLinkLabel|default('Explore')|e }}</a></div>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+{% endif %}
+
+{% if theme.ctaTitle %}
+  <section class="pr-section pr-section--dark">
+    <div class="pr-container">
+      <div class="pr-rule"></div>
+      <h2 class="pr-section__title">{{ theme.ctaTitle|e }}</h2>
+      {% if theme.ctaText %}
+        <p class="pr-section__lead">{{ theme.ctaText|e }}</p>
+      {% endif %}
+      {% if theme.ctaBtnLabel and theme.ctaBtnLink %}
+        <a class="pr-btn" href="{{ theme.ctaBtnLink }}">{{ theme.ctaBtnLabel|e }}</a>
+      {% endif %}
+    </div>
+  </section>
+{% endif %}

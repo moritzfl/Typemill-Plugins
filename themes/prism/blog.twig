@@ -1,0 +1,61 @@
+{% set theme = settings.themes.prism %}
+
+<section class="pr-hero{{ theme.heroPlain ? ' pr-hero--plain' : '' }}">
+  <div class="pr-container">
+    <div class="pr-hero__inner">
+      {% if theme.heroEyebrow %}
+        <p class="pr-eyebrow">{{ theme.heroEyebrow|e }}</p>
+      {% endif %}
+      <h1 class="pr-hero__title">{{ theme.heroTitle|default('') ?: title|e }}</h1>
+      {% if theme.heroSubtitle %}
+        <p class="pr-hero__subtitle">{{ theme.heroSubtitle|e }}</p>
+      {% elseif metatabs.meta.description %}
+        <p class="pr-hero__subtitle">{{ metatabs.meta.description|e }}</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% if theme.blogintro and content|trim %}
+  <section class="pr-section pr-section--tight">
+    <div class="pr-container">
+      <div class="pr-article pr-prose" style="margin-top:0">{{ content }}</div>
+    </div>
+  </section>
+{% endif %}
+
+<section class="pr-section">
+  <div class="pr-container">
+
+    {% set pagelist = getPageList(navigation, theme.blogfolder, base_url) %}
+    {% set pagesize = theme.blogpagesize|default(9) %}
+    {% set pages = (pagelist.folderContent|length / pagesize)|round(0, 'ceil') %}
+    {% set currentpage = currentpage ? currentpage : 1 %}
+    {% set offset = (currentpage - 1) * pagesize %}
+
+    {% if pagelist.contains == 'posts' %}
+
+      {% include 'partials/posts.twig' with {
+        postitems: pagelist.folderContent|slice(offset, pagesize)
+      } %}
+
+      {% if pages > 1 %}
+        <nav class="pr-hero__actions" style="margin-top:40px" aria-label="Pagination">
+          {% for i in 1..pages %}
+            {% if i == currentpage %}
+              <span class="pr-btn" aria-current="page">{{ i }}</span>
+            {% else %}
+              <a class="pr-btn pr-btn--light" href="{{ item.urlRel }}/p/{{ i }}">{{ i }}</a>
+            {% endif %}
+          {% endfor %}
+        </nav>
+      {% endif %}
+
+    {% else %}
+      <p class="pr-section__lead">
+        {{ theme.blogEmptyText|default('The configured folder does not contain posts. Check the blog folder in the theme settings.')|e }}
+      </p>
+    {% endif %}
+
+  </div>
+</section>

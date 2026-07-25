@@ -1,0 +1,305 @@
+name: Prism
+version: 1.0.0
+description: 'A vivid, developer-facing product theme: an angled gradient hero with the navigation floating over it, a saturated indigo accent, deep navy bands, blue-tinted greys, tight corner radii, layered shadows and terminal-style code blocks. Ships no font files. Automatic dark mode.'
+author: moritz
+homepage: https://github.com/moritzfl/Typemill-Plugins
+license: GPL-2.0
+
+settings:
+  heroEyebrow: ''
+  heroTitle: ''
+  heroSubtitle: ''
+  heroBtnLabel: ''
+  heroBtnLink: ''
+  heroLinkLabel: ''
+  heroLinkTarget: ''
+  heroPlain: false
+  showCards: true
+  cardsEyebrow: ''
+  cardsTitle: ''
+  cardsLead: ''
+  cardsLinkLabel: 'Explore'
+  cardsCountLabel: 'pages'
+  ctaTitle: ''
+  ctaText: ''
+  ctaBtnLabel: ''
+  ctaBtnLink: ''
+  blog: false
+  blogfolder: '/blog'
+  blogimage: true
+  blogintro: false
+  blogpagesize: 9
+  breadcrumb: true
+  showDescription: false
+  accentColor: ''
+  gradient: ''
+  maxwidth: ''
+  customcss: ''
+  homeLabel: 'Home'
+  previous: 'Previous'
+  next: 'Next'
+  dateFormat: 'd.m.Y'
+
+forms:
+  fields:
+
+    fieldsetHero:
+      type: fieldset
+      legend: 'Homepage Hero'
+      fields:
+        heroEyebrow:
+          type: text
+          label: 'Eyebrow (small uppercase line above the headline)'
+          placeholder: 'Documentation'
+          css: 'lg:w-half'
+        heroTitle:
+          type: text
+          label: 'Headline'
+          description: 'Defaults to the homepage title if left blank.'
+          placeholder: 'Everything you need to ship.'
+          css: 'lg:w-half'
+        heroSubtitle:
+          type: text
+          label: 'Subheadline'
+          description: 'Falls back to the page description if left blank.'
+          css: 'lg:w-full'
+        heroBtnLabel:
+          type: text
+          label: 'Primary button label'
+          placeholder: 'Get started'
+          css: 'lg:w-half'
+        heroBtnLink:
+          type: text
+          label: 'Primary button link'
+          placeholder: '/docs'
+          css: 'lg:w-half'
+        heroLinkLabel:
+          type: text
+          label: 'Secondary button label'
+          placeholder: 'Read the guide'
+          css: 'lg:w-half'
+        heroLinkTarget:
+          type: text
+          label: 'Secondary button link'
+          placeholder: '/guide'
+          css: 'lg:w-half'
+        heroPlain:
+          type: checkbox
+          label: 'Hero background'
+          checkboxlabel: 'Use a solid deep indigo instead of the gradient'
+
+    fieldsetCards:
+      type: fieldset
+      legend: 'Homepage Cards'
+      fields:
+        showCards:
+          type: checkbox
+          label: 'Section cards'
+          checkboxlabel: 'Show a numbered card for each top-level section'
+        cardsEyebrow:
+          type: text
+          label: 'Cards eyebrow'
+          placeholder: 'Sections'
+          css: 'lg:w-half'
+        cardsTitle:
+          type: text
+          label: 'Cards heading'
+          placeholder: 'Start here'
+          css: 'lg:w-half'
+        cardsLead:
+          type: text
+          label: 'Cards intro text'
+          css: 'lg:w-full'
+        cardsLinkLabel:
+          type: text
+          label: 'Card link label'
+          placeholder: 'Explore'
+          css: 'lg:w-half'
+        cardsCountLabel:
+          type: text
+          label: 'Word used after the page count'
+          placeholder: 'pages'
+          css: 'lg:w-half'
+
+    fieldsetCta:
+      type: fieldset
+      legend: 'Homepage Call to Action'
+      fields:
+        ctaTitle:
+          type: text
+          label: 'Heading'
+          description: 'Leave blank to hide the dark call-to-action band.'
+          css: 'lg:w-half'
+        ctaText:
+          type: text
+          label: 'Text'
+          css: 'lg:w-half'
+        ctaBtnLabel:
+          type: text
+          label: 'Button label'
+          css: 'lg:w-half'
+        ctaBtnLink:
+          type: text
+          label: 'Button link'
+          css: 'lg:w-half'
+
+    fieldsetBlog:
+      type: fieldset
+      legend: 'Blog / Posts'
+      fields:
+        blog:
+          type: checkbox
+          label: 'Blog homepage'
+          checkboxlabel: 'Use the homepage as a post listing'
+        blogintro:
+          type: checkbox
+          label: 'Page intro'
+          checkboxlabel: 'Show the homepage content above the post list'
+        blogimage:
+          type: checkbox
+          label: 'Post images'
+          checkboxlabel: 'Show hero images in post cards'
+        blogfolder:
+          type: text
+          label: 'Blog folder'
+          placeholder: '/blog'
+          css: 'lg:w-half'
+        blogpagesize:
+          type: number
+          label: 'Posts per page'
+          placeholder: '9'
+          css: 'lg:w-half'
+
+    fieldsetLayout:
+      type: fieldset
+      legend: 'Layout'
+      fields:
+        breadcrumb:
+          type: checkbox
+          label: 'Breadcrumb'
+          checkboxlabel: 'Show a breadcrumb above the page title'
+        showDescription:
+          type: checkbox
+          label: 'Page lead text'
+          checkboxlabel: 'Show the page description under the title'
+          description: 'Only useful when descriptions are written by hand. Descriptions generated by Typemill are cut off mid-sentence.'
+        maxwidth:
+          type: text
+          label: 'Content width'
+          placeholder: '1080px'
+          css: 'lg:w-half'
+        dateFormat:
+          type: select
+          label: 'Date format'
+          css: 'lg:w-half'
+          options:
+            'd.m.Y': '20.01.2020'
+            'm/d/Y': '01/20/2020'
+            'Y-m-d': '2020-01-20'
+
+    fieldsetMeta:
+      type: fieldset
+      legend: 'Article Meta'
+      fields:
+        datePosition:
+          type: checkboxlist
+          label: 'Show date'
+          options:
+            top: Top
+        dateIntro:
+          type: text
+          label: 'Date intro text'
+          placeholder: 'Updated'
+          css: 'lg:w-half'
+        authorPosition:
+          type: checkboxlist
+          label: 'Show author'
+          options:
+            top: Top
+        authorIntro:
+          type: text
+          label: 'Author intro text'
+          placeholder: 'By'
+          css: 'lg:w-half'
+
+    fieldsetColors:
+      type: fieldset
+      legend: 'Colors'
+      fields:
+        accentColor:
+          type: text
+          label: 'Accent color'
+          placeholder: '#665efd'
+          description: 'Any CSS color. Leave blank for the default indigo.'
+          css: 'lg:w-half'
+        gradient:
+          type: text
+          label: 'Hero gradient'
+          placeholder: 'linear-gradient(90deg, #7232f1 3%, #fb76fa 50%, #ffcf5e 100%)'
+          description: 'Any CSS gradient. Also used for section rules and horizontal lines.'
+          css: 'lg:w-full'
+        customcss:
+          type: textarea
+          label: 'Custom CSS'
+          description: 'Injected verbatim into a &lt;style&gt; tag.'
+
+    fieldsetLabels:
+      type: fieldset
+      legend: 'Labels'
+      fields:
+        homeLabel:
+          type: text
+          label: 'Home label'
+          placeholder: 'Home'
+          css: 'lg:w-half'
+        previous:
+          type: text
+          label: 'Previous label'
+          placeholder: 'Previous'
+          css: 'lg:w-half'
+        next:
+          type: text
+          label: 'Next label'
+          placeholder: 'Next'
+          css: 'lg:w-half'
+        notFoundTitle:
+          type: text
+          label: '404 headline'
+          placeholder: 'Page not found'
+          css: 'lg:w-half'
+        notFoundText:
+          type: text
+          label: '404 text'
+          css: 'lg:w-full'
+
+    fieldsetFooter:
+      type: fieldset
+      legend: 'Footer Columns'
+      fields:
+        footercolumns:
+          type: checkboxlist
+          label: 'Active footer columns'
+          options:
+            footer1: 'Column 1'
+            footer2: 'Column 2'
+            footer3: 'Column 3'
+        footer1:
+          type: textarea
+          label: 'Footer column 1 (Markdown)'
+        footer2:
+          type: textarea
+          label: 'Footer column 2 (Markdown)'
+        footer3:
+          type: textarea
+          label: 'Footer column 3 (Markdown)'
+
+    fieldsetCopyright:
+      type: fieldset
+      legend: 'Copyright Line'
+      fields:
+        copyrightline:
+          type: checkbox
+          checkboxlabel: 'Override the default copyright line'
+        copyrightlinetext:
+          type: textarea
+          label: 'Custom copyright text (Markdown)'

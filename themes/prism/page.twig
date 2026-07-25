@@ -1,0 +1,79 @@
+{% set theme = settings.themes.prism %}
+{% set published = metatabs.meta.manualdate ? metatabs.meta.manualdate : metatabs.meta.modified %}
+{% set heroImage = metatabs.meta.heroimage|default('') %}
+
+<article class="pr-section pr-section--tight">
+  <div class="pr-container">
+
+    {% if theme.breadcrumb|default(true) %}
+      {% include 'partials/breadcrumb.twig' %}
+    {% endif %}
+
+    <div class="pr-article">
+
+      <h1 class="pr-article__title">{{ title|e }}</h1>
+
+      {# Off by default: Typemill generates descriptions from the page body and
+         truncates them, which reads as a broken sentence when used as a lead. #}
+      {% if theme.showDescription|default(false) and metatabs.meta.description %}
+        <p class="pr-article__lead">{{ metatabs.meta.description|e }}</p>
+      {% endif %}
+
+      {% set showDate = 'top' in theme.datePosition|default([]) %}
+      {% set showAuthor = 'top' in theme.authorPosition|default([]) %}
+      {% if showDate or showAuthor %}
+        <div class="pr-article__meta">
+          {% if showAuthor %}
+            <span>{{ theme.authorIntro|default('')|e }} {{ metatabs.meta.author|default(settings.author)|e }}</span>
+          {% endif %}
+          {% if showDate %}
+            <time datetime="{{ published }}">
+              {{ theme.dateIntro|default('')|e }} {{ published|date(theme.dateFormat|default('d.m.Y')) }}
+            </time>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      {% if heroImage %}
+        <div class="pr-article__hero">
+          <img src="{{ base_url }}/{{ heroImage }}"
+               alt="{{ metatabs.meta.heroimagealt|default(title)|e('html_attr') }}" />
+        </div>
+      {% endif %}
+
+      <div class="pr-prose">{{ content }}</div>
+
+    </div>
+
+    {% if item.elementType == 'folder' and item.contains == 'posts' %}
+      <div style="margin-top:48px">{% include 'partials/posts.twig' %}</div>
+    {% elseif item.elementType == 'folder' and item.folderContent|length > 0 %}
+      <ul class="pr-grid" style="margin-top:44px">
+        {% for child in item.folderContent %}
+          <li class="pr-card">
+            <h2 class="pr-card__title"><a href="{{ child.urlRel }}">{{ child.name|e }}</a></h2>
+            <div><a class="pr-link" href="{{ child.urlRel }}">{{ theme.cardsLinkLabel|default('Explore')|e }}</a></div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if item.prevItem or item.nextItem %}
+      <nav class="pr-pager" aria-label="{{ theme.pagerLabel|default('Page')|e('html_attr') }}">
+        {% if item.prevItem %}
+          <a class="pr-pager__item" href="{{ item.prevItem.urlRel }}">
+            <span class="pr-pager__label">{{ theme.previous|default('Previous') }}</span>
+            <span class="pr-pager__title">{{ item.prevItem.name|e }}</span>
+          </a>
+        {% endif %}
+        {% if item.nextItem %}
+          <a class="pr-pager__item pr-pager__item--next" href="{{ item.nextItem.urlRel }}">
+            <span class="pr-pager__label">{{ theme.next|default('Next') }}</span>
+            <span class="pr-pager__title">{{ item.nextItem.name|e }}</span>
+          </a>
+        {% endif %}
+      </nav>
+    {% endif %}
+
+  </div>
+</article>

@@ -28,6 +28,18 @@ with custom properties, so there is no build step.
 
 ---
 
+### `prism` — Prism
+
+A vivid, developer-facing product theme: an angled gradient hero with the navigation floating over
+it, a saturated indigo accent, deep navy bands, blue-tinted greys, tight corner radii, layered
+shadows and terminal-style code blocks. Numbered section cards and an optional dark call-to-action
+band on the homepage. Ships no font files, and automatic dark mode deepens the navy palette. Plain
+CSS with custom properties, so there is no build step.
+
+→ See [`themes/prism/README.md`](themes/prism/README.md) for full documentation.
+
+---
+
 ## Plugins
 
 ### `htmldeveloper` — HTML Developer Mode

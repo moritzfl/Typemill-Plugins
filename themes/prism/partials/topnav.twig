@@ -1,0 +1,49 @@
+{#
+  Global navigation.
+
+  Over a coloured hero the bar sits on top of it with transparent background and
+  white text; everywhere else it is solid with a hairline border. Templates that
+  open with a hero pass overlay: true.
+#}
+{% set overlay = overlay|default(home|default(false)) %}
+
+<header class="pr-nav{{ overlay ? ' pr-nav--overlay' : '' }}" data-nav>
+  <div class="pr-nav__inner">
+
+    <a href="{{ base_url }}" class="pr-nav__brand">
+      {% if logo %}
+        <img src="{{ base_url }}/{{ logo }}" alt="{{ settings.title|e('html_attr') }}" />
+      {% else %}
+        {{ settings.title|e }}
+      {% endif %}
+    </a>
+
+    <nav aria-label="{{ settings.themes.prism.navLabel|default('Main')|e('html_attr') }}">
+      <ul class="pr-nav__links">
+        {% for element in navigation %}
+          <li>
+            <a href="{{ element.urlRel }}"
+               {% if element.active %}aria-current="page"{% endif %}>{{ element.name|e }}</a>
+          </li>
+        {% endfor %}
+
+        {% if multilang is defined and multilang %}
+          {% for lang, link in multilang %}
+            <li><a href="{{ base_url }}{{ link }}">{{ lang|upper }}</a></li>
+          {% endfor %}
+        {% endif %}
+      </ul>
+    </nav>
+
+    <button type="button"
+            class="pr-nav__toggle"
+            data-nav-toggle
+            aria-expanded="false"
+            aria-label="{{ settings.themes.prism.menuLabel|default('Menu')|e('html_attr') }}">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" d="M3 6h18M3 12h18M3 18h18" />
+      </svg>
+    </button>
+
+  </div>
+</header>
