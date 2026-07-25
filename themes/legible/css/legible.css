@@ -278,6 +278,10 @@ main {
 .lg-brand {
     font-family: var(--lg-sans);
     font-size: 1.1em;
+    /* Pinned so the spacing setting cannot change the height of the bar. The
+       wider letter spacing still applies; only the line box is held, which
+       keeps the header - and an open reader panel under it - from shifting. */
+    line-height: 1.2;
     font-weight: 700;
     color: var(--lg-text);
     text-decoration: none;
@@ -453,13 +457,22 @@ main {
     top: calc(100% + 8px);
     right: 0;
     z-index: 70;
-    width: min(21rem, calc(100vw - 2 * var(--lg-gutter)));
+    width: min(23rem, calc(100vw - 2 * var(--lg-gutter)));
     padding: 18px;
     background: var(--lg-bg);
     border: 2px solid var(--lg-border);
     border-radius: var(--lg-radius);
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
     font-family: var(--lg-sans);
+    /* The panel follows the text size, so the controls grow with the type they
+       set, but not the spacing: letting the spacing setting reflow the panel
+       would make it resize under the hand of the person operating it. The
+       growth is capped, or the longest label wraps at the largest setting and
+       one button ends up two lines tall among the rest. */
+    font-size: min(1em, 22px);
+    line-height: 1.4;
+    letter-spacing: normal;
+    word-spacing: normal;
 }
 
 .lg-reader__panel[hidden] {
@@ -486,16 +499,24 @@ main {
     border: 0;
 }
 
+/* A fixed two-column grid rather than a wrapping row. Wrapping made each group
+   break differently, and the row even re-broke as the selection moved, because
+   the tick made the chosen button wider - so the buttons shifted under the
+   pointer of the person clicking them. */
 .lg-reader__options {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 6px;
 }
 
+/* An odd number of options would leave a hole; the last one takes the row. */
+.lg-reader__options > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+}
+
 .lg-reader__option {
-    flex: 1 1 auto;
     min-height: var(--lg-target);
-    padding: 8px 12px;
+    padding: 8px 10px;
     font: inherit;
     font-size: 0.85em;
     font-weight: 600;
@@ -510,13 +531,6 @@ main {
     background: var(--lg-bg-alt);
 }
 
-/* The size buttons also grow, so the setting is legible as a shape and not
-   only as a word. */
-.lg-reader__option--size-s { font-size: 0.75em; }
-.lg-reader__option--size-m { font-size: 0.85em; }
-.lg-reader__option--size-l { font-size: 0.95em; }
-.lg-reader__option--size-xl { font-size: 1.05em; }
-
 /* The chosen option is filled *and* ticked: colour alone would not say which
    one is active on a monochrome screen. */
 .lg-reader__option[aria-pressed="true"] {
@@ -525,8 +539,18 @@ main {
     border-color: var(--lg-text);
 }
 
+/* The tick keeps its space in every button, shown only on the chosen one, so
+   the label does not jump sideways when the selection moves. */
+.lg-reader__option::before {
+    content: "\2713";
+    display: inline-block;
+    width: 1em;
+    margin-right: 0.3em;
+    visibility: hidden;
+}
+
 .lg-reader__option[aria-pressed="true"]::before {
-    content: "\2713\00a0";
+    visibility: visible;
 }
 
 .lg-reader__reset {

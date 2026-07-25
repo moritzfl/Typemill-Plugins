@@ -44,14 +44,10 @@
         #}
         <div class="lg-reader__options" data-reader-group="text-size"
              data-reader-label="{{ theme.textSizeLabel|default('Text size')|e('html_attr') }}">
-          <button type="button" class="lg-reader__option lg-reader__option--size-s"
-                  data-reader-value="s" aria-pressed="false">{{ theme.textSizeSmallLabel|default('Small')|e }}</button>
-          <button type="button" class="lg-reader__option lg-reader__option--size-m"
-                  data-reader-value="m" aria-pressed="false">{{ theme.textSizeMediumLabel|default('Medium')|e }}</button>
-          <button type="button" class="lg-reader__option lg-reader__option--size-l"
-                  data-reader-value="l" aria-pressed="false">{{ theme.textSizeLargeLabel|default('Large')|e }}</button>
-          <button type="button" class="lg-reader__option lg-reader__option--size-xl"
-                  data-reader-value="xl" aria-pressed="false">{{ theme.textSizeXLargeLabel|default('Extra large')|e }}</button>
+          <button type="button" class="lg-reader__option" data-reader-value="s" aria-pressed="false">{{ theme.textSizeSmallLabel|default('Small')|e }}</button>
+          <button type="button" class="lg-reader__option" data-reader-value="m" aria-pressed="false">{{ theme.textSizeMediumLabel|default('Medium')|e }}</button>
+          <button type="button" class="lg-reader__option" data-reader-value="l" aria-pressed="false">{{ theme.textSizeLargeLabel|default('Large')|e }}</button>
+          <button type="button" class="lg-reader__option" data-reader-value="xl" aria-pressed="false">{{ theme.textSizeXLargeLabel|default('Extra large')|e }}</button>
         </div>
       </fieldset>
     </div>
