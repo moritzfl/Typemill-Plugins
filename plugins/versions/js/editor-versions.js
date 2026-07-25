@@ -692,6 +692,33 @@
         });
     };
 
+    /**
+     * Resolve the mounted root instance of the core publisher app.
+     *
+     * Vue only assigns app._instance when the build has devtools support
+     * compiled in, so it is present in the development build but missing in the
+     * production build. app._container is set by mount() in every build, and its
+     * vnode carries the root component instance, so it works for both.
+     */
+    const resolvePublisherInstance = function () {
+        if (!publisher) {
+            return null;
+        }
+
+        if (publisher._instance) {
+            return publisher._instance;
+        }
+
+        const container = publisher._container;
+        if (container && container._vnode && container._vnode.component) {
+            return container._vnode.component;
+        }
+
+        return null;
+    };
+
+    deleteArticleWithVersions._versionsOverride = true;
+
     const attachDeleteArticleOverride = function () {
         if (!publisher) {
             return;
@@ -701,15 +728,30 @@
             return;
         }
 
+        // Covers the case where this script runs before publisher.mount():
+        // the instance then picks the override up from the component options.
         if (publisher._component && publisher._component.methods) {
             publisher._component.methods.deleteArticle = deleteArticleWithVersions;
         }
 
-        if (publisher._instance && publisher._instance.ctx) {
-            const boundOverride = deleteArticleWithVersions.bind(publisher._instance.proxy);
-            publisher._instance.ctx.deleteArticle = boundOverride;
-            if (publisher._instance.proxy) {
-                publisher._instance.proxy.deleteArticle = boundOverride;
+        // Covers the case where the app is already mounted, which is the normal
+        // case because this inline script is emitted after the editor template's
+        // mount call. Patching the options object alone would be too late then,
+        // because Vue has already bound the methods onto the instance.
+        const instance = resolvePublisherInstance();
+        if (instance && instance.ctx) {
+            const target = instance.proxy || instance.ctx;
+            // A plain wrapper rather than Function.prototype.bind, so the
+            // installed override stays introspectable: a bound function reports
+            // "[native code]" and drops custom properties.
+            const boundOverride = function (forceDelete) {
+                return deleteArticleWithVersions.call(target, forceDelete);
+            };
+            boundOverride._versionsOverride = true;
+
+            instance.ctx.deleteArticle = boundOverride;
+            if (instance.proxy) {
+                instance.proxy.deleteArticle = boundOverride;
             }
             publisher._versionsDeleteOverridden = true;
         }
