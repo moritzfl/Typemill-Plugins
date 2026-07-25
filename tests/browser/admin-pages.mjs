@@ -277,6 +277,7 @@ async function assertCoreUpdatePage(page) {
         const info = await page.evaluate(() => ({
             versions: Array.from(document.querySelectorAll('.tm-cu-version__value')).map((el) => el.textContent.trim()),
             checks: document.querySelectorAll('.tm-cu-check').length,
+            uploadControl: Boolean(document.querySelector('input.tm-cu-file[type="file"]')),
             unresolvedBindings: document.querySelector('.tm-cu').textContent.includes('{{'),
         }))
 
@@ -285,6 +286,7 @@ async function assertCoreUpdatePage(page) {
             `Core Update: installed version not rendered (got "${info.versions[0]}")`
         )
         assert(info.checks > 0, 'Core Update: no environment checks rendered')
+        assert(info.uploadControl, 'Core Update: the archive upload control is missing')
         assert(!info.unresolvedBindings, 'Core Update: template left unrendered {{ }} bindings')
 
         const criticalErrors = [...pageErrors, ...consoleErrors].filter((entry) => {

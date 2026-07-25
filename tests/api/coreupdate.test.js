@@ -73,6 +73,46 @@ describe('Core update API', () => {
         }
     })
 
+    it.skipIf(!configured)('rejects upload ids that could escape the working directory', async () => {
+        for (const uploadId of ['../evil', 'a/b', '', 'has.dot']) {
+            const response = await apiPost(session, `${BASE_URL}/api/v1/coreupdate/upload/chunk`, {
+                uploadId,
+                index: 0,
+                total: 1,
+                data: Buffer.from('test').toString('base64'),
+            })
+            expect(response.status, `expected rejection for ${JSON.stringify(uploadId)}`).toBe(400)
+        }
+    })
+
+    it.skipIf(!configured)('refuses to install an archive that was never uploaded', async () => {
+        for (const archive of ['upload-doesnotexist.zip', '../../etc/passwd', 'download-1.zip']) {
+            const response = await apiPost(session, `${BASE_URL}/api/v1/coreupdate/run`, { archive })
+            expect(response.status, `expected rejection for ${archive}`).toBe(404)
+        }
+    })
+
+    it.skipIf(!configured)('rejects an upload that is not a Typemill core', async () => {
+        const uploadId = 'apitest' + Math.random().toString(36).slice(2, 10)
+
+        const chunk = await apiPost(session, `${BASE_URL}/api/v1/coreupdate/upload/chunk`, {
+            uploadId,
+            index: 0,
+            total: 1,
+            data: Buffer.from('this is not a zip archive at all').toString('base64'),
+        })
+        expect(chunk.status).toBe(200)
+
+        const finalize = await apiPost(session, `${BASE_URL}/api/v1/coreupdate/upload/finalize`, {
+            uploadId,
+            total: 1,
+        })
+        expect(finalize.status).toBe(422)
+
+        const body = await finalize.json()
+        expect(body.message).toMatch(/ZIP|archive/i)
+    })
+
     it.skipIf(!configured)('requires an authenticated session', async () => {
         const response = await fetch(`${BASE_URL}/api/v1/coreupdate/status`)
         expect(response.status).toBeGreaterThanOrEqual(400)

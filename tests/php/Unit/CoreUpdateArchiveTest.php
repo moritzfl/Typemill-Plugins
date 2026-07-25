@@ -130,6 +130,53 @@ class CoreUpdateArchiveTest extends TestCase
         $this->assertDirectoryDoesNotExist($staging . '/content');
     }
 
+    /**
+     * The archive from typemill.net has system/ at the root, but an archive
+     * somebody built themselves may wrap everything in one directory.
+     */
+    public function testArchiveWrappedInASingleDirectoryIsAccepted(): void
+    {
+        $zipPath = $this->root . '/wrapped.zip';
+        $this->makeZip($zipPath, $this->wrappedReleaseEntries());
+
+        $result = (new Release(new Environment($this->root)))->inspectArchive($zipPath);
+
+        $this->assertTrue($result['ok'], $result['error'] ?? '');
+        $this->assertSame('2.25.0', $result['version']);
+        $this->assertSame('typemill-2.25.0/', $result['prefix']);
+    }
+
+    public function testStagingAWrappedArchiveExtractsOnlyTheCore(): void
+    {
+        $zipPath = $this->root . '/wrapped.zip';
+        $this->makeZip($zipPath, $this->wrappedReleaseEntries());
+
+        $installer = new Installer(new Environment($this->root));
+        $result = $installer->stage($zipPath, 'typemill-2.25.0/');
+
+        $this->assertTrue($result['ok'], $result['error'] ?? '');
+        $this->assertDirectoryExists($result['path'] . '/typemill');
+        $this->assertFileExists($result['path'] . '/vendor/autoload.php');
+
+        $this->assertFileDoesNotExist($installer->stagingPath() . '/typemill-2.25.0/content/index.md');
+        $this->assertFileDoesNotExist($installer->stagingPath() . '/typemill-2.25.0/index.php');
+    }
+
+    public function testArchiveWithSeveralTopLevelDirectoriesAndNoRootCoreIsRejected(): void
+    {
+        $zipPath = $this->root . '/ambiguous.zip';
+        $this->makeZip($zipPath, [
+            'one/system/typemill/settings/defaults.yaml' => "version: '2.25.0'\n",
+            'one/system/vendor/autoload.php' => '<?php',
+            'two/readme.txt' => 'hello',
+        ]);
+
+        $result = (new Release(new Environment($this->root)))->inspectArchive($zipPath);
+
+        $this->assertFalse($result['ok']);
+        $this->assertStringContainsString('does not contain a Typemill core', $result['error']);
+    }
+
     public function testStagingRejectsAnArchiveWithoutACore(): void
     {
         $zipPath = $this->root . '/nocore.zip';
@@ -161,6 +208,17 @@ class CoreUpdateArchiveTest extends TestCase
             'themes/cyanine/cyanine.yaml' => "name: Cyanine\n",
             'plugins/demo/demo.php' => '<?php // demo plugin',
         ];
+    }
+
+    /** The same image, wrapped in one directory the way a hand-made zip is. */
+    private function wrappedReleaseEntries(): array
+    {
+        $wrapped = [];
+        foreach ($this->releaseEntries() as $name => $content) {
+            $wrapped['typemill-2.25.0/' . $name] = $content;
+        }
+
+        return $wrapped;
     }
 
     private function makeZip(string $path, array $entries): void
