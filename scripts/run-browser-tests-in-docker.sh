@@ -44,4 +44,5 @@ docker compose -f "$COMPOSE_FILE" exec -T typemill sh -ec '
     fi
 
     node admin-pages.mjs
+    node theme-prose.mjs
 '
