@@ -238,6 +238,68 @@ async function assertDeleteOverride(page, editorPath, label) {
     }
 }
 
+/**
+ * The core update page renders entirely from a plugin-supplied Vue template, so
+ * a template or binding mistake would only show up in the browser.
+ */
+async function assertCoreUpdatePage(page) {
+    const consoleErrors = []
+    const pageErrors = []
+    const onConsole = (message) => {
+        if (message.type() === 'error') {
+            const location = message.location()?.url || ''
+            consoleErrors.push(`${message.text()} ${location}`.trim())
+        }
+    }
+    const onPageError = (error) => pageErrors.push(error.message)
+
+    page.on('console', onConsole)
+    page.on('pageerror', onPageError)
+
+    try {
+        await page.goto(`${BASE_URL}/tm/coreupdate`, { waitUntil: 'networkidle2' })
+        await page.waitForSelector('.tm-cu', { timeout: 15000 })
+
+        // The status request also asks typemill.net for the current release, so
+        // wait for the rendered result rather than a fixed delay.
+        await page
+            .waitForFunction(
+                () => {
+                    const value = document.querySelector('.tm-cu-version__value')
+                    return Boolean(value && value.textContent.trim().length > 0)
+                },
+                { timeout: 30000 }
+            )
+            .catch(() => {
+                throw new Error('Core Update: status never rendered')
+            })
+
+        const info = await page.evaluate(() => ({
+            versions: Array.from(document.querySelectorAll('.tm-cu-version__value')).map((el) => el.textContent.trim()),
+            checks: document.querySelectorAll('.tm-cu-check').length,
+            unresolvedBindings: document.querySelector('.tm-cu').textContent.includes('{{'),
+        }))
+
+        assert(
+            /^\d+\.\d+\.\d+$/.test(info.versions[0] || ''),
+            `Core Update: installed version not rendered (got "${info.versions[0]}")`
+        )
+        assert(info.checks > 0, 'Core Update: no environment checks rendered')
+        assert(!info.unresolvedBindings, 'Core Update: template left unrendered {{ }} bindings')
+
+        const criticalErrors = [...pageErrors, ...consoleErrors].filter((entry) => {
+            if (/DevTools/i.test(entry)) return false
+            if (/Failed to load resource/i.test(entry) && /favicon/i.test(entry)) return false
+            return true
+        })
+
+        assert(criticalErrors.length === 0, `Core Update console errors:\n${criticalErrors.join('\n')}`)
+    } finally {
+        page.off('console', onConsole)
+        page.off('pageerror', onPageError)
+    }
+}
+
 async function main() {
     const launchOptions = {
         headless: true,
@@ -258,6 +320,9 @@ async function main() {
             await assertPageLoads(page, spec)
             console.log(`ok: ${spec.name}`)
         }
+
+        await assertCoreUpdatePage(page)
+        console.log('ok: Core Update')
 
         const editorPath = await findFirstEditablePage(page)
         assert(editorPath, 'Could not find a content page link in the editor navigation')
