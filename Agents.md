@@ -57,7 +57,7 @@ npm run test:browser    # Puppeteer browser smoke tests in Docker (required for 
 
 API tests live in `tests/api/` and use `tests/api/helpers/auth.js` for session login with the correct `Referer` and `X-Session-Auth` headers.
 
-`test:setup` also ensures **`versions`**, **`preview`**, **`files`**, and **`typemillupdate`** are active in settings (required for trash, file-manager, preview, and core-update API tests). On a fresh instance it creates minimal `settings.yaml`; on an existing instance it only toggles those plugins and refreshes the test user.
+`test:setup` also ensures **`versions`**, **`preview`**, **`files`**, **`typemillupdate`**, and **`linkbuttons`** are active in settings (required for trash, file-manager, preview, core-update API tests, and the theme prose layout test). On a fresh instance it creates minimal `settings.yaml`; on an existing instance it only toggles those plugins and refreshes the test user.
 
 The setup script builds a local Typemill image with PHP **`zip`** baked in (exports and folder ZIP downloads). If you use an older container without it, setup installs `zip` at runtime and reloads Apache.
 
@@ -75,7 +75,14 @@ npm run test:setup    # container + plugins + .env.test
 npm run test:browser  # Puppeteer inside Docker (Chromium + tests/browser/)
 ```
 
-Browser tests live in `tests/browser/` (`admin-pages.mjs`). They log in through the real login form, open admin pages (e.g. **System → Files**, **System → Versions**), and fail on JS console errors or stuck loading states.
+Browser tests live in `tests/browser/`:
+
+| File | Covers |
+|------|--------|
+| `admin-pages.mjs` | Logs in through the real login form, opens admin pages (e.g. **System → Files**, **System → Versions**), and fails on JS console errors or stuck loading states. |
+| `theme-prose.mjs` | Renders one fixture page in **every** theme at four widths and measures the running text: no block may be pulled over the one above it, consecutive paragraphs may not sit flush, and nothing with a background (e.g. a Link Buttons button) may overlap text it does not own. |
+
+`theme-prose.mjs` writes its own fixture page and switches the active theme, then restores `settings.yaml` and deletes the fixture in a `finally` block. Layout faults of this kind are invisible to the API and PHPUnit suites, and often invisible in a screenshot of ordinary prose, because a negative margin only shows up once an element paints a background.
 
 **When Puppeteer is not an option**, use a comparable tool (Playwright, Selenium, Cypress, etc.) with the same full-circle flow: Docker Typemill → real login → exercise the changed UI → assert no console/page errors and expected DOM state.
 
