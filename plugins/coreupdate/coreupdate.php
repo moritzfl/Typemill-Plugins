@@ -1,0 +1,406 @@
+<?php
+
+namespace Plugins\coreupdate;
+
+use Plugins\coreupdate\Models\Environment;
+use Plugins\coreupdate\Models\Installer;
+use Plugins\coreupdate\Models\Release;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Typemill\Plugin;
+use Typemill\Static\Translations;
+
+class coreupdate extends Plugin
+{
+    public static function setPremiumLicense()
+    {
+        return false;
+    }
+
+    public static function getSubscribedEvents()
+    {
+        return [
+            'onSystemnaviLoaded' => ['onSystemnaviLoaded', 0],
+        ];
+    }
+
+    public static function addNewRoutes()
+    {
+        return [
+            [
+                'httpMethod' => 'get',
+                'route' => '/tm/coreupdate',
+                'name' => 'coreupdate.admin',
+                'class' => 'Typemill\Controllers\ControllerWebSystem:blankSystemPage',
+                'resource' => 'system',
+                'privilege' => 'read',
+            ],
+            [
+                'httpMethod' => 'get',
+                'route' => '/api/v1/coreupdate/status',
+                'name' => 'coreupdate.status',
+                'class' => 'Plugins\coreupdate\coreupdate:getStatus',
+                'resource' => 'system',
+                'privilege' => 'read',
+            ],
+            // Replacing the core is administrator-only. The `system`/`update`
+            // privilege is also held by the manager role, which is appropriate
+            // for settings but not for swapping every PHP file on the site.
+            // `user`/`update` is what the core itself uses to mean admin only.
+            [
+                'httpMethod' => 'post',
+                'route' => '/api/v1/coreupdate/run',
+                'name' => 'coreupdate.run',
+                'class' => 'Plugins\coreupdate\coreupdate:runUpdate',
+                'resource' => 'user',
+                'privilege' => 'update',
+            ],
+            [
+                'httpMethod' => 'post',
+                'route' => '/api/v1/coreupdate/rollback',
+                'name' => 'coreupdate.rollback',
+                'class' => 'Plugins\coreupdate\coreupdate:runRollback',
+                'resource' => 'user',
+                'privilege' => 'update',
+            ],
+            [
+                'httpMethod' => 'delete',
+                'route' => '/api/v1/coreupdate/backup',
+                'name' => 'coreupdate.backup.delete',
+                'class' => 'Plugins\coreupdate\coreupdate:deleteBackup',
+                'resource' => 'user',
+                'privilege' => 'update',
+            ],
+        ];
+    }
+
+    public function onSystemnaviLoaded($navidata)
+    {
+        $this->addSvgSymbol('<symbol id="icon-coreupdate" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-9 9H0l4 4 4-4H5a7 7 0 1 1 2.05 4.95l-1.42 1.42A9 9 0 1 0 12 3Zm1 4h-2v6l5 3 1-1.64-4-2.36V7Z"/></symbol>');
+
+        $navi = $navidata->getData();
+        $navi['Coreupdate'] = [
+            'title' => Translations::translate('coreupdate.title'),
+            'routename' => 'coreupdate.admin',
+            'icon' => 'icon-coreupdate',
+            'aclresource' => 'system',
+            'aclprivilege' => 'read',
+        ];
+
+        if (trim($this->route, '/') === 'tm/coreupdate') {
+            $navi['Coreupdate']['active'] = true;
+
+            $template = file_get_contents(__DIR__ . '/js/systemcoreupdate.html');
+            $js = file_get_contents(__DIR__ . '/js/systemcoreupdate.js');
+            $this->addInlineJS('const coreupdateTemplate = ' . json_encode($template) . '; ' . $js);
+        }
+
+        $navidata->setData($navi);
+    }
+
+    public function getStatus(Request $request, Response $response, $args)
+    {
+        $environment = new Environment();
+        $installer = new Installer($environment);
+        $release = new Release($environment);
+
+        $installed = $environment->installedVersion();
+        $checks = $environment->preflight();
+
+        $latest = null;
+        $checkError = null;
+        if (($request->getQueryParams()['check'] ?? '1') !== '0') {
+            $remote = $release->latestVersion();
+            $latest = $remote['version'];
+            $checkError = $remote['error'];
+        }
+
+        return $this->jsonResponse($response, [
+            'root' => $environment->root(),
+            'installed' => $installed,
+            'latest' => $latest,
+            'check_error' => $checkError,
+            'update_available' => $installed !== null && $latest !== null && version_compare($latest, $installed, '>'),
+            'download_url' => $latest !== null ? Release::downloadUrl($latest) : null,
+            'preflight' => $checks,
+            'blocked' => Environment::isBlocked($checks),
+            'php_version' => PHP_VERSION,
+            'backups' => $this->presentBackups($installer->listBackups()),
+        ]);
+    }
+
+    /**
+     * Download, verify, stage and swap in a new core.
+     *
+     * Everything that can fail is done before the live tree is touched: the
+     * environment is probed, the archive is downloaded and validated, the PHP
+     * floor is read out of the staged vendor tree, and the core is extracted to
+     * a staging directory. Only then are the two renames performed.
+     */
+    public function runUpdate(Request $request, Response $response, $args)
+    {
+        $params = (array) $request->getParsedBody();
+        $force = !empty($params['force']);
+
+        $environment = new Environment();
+        $installer = new Installer($environment);
+        $release = new Release($environment);
+
+        $installed = $environment->installedVersion();
+        if ($installed === null) {
+            return $this->jsonResponse($response, ['message' => 'Could not determine the installed Typemill version.'], 500);
+        }
+
+        $checks = $environment->preflight();
+        if (Environment::isBlocked($checks)) {
+            return $this->jsonResponse($response, [
+                'message' => 'This installation cannot update itself. See the environment checks.',
+                'preflight' => $checks,
+            ], 409);
+        }
+
+        $target = null;
+        if (isset($params['version']) && is_string($params['version']) && $params['version'] !== '') {
+            if (preg_match('/^\d+\.\d+\.\d+$/', $params['version']) !== 1) {
+                return $this->jsonResponse($response, ['message' => 'That is not a valid version number.'], 422);
+            }
+
+            $target = $params['version'];
+        }
+
+        if ($target === null) {
+            $remote = $release->latestVersion();
+            if ($remote['version'] === null) {
+                return $this->jsonResponse($response, ['message' => $remote['error'] ?? 'Could not determine the latest version.'], 502);
+            }
+            $target = $remote['version'];
+        }
+
+        if (!$force && version_compare($target, $installed, '<=')) {
+            return $this->jsonResponse($response, [
+                'message' => 'Typemill ' . $installed . ' is already installed.',
+                'installed' => $installed,
+                'latest' => $target,
+            ], 409);
+        }
+
+        if (!$environment->ensureWorkPath()) {
+            return $this->jsonResponse($response, ['message' => 'Could not create the working directory ' . $environment->workPath() . '.'], 500);
+        }
+
+        // Two runs at once would delete each other's staging directories. The
+        // lock is released when the request ends, including if it dies.
+        if (!$installer->acquireLock()) {
+            return $this->jsonResponse($response, ['message' => 'Another update is already running.'], 409);
+        }
+
+        $log = [];
+
+        $url = Release::downloadUrl($target);
+        $archive = $installer->downloadTarget();
+        $downloaded = $release->download($url, $archive);
+        if (!$downloaded['ok']) {
+            $installer->cleanup();
+
+            return $this->jsonResponse($response, ['message' => $downloaded['error'], 'log' => $log], 502);
+        }
+        $log[] = 'Downloaded ' . Environment::formatBytes((int) $downloaded['bytes']) . ' from ' . $url;
+
+        $meta = $release->inspectArchive($archive);
+        if (!$meta['ok']) {
+            $installer->cleanup();
+
+            return $this->jsonResponse($response, ['message' => $meta['error'], 'log' => $log], 422);
+        }
+        $log[] = 'Archive verified: version ' . $meta['version'] . ', ' . $meta['system_entries'] . ' core files.';
+
+        if ($meta['version'] !== $target) {
+            $installer->cleanup();
+
+            return $this->jsonResponse($response, [
+                'message' => 'The archive contains Typemill ' . $meta['version'] . ', but ' . $target . ' was requested.',
+                'log' => $log,
+            ], 422);
+        }
+
+        if ($meta['php_floor'] !== null && PHP_VERSION_ID < $meta['php_floor']) {
+            $installer->cleanup();
+
+            return $this->jsonResponse($response, [
+                'message' => 'Typemill ' . $meta['version'] . ' requires a newer PHP version than ' . PHP_VERSION . '.',
+                'log' => $log,
+            ], 409);
+        }
+
+        $staged = $installer->stage($archive);
+        if (!$staged['ok']) {
+            $installer->cleanup();
+
+            return $this->jsonResponse($response, ['message' => $staged['error'], 'log' => $log], 500);
+        }
+        $log[] = 'Staged the new core in ' . basename($installer->stagingPath()) . '.';
+
+        // Past this point the live installation changes. Slim is not used to
+        // build the reply any more: emitting through the framework could
+        // autoload a class that has not been loaded yet, which would now be
+        // read from the freshly swapped core.
+        $swap = $installer->install($staged['path']);
+        if (!$swap['ok']) {
+            $installer->cleanup();
+            $log[] = $swap['error'];
+
+            // When the live core was left modified, the framework can no longer
+            // be trusted to build a reply, and this is exactly the message the
+            // admin needs to see.
+            if (!empty($swap['touched'])) {
+                $this->emitAndExit(['ok' => false, 'message' => $swap['error'], 'log' => $log], 500);
+            }
+
+            return $this->jsonResponse($response, ['message' => $swap['error'], 'log' => $log], 500);
+        }
+        $log[] = 'Replaced system/ with Typemill ' . $meta['version']
+            . ($swap['method'] === 'copy' ? ' (in-place copy; this filesystem does not allow directory renames).' : ' (atomic rename).');
+
+        if ($installer->clearTwigCache()) {
+            $log[] = 'Cleared the compiled Twig cache.';
+        }
+
+        $selfTest = $installer->selfTest((string) ($this->urlinfo()['baseurl'] ?? ''));
+        $log[] = $selfTest['detail'];
+
+        if ($selfTest['conclusive'] && !$selfTest['ok']) {
+            $rollback = $installer->rollback($swap['backup']);
+            $log[] = $rollback['ok']
+                ? 'Rolled back to Typemill ' . $installed . '.'
+                : 'Rollback failed: ' . $rollback['error'];
+
+            if ($rollback['ok']) {
+                $installer->cleanup();
+            }
+
+            $this->emitAndExit([
+                'ok' => false,
+                'message' => $rollback['ok']
+                    ? 'The updated site did not respond correctly, so the previous version was restored.'
+                    : 'The updated site did not respond correctly and the rollback failed. Restore ' . $swap['backup'] . ' manually.',
+                'installed' => $rollback['ok'] ? $installed : $meta['version'],
+                'log' => $log,
+            ], 500);
+        }
+
+        $installer->cleanup();
+        $log[] = 'Cleaned up staging data.';
+
+        $this->emitAndExit([
+            'ok' => true,
+            'message' => 'Typemill was updated from ' . $installed . ' to ' . $meta['version'] . '.',
+            'previous' => $installed,
+            'installed' => $meta['version'],
+            'backup' => basename((string) $swap['backup']),
+            'method' => $swap['method'],
+            'log' => $log,
+        ], 200);
+    }
+
+    public function runRollback(Request $request, Response $response, $args)
+    {
+        $params = (array) $request->getParsedBody();
+        $name = (string) ($params['backup'] ?? '');
+
+        $environment = new Environment();
+        $installer = new Installer($environment);
+
+        $path = $installer->resolveBackupPath($name);
+        if ($path === null) {
+            return $this->jsonResponse($response, ['message' => 'That backup could not be found.'], 404);
+        }
+
+        if (!$environment->ensureWorkPath() || !$installer->acquireLock()) {
+            return $this->jsonResponse($response, ['message' => 'Another update is already running.'], 409);
+        }
+
+        $previous = $environment->installedVersion();
+        $result = $installer->rollback($path);
+
+        if (!$result['ok']) {
+            if (!empty($result['touched'])) {
+                $this->emitAndExit(['ok' => false, 'message' => $result['error']], 500);
+            }
+
+            return $this->jsonResponse($response, ['message' => $result['error']], 500);
+        }
+
+        $installer->clearTwigCache();
+
+        $this->emitAndExit([
+            'ok' => true,
+            'message' => 'Restored the previous core.',
+            'previous' => $previous,
+            'installed' => $environment->installedVersion(),
+            'method' => $result['method'],
+        ], 200);
+    }
+
+    public function deleteBackup(Request $request, Response $response, $args)
+    {
+        $params = (array) $request->getParsedBody();
+        $name = (string) ($params['backup'] ?? '');
+
+        $installer = new Installer(new Environment());
+
+        if ($installer->resolveBackupPath($name) === null) {
+            return $this->jsonResponse($response, ['message' => 'That backup could not be found.'], 404);
+        }
+
+        $result = $installer->removeBackup($name);
+        if (!$result['ok']) {
+            return $this->jsonResponse($response, ['message' => $result['error'] ?? 'Could not delete the backup.'], 500);
+        }
+
+        return $this->jsonResponse($response, ['ok' => true]);
+    }
+
+    private function presentBackups(array $backups): array
+    {
+        return array_map(static function (array $backup): array {
+            return [
+                'name' => $backup['name'],
+                'version' => $backup['version'],
+                'created' => $backup['created'] > 0 ? date('Y-m-d H:i', $backup['created']) : null,
+            ];
+        }, $backups);
+    }
+
+    /**
+     * Write the response without the framework and stop.
+     *
+     * Used only after the core has been replaced. json_encode, header and echo
+     * are language builtins, so nothing has to be autoloaded from the new core
+     * to finish the request.
+     */
+    private function emitAndExit(array $payload, int $status): void
+    {
+        if (!headers_sent()) {
+            header('Content-Type: application/json', true, $status);
+            header('Cache-Control: no-store');
+        }
+
+        echo json_encode($payload);
+        exit;
+    }
+
+    private function jsonResponse(Response $response, array $payload, int $status = 200): Response
+    {
+        try {
+            $json = json_encode($payload, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            error_log('[coreupdate] Failed to encode JSON response: ' . $e->getMessage());
+            $status = 500;
+            $json = '{"message":"Internal server error."}';
+        }
+
+        $response->getBody()->write($json);
+
+        return $response->withHeader('Content-Type', 'application/json')->withStatus($status);
+    }
+}

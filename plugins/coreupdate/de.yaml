@@ -1,0 +1,26 @@
+COREUPDATE_TITLE: Core-Update
+COREUPDATE_SUBTITLE: Typemill selbst aktualisieren. Es wird nur der system-Ordner ersetzt.
+COREUPDATE_INSTALLED: Installierte Version
+COREUPDATE_LATEST: Neueste Version
+COREUPDATE_UNKNOWN: Unbekannt
+COREUPDATE_UP_TO_DATE: Typemill ist aktuell.
+COREUPDATE_AVAILABLE: Ein Update ist verfügbar.
+COREUPDATE_CHECK: Erneut prüfen
+COREUPDATE_UPDATE_NOW: Jetzt aktualisieren
+COREUPDATE_ENVIRONMENT: Umgebung
+COREUPDATE_BLOCKED: Diese Installation kann sich nicht selbst aktualisieren. Bitte zuerst die folgenden Punkte beheben.
+COREUPDATE_BACKUPS: Frühere Versionen
+COREUPDATE_NO_BACKUPS: Noch keine frühere Version gespeichert.
+COREUPDATE_RESTORE: Wiederherstellen
+COREUPDATE_DELETE: Löschen
+COREUPDATE_LOADING: Lädt
+COREUPDATE_RUNNING: Update läuft. Diese Seite bitte nicht schließen.
+COREUPDATE_LOG: Details
+COREUPDATE_CONFIRM_TITLE: Typemill aktualisieren?
+COREUPDATE_CONFIRM_TEXT: Der system-Ordner wird ersetzt. Inhalte, Medien, Einstellungen, Plugins und Themes bleiben unverändert, und der aktuelle Core wird zur Wiederherstellung aufbewahrt.
+COREUPDATE_CONFIRM_RESTORE_TITLE: Diese Version wiederherstellen?
+COREUPDATE_CONFIRM_RESTORE_TEXT: Der aktuelle Core wird durch den gespeicherten ersetzt.
+COREUPDATE_CANCEL: Abbrechen
+COREUPDATE_CONFIRM: Ja, fortfahren
+COREUPDATE_RELOAD: Seite neu laden, um die neue Version zu verwenden.
+COREUPDATE_PHP: PHP-Version

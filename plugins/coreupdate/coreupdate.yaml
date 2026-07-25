@@ -1,0 +1,6 @@
+name: Core Update
+version: 1.0.0
+description: "Update the Typemill core from the dashboard. Downloads the official release archive from typemill.net, verifies it, and replaces only the system folder. Content, media, settings, data, plugins and themes are never touched, and the previous core is kept as a rollback."
+author: Moritz
+homepage: https://github.com/moritzfl/Typemill-Plugins
+license: GPL-2.0
