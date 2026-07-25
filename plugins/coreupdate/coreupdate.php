@@ -5,6 +5,7 @@ namespace Plugins\coreupdate;
 use Plugins\coreupdate\Models\Environment;
 use Plugins\coreupdate\Models\Installer;
 use Plugins\coreupdate\Models\Release;
+use Plugins\coreupdate\Models\Upload;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Typemill\Plugin;
@@ -52,6 +53,22 @@ class coreupdate extends Plugin
                 'route' => '/api/v1/coreupdate/run',
                 'name' => 'coreupdate.run',
                 'class' => 'Plugins\coreupdate\coreupdate:runUpdate',
+                'resource' => 'user',
+                'privilege' => 'update',
+            ],
+            [
+                'httpMethod' => 'post',
+                'route' => '/api/v1/coreupdate/upload/chunk',
+                'name' => 'coreupdate.upload.chunk',
+                'class' => 'Plugins\coreupdate\coreupdate:uploadChunk',
+                'resource' => 'user',
+                'privilege' => 'update',
+            ],
+            [
+                'httpMethod' => 'post',
+                'route' => '/api/v1/coreupdate/upload/finalize',
+                'name' => 'coreupdate.upload.finalize',
+                'class' => 'Plugins\coreupdate\coreupdate:finalizeUpload',
                 'resource' => 'user',
                 'privilege' => 'update',
             ],
@@ -159,29 +176,45 @@ class coreupdate extends Plugin
             ], 409);
         }
 
+        // An uploaded archive is installed as given. Choosing a specific file is
+        // explicit, and reinstalling or going back to an older build is a large
+        // part of why uploading exists, so the "already installed" guard that
+        // applies to downloads is not applied here.
+        $uploadName = isset($params['archive']) && is_string($params['archive']) ? $params['archive'] : '';
+        $uploadedArchive = null;
+
+        if ($uploadName !== '') {
+            $uploadedArchive = (new Upload($environment))->resolveArchive($uploadName);
+            if ($uploadedArchive === null) {
+                return $this->jsonResponse($response, ['message' => 'That uploaded archive could not be found. Please upload it again.'], 404);
+            }
+        }
+
         $target = null;
-        if (isset($params['version']) && is_string($params['version']) && $params['version'] !== '') {
-            if (preg_match('/^\d+\.\d+\.\d+$/', $params['version']) !== 1) {
-                return $this->jsonResponse($response, ['message' => 'That is not a valid version number.'], 422);
+        if ($uploadedArchive === null) {
+            if (isset($params['version']) && is_string($params['version']) && $params['version'] !== '') {
+                if (preg_match('/^\d+\.\d+\.\d+$/', $params['version']) !== 1) {
+                    return $this->jsonResponse($response, ['message' => 'That is not a valid version number.'], 422);
+                }
+
+                $target = $params['version'];
             }
 
-            $target = $params['version'];
-        }
-
-        if ($target === null) {
-            $remote = $release->latestVersion();
-            if ($remote['version'] === null) {
-                return $this->jsonResponse($response, ['message' => $remote['error'] ?? 'Could not determine the latest version.'], 502);
+            if ($target === null) {
+                $remote = $release->latestVersion();
+                if ($remote['version'] === null) {
+                    return $this->jsonResponse($response, ['message' => $remote['error'] ?? 'Could not determine the latest version.'], 502);
+                }
+                $target = $remote['version'];
             }
-            $target = $remote['version'];
-        }
 
-        if (!$force && version_compare($target, $installed, '<=')) {
-            return $this->jsonResponse($response, [
-                'message' => 'Typemill ' . $installed . ' is already installed.',
-                'installed' => $installed,
-                'latest' => $target,
-            ], 409);
+            if (!$force && version_compare($target, $installed, '<=')) {
+                return $this->jsonResponse($response, [
+                    'message' => 'Typemill ' . $installed . ' is already installed.',
+                    'installed' => $installed,
+                    'latest' => $target,
+                ], 409);
+            }
         }
 
         if (!$environment->ensureWorkPath()) {
@@ -196,15 +229,20 @@ class coreupdate extends Plugin
 
         $log = [];
 
-        $url = Release::downloadUrl($target);
-        $archive = $installer->downloadTarget();
-        $downloaded = $release->download($url, $archive);
-        if (!$downloaded['ok']) {
-            $installer->cleanup();
+        if ($uploadedArchive !== null) {
+            $archive = $uploadedArchive;
+            $log[] = 'Using the uploaded archive ' . $uploadName . '.';
+        } else {
+            $url = Release::downloadUrl($target);
+            $archive = $installer->downloadTarget();
+            $downloaded = $release->download($url, $archive);
+            if (!$downloaded['ok']) {
+                $installer->cleanup();
 
-            return $this->jsonResponse($response, ['message' => $downloaded['error'], 'log' => $log], 502);
+                return $this->jsonResponse($response, ['message' => $downloaded['error'], 'log' => $log], 502);
+            }
+            $log[] = 'Downloaded ' . Environment::formatBytes((int) $downloaded['bytes']) . ' from ' . $url;
         }
-        $log[] = 'Downloaded ' . Environment::formatBytes((int) $downloaded['bytes']) . ' from ' . $url;
 
         $meta = $release->inspectArchive($archive);
         if (!$meta['ok']) {
@@ -214,7 +252,7 @@ class coreupdate extends Plugin
         }
         $log[] = 'Archive verified: version ' . $meta['version'] . ', ' . $meta['system_entries'] . ' core files.';
 
-        if ($meta['version'] !== $target) {
+        if ($uploadedArchive === null && $meta['version'] !== $target) {
             $installer->cleanup();
 
             return $this->jsonResponse($response, [
@@ -232,7 +270,7 @@ class coreupdate extends Plugin
             ], 409);
         }
 
-        $staged = $installer->stage($archive);
+        $staged = $installer->stage($archive, (string) ($meta['prefix'] ?? ''));
         if (!$staged['ok']) {
             $installer->cleanup();
 
@@ -300,6 +338,90 @@ class coreupdate extends Plugin
             'method' => $swap['method'],
             'log' => $log,
         ], 200);
+    }
+
+    /**
+     * Receive one slice of an uploaded archive.
+     */
+    public function uploadChunk(Request $request, Response $response, $args)
+    {
+        $params = (array) $request->getParsedBody();
+
+        $environment = new Environment();
+        if (!$environment->ensureWorkPath()) {
+            return $this->jsonResponse($response, ['message' => 'Could not create the working directory.'], 500);
+        }
+
+        $result = (new Upload($environment))->storeChunk(
+            (string) ($params['uploadId'] ?? ''),
+            isset($params['index']) ? (int) $params['index'] : -1,
+            (string) ($params['data'] ?? '')
+        );
+
+        if (!$result['ok']) {
+            return $this->jsonResponse($response, ['message' => $result['error']], 400);
+        }
+
+        return $this->jsonResponse($response, ['ok' => true]);
+    }
+
+    /**
+     * Join the uploaded slices and check that the result really is a Typemill
+     * core. Nothing is installed here - the caller is told which version was
+     * found so it can be confirmed first.
+     */
+    public function finalizeUpload(Request $request, Response $response, $args)
+    {
+        $params = (array) $request->getParsedBody();
+        $total = isset($params['total']) ? (int) $params['total'] : 0;
+        $safeId = Upload::sanitizeId((string) ($params['uploadId'] ?? ''));
+
+        if ($safeId === null || $total < 1) {
+            return $this->jsonResponse($response, ['message' => 'Invalid upload.'], 400);
+        }
+
+        $environment = new Environment();
+        if (!$environment->ensureWorkPath()) {
+            return $this->jsonResponse($response, ['message' => 'Could not create the working directory.'], 500);
+        }
+
+        $upload = new Upload($environment);
+        $name = Upload::archiveName($safeId);
+        $target = $environment->workPath() . DIRECTORY_SEPARATOR . $name;
+
+        $assembled = $upload->assemble($safeId, $total, $target);
+        if (!$assembled['ok']) {
+            return $this->jsonResponse($response, ['message' => $assembled['error']], 400);
+        }
+
+        $meta = (new Release($environment))->inspectArchive($target);
+        if (!$meta['ok']) {
+            @unlink($target);
+
+            return $this->jsonResponse($response, ['message' => $meta['error']], 422);
+        }
+
+        if ($meta['php_floor'] !== null && PHP_VERSION_ID < $meta['php_floor']) {
+            @unlink($target);
+
+            return $this->jsonResponse($response, [
+                'message' => 'That archive contains Typemill ' . $meta['version'] . ', which needs a newer PHP version than ' . PHP_VERSION . '.',
+            ], 409);
+        }
+
+        $upload->discardOtherArchives($name);
+        $installed = $environment->installedVersion();
+
+        return $this->jsonResponse($response, [
+            'ok' => true,
+            'archive' => $name,
+            'version' => $meta['version'],
+            'installed' => $installed,
+            'is_downgrade' => $installed !== null && version_compare($meta['version'], $installed, '<'),
+            'is_same' => $installed !== null && version_compare($meta['version'], $installed, '=='),
+            'size' => Environment::formatBytes((int) $assembled['bytes']),
+            'core_files' => $meta['system_entries'],
+        ]);
     }
 
     public function runRollback(Request $request, Response $response, $args)

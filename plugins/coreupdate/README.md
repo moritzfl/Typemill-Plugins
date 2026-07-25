@@ -44,12 +44,39 @@ This matches Typemill's [documented manual procedure](https://docs.typemill.net/
 
 The previous core is kept, so it can be restored from the same screen.
 
+## Installing from a file
+
+The screen also accepts a Typemill ZIP directly. This covers the cases the download cannot:
+
+- installing a **specific version**, for example going back to an older release — typemill.net only
+  publishes the current one, so it cannot be fetched
+- servers with **no outbound network access**
+- testing a **custom or pre-release build**
+
+The file is checked exactly like a downloaded one, and the version found inside it is shown for
+confirmation before anything is replaced. Installing the same version again, or an older one, is
+allowed here — that is much of the point — and the dialog says which case it is.
+
+Two practical details:
+
+- **The archive must contain `system/vendor`.** Downloads from GitHub do not: the tag excludes the
+  Composer dependencies, so a GitHub ZIP is rejected with that explanation. Use the ZIP from
+  typemill.net, or a copy of a working installation.
+- An archive that wraps everything in a **single top-level directory** is accepted; the wrapper is
+  detected and ignored.
+
+Uploads are sent in 512 KB slices as base64 rather than as a form upload, because PHP's default
+`upload_max_filesize` is 2 MB while a release archive is around 2.5 MB. No server configuration
+change is needed.
+
 ## API
 
 | Method | Path | Purpose |
 |--------|------|---------|
 | `GET` | `/api/v1/coreupdate/status` | Installed version, latest release, environment checks, stored backups |
-| `POST` | `/api/v1/coreupdate/run` | Download, verify and install the current release |
+| `POST` | `/api/v1/coreupdate/run` | Install. Downloads the current release, or installs a previously uploaded archive when given `archive` |
+| `POST` | `/api/v1/coreupdate/upload/chunk` | Receive one base64 slice of an archive |
+| `POST` | `/api/v1/coreupdate/upload/finalize` | Assemble and verify the upload, and report the version it contains |
 | `POST` | `/api/v1/coreupdate/rollback` | Restore a stored core |
 | `DELETE` | `/api/v1/coreupdate/backup` | Delete a stored core |
 

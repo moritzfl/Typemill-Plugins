@@ -52,6 +52,26 @@
         </section>
 
         <section v-if="!loading" class="tm-cu-panel bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-600 shadow-sm">
+            <h2 class="tm-cu-heading">{{ $filters.translate('coreupdate.upload_title') }}</h2>
+            <p class="tm-cu-note">{{ $filters.translate('coreupdate.upload_help') }}</p>
+
+            <div class="tm-cu-actions">
+                <input
+                    type="file"
+                    accept=".zip,application/zip"
+                    class="tm-cu-file"
+                    ref="archiveInput"
+                    :disabled="busy || status.blocked"
+                    @change="onArchiveChosen"
+                >
+            </div>
+
+            <p v-if="uploadProgress !== null" class="tm-cu-note tm-cu-note--warn">
+                {{ $filters.translate('coreupdate.uploading') }} {{ uploadProgress }}%
+            </p>
+        </section>
+
+        <section v-if="!loading" class="tm-cu-panel bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-600 shadow-sm">
             <h2 class="tm-cu-heading">{{ $filters.translate('coreupdate.environment') }}</h2>
             <ul class="tm-cu-checks">
                 <li v-for="check in status.preflight" :key="check.id" class="tm-cu-check">
@@ -100,6 +120,43 @@
                         {{ $filters.translate('coreupdate.cancel') }}
                     </button>
                     <button type="button" class="tm-cu-btn tm-cu-btn--primary" @click.prevent="runUpdate">
+                        {{ $filters.translate('coreupdate.confirm') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="uploadResult" class="tm-cu-overlay" @click.self="uploadResult = null">
+            <div class="tm-cu-dialog bg-white dark:bg-stone-800">
+                <h3 class="tm-cu-dialog__title">{{ $filters.translate('coreupdate.confirm_upload_title') }}</h3>
+                <p class="tm-cu-dialog__text">
+                    {{ $filters.translate('coreupdate.confirm_upload_text') }}
+                </p>
+                <ul class="tm-cu-summary">
+                    <li>
+                        <span>{{ $filters.translate('coreupdate.installed') }}</span>
+                        <strong>{{ uploadResult.installed }}</strong>
+                    </li>
+                    <li>
+                        <span>{{ $filters.translate('coreupdate.uploaded_version') }}</span>
+                        <strong>{{ uploadResult.version }}</strong>
+                    </li>
+                    <li>
+                        <span>{{ $filters.translate('coreupdate.uploaded_size') }}</span>
+                        <strong>{{ uploadResult.size }} · {{ uploadResult.core_files }}</strong>
+                    </li>
+                </ul>
+                <p v-if="uploadResult.is_downgrade" class="tm-cu-note tm-cu-note--error">
+                    {{ $filters.translate('coreupdate.downgrade_warning') }}
+                </p>
+                <p v-else-if="uploadResult.is_same" class="tm-cu-note tm-cu-note--warn">
+                    {{ $filters.translate('coreupdate.reinstall_warning') }}
+                </p>
+                <div class="tm-cu-dialog__actions">
+                    <button type="button" class="tm-cu-btn" @click.prevent="uploadResult = null">
+                        {{ $filters.translate('coreupdate.cancel') }}
+                    </button>
+                    <button type="button" class="tm-cu-btn tm-cu-btn--primary" @click.prevent="installUploaded">
                         {{ $filters.translate('coreupdate.confirm') }}
                     </button>
                 </div>

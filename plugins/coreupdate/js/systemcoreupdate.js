@@ -45,6 +45,10 @@ coreupdateStyle.textContent = `
 .tm-cu-dialog__title{font-size:1.1rem;font-weight:700;margin-bottom:.5rem}
 .tm-cu-dialog__text{font-size:.875rem;margin-bottom:1.25rem}
 .tm-cu-dialog__actions{display:flex;justify-content:flex-end;gap:.5rem}
+.tm-cu-file{font-size:.8125rem}
+.tm-cu-summary{display:flex;flex-direction:column;gap:.3rem;margin-bottom:1rem;font-size:.85rem}
+.tm-cu-summary li{display:flex;justify-content:space-between;gap:1rem;border-bottom:1px solid #e7e5e4;padding-bottom:.25rem}
+.dark .tm-cu-summary li{border-color:#44403c}
 `;
 document.head.appendChild(coreupdateStyle);
 
@@ -70,6 +74,8 @@ const app = Vue.createApp({
             messageClass: '',
             confirmUpdate: false,
             restoreTarget: null,
+            uploadProgress: null,
+            uploadResult: null,
         };
     },
 
@@ -94,11 +100,24 @@ const app = Vue.createApp({
 
         runUpdate() {
             this.confirmUpdate = false;
+            this.performInstall({});
+        },
+
+        installUploaded() {
+            const archive = this.uploadResult ? this.uploadResult.archive : null;
+            this.uploadResult = null;
+
+            if (archive) {
+                this.performInstall({ archive: archive });
+            }
+        },
+
+        performInstall(payload) {
             this.busy = true;
             this.log = [];
             this.message = '';
 
-            tmaxios.post('/api/v1/coreupdate/run', {}, { timeout: 600000 })
+            tmaxios.post('/api/v1/coreupdate/run', payload, { timeout: 600000 })
                 .then((response) => {
                     this.log = response.data.log || [];
                     this.showMessage(
@@ -117,6 +136,80 @@ const app = Vue.createApp({
                 .then(() => {
                     this.busy = false;
                 });
+        },
+
+        onArchiveChosen(event) {
+            const file = event.target.files && event.target.files[0];
+            if (file) {
+                this.uploadArchive(file);
+            }
+        },
+
+        /**
+         * PHP's default upload_max_filesize is 2 MB, which is smaller than a
+         * release archive, so the file is sliced and posted as base64 in
+         * ordinary JSON requests instead of as a form upload.
+         */
+        uploadArchive(file) {
+            const chunkSize = 512 * 1024;
+            const total = Math.max(1, Math.ceil(file.size / chunkSize));
+            const uploadId = 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+
+            this.busy = true;
+            this.message = '';
+            this.uploadProgress = 0;
+
+            const sendChunk = (index) => {
+                if (index >= total) {
+                    return Promise.resolve();
+                }
+
+                return this.readAsBase64(file.slice(index * chunkSize, (index + 1) * chunkSize))
+                    .then((data) => tmaxios.post('/api/v1/coreupdate/upload/chunk', {
+                        uploadId: uploadId,
+                        index: index,
+                        total: total,
+                        data: data,
+                    }))
+                    .then(() => {
+                        this.uploadProgress = Math.round(((index + 1) / total) * 100);
+                        return sendChunk(index + 1);
+                    });
+            };
+
+            sendChunk(0)
+                .then(() => tmaxios.post('/api/v1/coreupdate/upload/finalize', {
+                    uploadId: uploadId,
+                    total: total,
+                }))
+                .then((response) => {
+                    this.uploadResult = response.data;
+                })
+                .catch((error) => {
+                    this.showMessage(this.errorText(error, 'The upload failed.'), 'error');
+                })
+                .then(() => {
+                    this.busy = false;
+                    this.uploadProgress = null;
+                    if (this.$refs.archiveInput) {
+                        this.$refs.archiveInput.value = '';
+                    }
+                });
+        },
+
+        readAsBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+
+                reader.onload = () => {
+                    const result = String(reader.result);
+                    const comma = result.indexOf(',');
+                    resolve(comma === -1 ? result : result.slice(comma + 1));
+                };
+                reader.onerror = () => reject(new Error('Could not read the file.'));
+
+                reader.readAsDataURL(blob);
+            });
         },
 
         runRollback() {

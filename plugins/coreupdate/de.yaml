@@ -24,3 +24,12 @@ COREUPDATE_CANCEL: Abbrechen
 COREUPDATE_CONFIRM: Ja, fortfahren
 COREUPDATE_RELOAD: Seite neu laden, um die neue Version zu verwenden.
 COREUPDATE_PHP: PHP-Version
+COREUPDATE_UPLOAD_TITLE: Aus Datei installieren
+COREUPDATE_UPLOAD_HELP: "Ein Typemill-ZIP hochladen, um eine bestimmte Version zu installieren – etwa um zu einer älteren Version zurückzukehren oder wenn dieser Server typemill.net nicht erreichen kann. Das Archiv muss system/typemill und system/vendor enthalten; Downloads von GitHub enthalten die Abhängigkeiten nicht."
+COREUPDATE_UPLOADING: Wird hochgeladen
+COREUPDATE_UPLOADED_VERSION: Version in der Datei
+COREUPDATE_UPLOADED_SIZE: Datei
+COREUPDATE_CONFIRM_UPLOAD_TITLE: Diese Version installieren?
+COREUPDATE_CONFIRM_UPLOAD_TEXT: Der system-Ordner wird durch den Core aus dieser Datei ersetzt. Inhalte, Medien, Einstellungen, Plugins und Themes bleiben unverändert, und der aktuelle Core wird zur Wiederherstellung aufbewahrt.
+COREUPDATE_DOWNGRADE_WARNING: Diese Version ist älter als die aktuell installierte.
+COREUPDATE_REINSTALL_WARNING: Diese Version ist bereits installiert.

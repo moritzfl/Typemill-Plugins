@@ -216,6 +216,13 @@ class Release
             return ['ok' => false, 'error' => 'The archive contains more entries than expected (' . $zip->numFiles . ').'];
         }
 
+        $prefix = self::findSystemPrefix($zip);
+        if ($prefix === null) {
+            $zip->close();
+
+            return ['ok' => false, 'error' => 'The archive does not contain a Typemill core. Expected a system/ directory with typemill/ and vendor/ inside it.'];
+        }
+
         $systemEntries = 0;
         $systemBytes = 0;
         $totalBytes = 0;
@@ -243,24 +250,24 @@ class Release
                 return ['ok' => false, 'error' => 'The archive expands to more than ' . Environment::formatBytes(self::MAX_UNCOMPRESSED_BYTES) . '.'];
             }
 
-            if (self::isSystemEntry($name)) {
+            if (self::isSystemEntry($name, $prefix)) {
                 $systemEntries++;
                 $systemBytes += (int) $stat['size'];
             }
         }
 
         foreach (self::REQUIRED_ENTRIES as $required) {
-            if ($zip->locateName($required) === false) {
+            if ($zip->locateName($prefix . $required) === false) {
                 $zip->close();
 
-                return ['ok' => false, 'error' => 'The archive is missing ' . $required . ', so it is not a complete Typemill release.'];
+                return ['ok' => false, 'error' => 'The archive is missing ' . $required . ', so it is not a complete Typemill core. Archives from GitHub do not include system/vendor.'];
             }
         }
 
-        $defaults = $zip->getFromName('system/typemill/settings/defaults.yaml');
+        $defaults = $zip->getFromName($prefix . 'system/typemill/settings/defaults.yaml');
         $version = is_string($defaults) ? Environment::parseVersionFromYaml($defaults) : null;
 
-        $platformCheck = $zip->getFromName('system/vendor/composer/platform_check.php');
+        $platformCheck = $zip->getFromName($prefix . 'system/vendor/composer/platform_check.php');
         $phpFloor = is_string($platformCheck) ? Environment::parsePhpFloor($platformCheck) : null;
 
         $zip->close();
@@ -273,6 +280,7 @@ class Release
             'ok' => true,
             'error' => null,
             'version' => $version,
+            'prefix' => $prefix,
             'php_floor' => $phpFloor,
             'system_entries' => $systemEntries,
             'system_bytes' => $systemBytes,
@@ -301,9 +309,52 @@ class Release
         return true;
     }
 
-    public static function isSystemEntry(string $name): bool
+    public static function isSystemEntry(string $name, string $prefix = ''): bool
     {
-        return str_starts_with($name, 'system/') && $name !== 'system/';
+        return str_starts_with($name, $prefix . 'system/') && $name !== $prefix . 'system/';
+    }
+
+    /**
+     * Locate the core inside an archive.
+     *
+     * The archive published on typemill.net has `system/` at the root. An
+     * archive somebody built themselves may wrap everything in a single
+     * directory, so that case is accepted too and the wrapper is reported as a
+     * prefix. Anything else is rejected rather than guessed at.
+     *
+     * Returns the prefix ('' or 'wrapper/'), or null when no core is present.
+     */
+    public static function findSystemPrefix(ZipArchive $zip): ?string
+    {
+        if ($zip->locateName('system/typemill/settings/defaults.yaml') !== false) {
+            return '';
+        }
+
+        $topLevel = [];
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = (string) $zip->getNameIndex($i);
+            if ($name === '' || !self::isSafeEntryName($name)) {
+                continue;
+            }
+
+            $slash = strpos($name, '/');
+            $topLevel[$slash === false ? $name : substr($name, 0, $slash + 1)] = true;
+
+            if (count($topLevel) > 1) {
+                return null;
+            }
+        }
+
+        if (count($topLevel) !== 1) {
+            return null;
+        }
+
+        $prefix = (string) array_key_first($topLevel);
+        if (!str_ends_with($prefix, '/')) {
+            return null;
+        }
+
+        return $zip->locateName($prefix . 'system/typemill/settings/defaults.yaml') !== false ? $prefix : null;
     }
 
     private function httpGet(string $url, array $headers = []): array

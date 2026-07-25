@@ -106,7 +106,7 @@ class Installer
      * overwrite the site. Only entries under `system/` are passed to
      * extractTo(), so everything else is ignored.
      */
-    public function stage(string $zipPath): array
+    public function stage(string $zipPath, string $prefix = ''): array
     {
         $staging = $this->stagingPath();
 
@@ -116,13 +116,13 @@ class Installer
 
         $zip = new ZipArchive();
         if ($zip->open($zipPath) !== true) {
-            return ['ok' => false, 'error' => 'Could not open the downloaded archive.'];
+            return ['ok' => false, 'error' => 'Could not open the archive.'];
         }
 
         $entries = [];
         for ($i = 0; $i < $zip->numFiles; $i++) {
             $name = (string) $zip->getNameIndex($i);
-            if (Release::isSafeEntryName($name) && Release::isSystemEntry($name)) {
+            if (Release::isSafeEntryName($name) && Release::isSystemEntry($name, $prefix)) {
                 $entries[] = $name;
             }
         }
@@ -140,7 +140,9 @@ class Installer
             return ['ok' => false, 'error' => 'Extracting the archive failed.'];
         }
 
-        $stagedSystem = $staging . DIRECTORY_SEPARATOR . 'system';
+        // extractTo keeps full entry paths, so a wrapped archive lands one
+        // directory deeper than a plain one.
+        $stagedSystem = $staging . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $prefix) . 'system';
         if (!self::looksLikeCore($stagedSystem)) {
             return ['ok' => false, 'error' => 'The staged core is incomplete.'];
         }
@@ -572,8 +574,14 @@ class Installer
                 continue;
             }
 
-            if (str_starts_with($entry, 'download-') && is_file($path)) {
+            if ((str_starts_with($entry, 'download-') || str_starts_with($entry, 'upload-')) && is_file($path)) {
                 @unlink($path);
+                continue;
+            }
+
+            // Half-finished chunk uploads.
+            if ($entry === Upload::CHUNK_DIRNAME) {
+                $this->removeDirectory($path);
                 continue;
             }
 
