@@ -1,10 +1,10 @@
 services:
   typemill:
     build:
-      # Local Dockerfile mirrors upstream Typemill v2.23.0 and adds the PHP zip extension.
+      # Local Dockerfile mirrors upstream Typemill v2.25.0 and adds the PHP zip extension.
       context: ./docker/typemill
       args:
-        TYPEMILL_VERSION: v2.23.0
+        TYPEMILL_VERSION: v2.25.0
     # Chromium (browser tests) crashes with SIGTRAP under Docker's default
     # seccomp profile; this is a local test container only.
     security_opt:

@@ -1,6 +1,6 @@
 FROM php:8.3-apache
 
-ARG TYPEMILL_VERSION=v2.23.0
+ARG TYPEMILL_VERSION=v2.25.0
 
 # Install OS dependencies required (libzip-dev enables ZipArchive for exports and folder ZIP downloads)
 RUN apt-get update && apt-get upgrade -y && \

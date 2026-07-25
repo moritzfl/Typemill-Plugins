@@ -116,11 +116,15 @@ so local changes are reflected immediately without rebuilding.
 
 ## Typemill Version
 
-The Compose file pins a specific Typemill release tag (`v2.23.0` at the time of writing).
-To test against a different version, update the `context:` line in `docker-compose.typemill.yml`:
+The Compose file pins a specific Typemill release tag (`v2.25.0` at the time of writing).
+To test against a different version, update the `TYPEMILL_VERSION` build argument in
+`docker-compose.typemill.yml`:
 
 ```yaml
-context: https://github.com/typemill/typemill.git#v2.23.0
+build:
+  context: ./docker/typemill
+  args:
+    TYPEMILL_VERSION: v2.25.0
 ```
 
 After changing the tag, rebuild with `--build` to pick it up.
