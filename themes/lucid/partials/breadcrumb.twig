@@ -1,0 +1,11 @@
+<nav class="lc-breadcrumb" aria-label="Breadcrumb">
+  <a href="{{ base_url }}">{{ settings.themes.lucid.homeLabel|default('Home')|e }}</a>
+  {% for crumb in breadcrumb %}
+    <span class="lc-breadcrumb__sep" aria-hidden="true">/</span>
+    {% if loop.last %}
+      <span aria-current="page">{{ crumb.name|e }}</span>
+    {% else %}
+      <a href="{{ crumb.urlRel }}">{{ crumb.name|e }}</a>
+    {% endif %}
+  {% endfor %}
+</nav>

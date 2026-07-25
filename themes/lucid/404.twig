@@ -1,0 +1,18 @@
+{% extends 'layout.twig' %}
+
+{% block title %}{{ settings.themes.lucid.notFoundTitle|default('Page not found')|e }} | {{ settings.title|e }}{% endblock %}
+
+{% block content %}
+  <section class="lc-hero">
+    <div class="lc-container">
+      <p class="lc-hero__eyebrow">404</p>
+      <h1 class="lc-hero__title">{{ settings.themes.lucid.notFoundTitle|default('Page not found')|e }}</h1>
+      <p class="lc-hero__subtitle">
+        {{ settings.themes.lucid.notFoundText|default('The page you were looking for is not here.')|e }}
+      </p>
+      <div class="lc-hero__actions">
+        <a class="lc-btn" href="{{ base_url }}">{{ settings.themes.lucid.homeLabel|default('Home')|e }}</a>
+      </div>
+    </div>
+  </section>
+{% endblock %}

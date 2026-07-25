@@ -1,0 +1,57 @@
+{# Homepage as a post listing, driven by the configured blog folder. #}
+{% set theme = settings.themes.lucid %}
+
+<section class="lc-hero lc-hero--alt">
+  <div class="lc-container">
+    <h1 class="lc-hero__title">{{ theme.heroTitle|default('') ?: title|e }}</h1>
+    {% if theme.heroSubtitle %}
+      <p class="lc-hero__subtitle">{{ theme.heroSubtitle|e }}</p>
+    {% elseif metatabs.meta.description %}
+      <p class="lc-hero__subtitle">{{ metatabs.meta.description|e }}</p>
+    {% endif %}
+  </div>
+</section>
+
+{% if theme.blogintro and content|trim %}
+  <section class="lc-section lc-section--tight">
+    <div class="lc-container">
+      <div class="lc-article"><div class="lc-prose">{{ content }}</div></div>
+    </div>
+  </section>
+{% endif %}
+
+<section class="lc-section">
+  <div class="lc-container">
+
+    {% set pagelist = getPageList(navigation, theme.blogfolder, base_url) %}
+    {% set pagesize = theme.blogpagesize|default(9) %}
+    {% set pages = (pagelist.folderContent|length / pagesize)|round(0, 'ceil') %}
+    {% set currentpage = currentpage ? currentpage : 1 %}
+    {% set offset = (currentpage - 1) * pagesize %}
+
+    {% if pagelist.contains == 'posts' %}
+
+      {% include 'partials/posts.twig' with {
+        postitems: pagelist.folderContent|slice(offset, pagesize)
+      } %}
+
+      {% if pages > 1 %}
+        <nav class="lc-hero__actions" style="margin-top:44px" aria-label="Pagination">
+          {% for i in 1..pages %}
+            {% if i == currentpage %}
+              <span class="lc-btn" aria-current="page">{{ i }}</span>
+            {% else %}
+              <a class="lc-btn lc-btn--secondary" href="{{ item.urlRel }}/p/{{ i }}">{{ i }}</a>
+            {% endif %}
+          {% endfor %}
+        </nav>
+      {% endif %}
+
+    {% else %}
+      <p class="lc-section__lead">
+        {{ theme.blogEmptyText|default('The configured folder does not contain posts. Check the blog folder in the theme settings.')|e }}
+      </p>
+    {% endif %}
+
+  </div>
+</section>

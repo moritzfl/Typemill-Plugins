@@ -1,0 +1,52 @@
+{#
+  Post grid. `postitems` is the list of navigation elements to render; page.twig
+  passes a folder's contents, blog.twig passes a paginated slice.
+
+  Navigation elements only carry structural data, so the meta of each post is
+  loaded with getPageMeta().
+#}
+{% set theme = settings.themes.lucid %}
+{% set postitems = postitems is defined and postitems ? postitems : item.folderContent %}
+
+{% if postitems|length > 0 %}
+  <ul class="lc-posts">
+    {% for element in postitems %}
+      {% set post = getPageMeta(settings, element) %}
+      {% set orderDate = element.order is defined and element.order matches '/^\\d{8}$/'
+          ? element.order[0:4] ~ '-' ~ element.order[4:2] ~ '-' ~ element.order[6:2] : '' %}
+      {% set date = post.meta.manualdate|default(post.meta.modified|default(orderDate)) %}
+
+      <li class="lc-post">
+
+        {% if theme.blogimage|default(true) and post.meta.heroimage %}
+          <a class="lc-post__media" href="{{ element.urlRel }}" tabindex="-1" aria-hidden="true">
+            <img src="{{ assets.image(post.meta.heroimage).resize(820, 462).src() }}"
+                 alt="{{ post.meta.heroimagealt|default('')|e('html_attr') }}"
+                 loading="lazy" decoding="async" />
+          </a>
+        {% endif %}
+
+        <div class="lc-post__body">
+          {% if date %}
+            <p class="lc-post__date">
+              <time datetime="{{ date }}">{{ date|date(theme.dateFormat|default('d.m.Y')) }}</time>
+            </p>
+          {% endif %}
+
+          <h3 class="lc-post__title">
+            <a href="{{ element.urlRel }}">{{ post.meta.title|default(element.name)|e }}</a>
+          </h3>
+
+          {% if post.meta.description %}
+            <p class="lc-post__excerpt">{{ post.meta.description|e }}</p>
+          {% endif %}
+
+          <div>
+            <a class="lc-link" href="{{ element.urlRel }}">{{ translate('Read more') }}</a>
+          </div>
+        </div>
+
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}

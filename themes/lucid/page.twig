@@ -1,0 +1,90 @@
+{% set theme = settings.themes.lucid %}
+{% set published = metatabs.meta.manualdate ? metatabs.meta.manualdate : metatabs.meta.modified %}
+{% set heroImage = metatabs.meta.heroimage|default('') %}
+
+<article class="lc-section lc-section--tight">
+  <div class="lc-container">
+
+    {% if theme.breadcrumb|default(true) and not home %}
+      {% include 'partials/breadcrumb.twig' %}
+    {% endif %}
+
+    <div class="lc-article">
+
+      <header class="lc-article__header">
+        <h1 class="lc-article__title">{{ title|e }}</h1>
+
+        {# Off by default: Typemill generates the description from the page body
+           and hard-truncates it, which reads as a broken sentence when shown
+           as a lead. Turn it on when descriptions are written by hand. #}
+        {% if theme.showDescription|default(false) and metatabs.meta.description %}
+          <p class="lc-article__lead">{{ metatabs.meta.description|e }}</p>
+        {% endif %}
+
+        {% set showDate = 'top' in theme.datePosition|default([]) %}
+        {% set showAuthor = 'top' in theme.authorPosition|default([]) %}
+        {% if showDate or showAuthor %}
+          <div class="lc-article__meta">
+            {% if showAuthor %}
+              <span>{{ theme.authorIntro|default('')|e }} {{ metatabs.meta.author|default(settings.author)|e }}</span>
+            {% endif %}
+            {% if showDate %}
+              <time datetime="{{ published }}">
+                {{ theme.dateIntro|default('')|e }} {{ published|date(theme.dateFormat|default('d.m.Y')) }}
+              </time>
+            {% endif %}
+          </div>
+        {% endif %}
+      </header>
+
+      {% if heroImage %}
+        <div class="lc-article__hero">
+          <img src="{{ base_url }}/{{ heroImage }}"
+               alt="{{ metatabs.meta.heroimagealt|default(title)|e('html_attr') }}" />
+        </div>
+      {% endif %}
+
+      <div class="lc-prose">
+        {{ content }}
+      </div>
+
+    </div>
+
+    {# Folder pages list what they contain. #}
+    {% if item.elementType == 'folder' and item.contains == 'posts' %}
+      <div style="margin-top:56px">
+        {% include 'partials/posts.twig' %}
+      </div>
+    {% elseif item.elementType == 'folder' and item.folderContent|length > 0 %}
+      <div class="lc-article" style="margin-top:48px">
+        <ul class="lc-tiles" style="grid-template-columns:1fr">
+          {% for child in item.folderContent %}
+            <li class="lc-tile" style="min-height:auto;text-align:left;padding:24px 28px">
+              <h2 class="lc-tile__title" style="font-size:21px;margin-bottom:4px">
+                <a href="{{ child.urlRel }}">{{ child.name|e }}</a>
+              </h2>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    {% if item.prevItem or item.nextItem %}
+      <nav class="lc-pager" aria-label="{{ theme.pagerLabel|default('Page')|e('html_attr') }}">
+        {% if item.prevItem %}
+          <a class="lc-pager__item" href="{{ item.prevItem.urlRel }}">
+            <span class="lc-pager__label">{{ theme.previous|default('Previous') }}</span>
+            <span class="lc-pager__title">{{ item.prevItem.name|e }}</span>
+          </a>
+        {% endif %}
+        {% if item.nextItem %}
+          <a class="lc-pager__item lc-pager__item--next" href="{{ item.nextItem.urlRel }}">
+            <span class="lc-pager__label">{{ theme.next|default('Next') }}</span>
+            <span class="lc-pager__title">{{ item.nextItem.name|e }}</span>
+          </a>
+        {% endif %}
+      </nav>
+    {% endif %}
+
+  </div>
+</article>

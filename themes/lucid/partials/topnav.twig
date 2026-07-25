@@ -1,0 +1,47 @@
+{#
+  Global navigation.
+
+  The header is a single flat row of small links, so only the top level of
+  the Typemill navigation tree is rendered here. Deeper pages are reached from
+  the folder listings on the section pages themselves.
+#}
+<header class="lc-nav" data-nav>
+  <div class="lc-nav__inner">
+
+    <a href="{{ base_url }}" class="lc-nav__brand">
+      {% if logo %}
+        <img src="{{ base_url }}/{{ logo }}" alt="{{ settings.title|e('html_attr') }}" />
+      {% else %}
+        {{ settings.title|e }}
+      {% endif %}
+    </a>
+
+    <nav aria-label="{{ settings.themes.lucid.navLabel|default('Main')|e('html_attr') }}">
+      <ul class="lc-nav__links">
+        {% for element in navigation %}
+          <li>
+            <a href="{{ element.urlRel }}"
+               {% if element.active %}aria-current="page"{% endif %}>{{ element.name|e }}</a>
+          </li>
+        {% endfor %}
+
+        {% if multilang is defined and multilang %}
+          {% for lang, link in multilang %}
+            <li><a href="{{ base_url }}{{ link }}">{{ lang|upper }}</a></li>
+          {% endfor %}
+        {% endif %}
+      </ul>
+    </nav>
+
+    <button type="button"
+            class="lc-nav__toggle"
+            data-nav-toggle
+            aria-expanded="false"
+            aria-label="{{ settings.themes.lucid.menuLabel|default('Menu')|e('html_attr') }}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+        <path stroke-linecap="round" d="M3 7h18M3 12h18M3 17h18" />
+      </svg>
+    </button>
+
+  </div>
+</header>

@@ -17,6 +17,17 @@ black/white/transparent colors are automatically inverted in dark mode.
 
 ---
 
+### `lucid` — Lucid
+
+A calm, spacious product-page theme: a translucent sticky header, full-bleed sections that alternate between white
+and light grey, large tightly tracked headlines, fully rounded buttons, rounded section tiles, and automatic dark
+mode. Ships no font files — the system font stack lets each platform render its own interface typeface. Plain CSS
+with custom properties, so there is no build step.
+
+→ See [`themes/lucid/README.md`](themes/lucid/README.md) for full documentation.
+
+---
+
 ## Plugins
 
 ### `htmldeveloper` — HTML Developer Mode
