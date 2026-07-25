@@ -242,7 +242,7 @@ async function assertDeleteOverride(page, editorPath, label) {
  * The core update page renders entirely from a plugin-supplied Vue template, so
  * a template or binding mistake would only show up in the browser.
  */
-async function assertCoreUpdatePage(page) {
+async function assertTypemillUpdatePage(page) {
     const consoleErrors = []
     const pageErrors = []
     const onConsole = (message) => {
@@ -257,7 +257,7 @@ async function assertCoreUpdatePage(page) {
     page.on('pageerror', onPageError)
 
     try {
-        await page.goto(`${BASE_URL}/tm/coreupdate`, { waitUntil: 'networkidle2' })
+        await page.goto(`${BASE_URL}/tm/typemillupdate`, { waitUntil: 'networkidle2' })
         await page.waitForSelector('.tm-cu', { timeout: 15000 })
 
         // The status request also asks typemill.net for the current release, so
@@ -271,7 +271,7 @@ async function assertCoreUpdatePage(page) {
                 { timeout: 30000 }
             )
             .catch(() => {
-                throw new Error('Core Update: status never rendered')
+                throw new Error('Typemill Update: status never rendered')
             })
 
         const info = await page.evaluate(() => ({
@@ -283,11 +283,11 @@ async function assertCoreUpdatePage(page) {
 
         assert(
             /^\d+\.\d+\.\d+$/.test(info.versions[0] || ''),
-            `Core Update: installed version not rendered (got "${info.versions[0]}")`
+            `Typemill Update: installed version not rendered (got "${info.versions[0]}")`
         )
-        assert(info.checks > 0, 'Core Update: no environment checks rendered')
-        assert(info.uploadControl, 'Core Update: the archive upload control is missing')
-        assert(!info.unresolvedBindings, 'Core Update: template left unrendered {{ }} bindings')
+        assert(info.checks > 0, 'Typemill Update: no environment checks rendered')
+        assert(info.uploadControl, 'Typemill Update: the archive upload control is missing')
+        assert(!info.unresolvedBindings, 'Typemill Update: template left unrendered {{ }} bindings')
 
         const criticalErrors = [...pageErrors, ...consoleErrors].filter((entry) => {
             if (/DevTools/i.test(entry)) return false
@@ -295,7 +295,7 @@ async function assertCoreUpdatePage(page) {
             return true
         })
 
-        assert(criticalErrors.length === 0, `Core Update console errors:\n${criticalErrors.join('\n')}`)
+        assert(criticalErrors.length === 0, `Typemill Update console errors:\n${criticalErrors.join('\n')}`)
     } finally {
         page.off('console', onConsole)
         page.off('pageerror', onPageError)
@@ -323,8 +323,8 @@ async function main() {
             console.log(`ok: ${spec.name}`)
         }
 
-        await assertCoreUpdatePage(page)
-        console.log('ok: Core Update')
+        await assertTypemillUpdatePage(page)
+        console.log('ok: Typemill Update')
 
         const editorPath = await findFirstEditablePage(page)
         assert(editorPath, 'Could not find a content page link in the editor navigation')

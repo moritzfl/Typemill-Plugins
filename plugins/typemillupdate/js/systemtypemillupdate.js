@@ -1,5 +1,5 @@
-const coreupdateStyle = document.createElement('style');
-coreupdateStyle.textContent = `
+const typemillupdateStyle = document.createElement('style');
+typemillupdateStyle.textContent = `
 .tm-cu{margin-bottom:1.5rem}
 .tm-cu__page-header{margin-bottom:1.25rem}
 .tm-cu__page-header h1{margin-bottom:.35rem}
@@ -50,10 +50,10 @@ coreupdateStyle.textContent = `
 .tm-cu-summary li{display:flex;justify-content:space-between;gap:1rem;border-bottom:1px solid #e7e5e4;padding-bottom:.25rem}
 .dark .tm-cu-summary li{border-color:#44403c}
 `;
-document.head.appendChild(coreupdateStyle);
+document.head.appendChild(typemillupdateStyle);
 
 const app = Vue.createApp({
-    template: coreupdateTemplate,
+    template: typemillupdateTemplate,
 
     data() {
         return {
@@ -86,7 +86,7 @@ const app = Vue.createApp({
     methods: {
         load() {
             this.loading = true;
-            tmaxios.get('/api/v1/coreupdate/status')
+            tmaxios.get('/api/v1/typemillupdate/status')
                 .then((response) => {
                     this.status = response.data;
                 })
@@ -117,11 +117,11 @@ const app = Vue.createApp({
             this.log = [];
             this.message = '';
 
-            tmaxios.post('/api/v1/coreupdate/run', payload, { timeout: 600000 })
+            tmaxios.post('/api/v1/typemillupdate/run', payload, { timeout: 600000 })
                 .then((response) => {
                     this.log = response.data.log || [];
                     this.showMessage(
-                        (response.data.message || '') + ' ' + this.$filters.translate('coreupdate.reload'),
+                        (response.data.message || '') + ' ' + this.$filters.translate('typemillupdate.reload'),
                         'success'
                     );
                     this.load();
@@ -165,7 +165,7 @@ const app = Vue.createApp({
                 }
 
                 return this.readAsBase64(file.slice(index * chunkSize, (index + 1) * chunkSize))
-                    .then((data) => tmaxios.post('/api/v1/coreupdate/upload/chunk', {
+                    .then((data) => tmaxios.post('/api/v1/typemillupdate/upload/chunk', {
                         uploadId: uploadId,
                         index: index,
                         total: total,
@@ -178,7 +178,7 @@ const app = Vue.createApp({
             };
 
             sendChunk(0)
-                .then(() => tmaxios.post('/api/v1/coreupdate/upload/finalize', {
+                .then(() => tmaxios.post('/api/v1/typemillupdate/upload/finalize', {
                     uploadId: uploadId,
                     total: total,
                 }))
@@ -220,10 +220,10 @@ const app = Vue.createApp({
             }
 
             this.busy = true;
-            tmaxios.post('/api/v1/coreupdate/rollback', { backup: backup.name }, { timeout: 600000 })
+            tmaxios.post('/api/v1/typemillupdate/rollback', { backup: backup.name }, { timeout: 600000 })
                 .then((response) => {
                     this.showMessage(
-                        (response.data.message || '') + ' ' + this.$filters.translate('coreupdate.reload'),
+                        (response.data.message || '') + ' ' + this.$filters.translate('typemillupdate.reload'),
                         'success'
                     );
                     this.load();
@@ -239,7 +239,7 @@ const app = Vue.createApp({
 
         removeBackup(backup) {
             this.busy = true;
-            tmaxios.delete('/api/v1/coreupdate/backup', { data: { backup: backup.name } })
+            tmaxios.delete('/api/v1/typemillupdate/backup', { data: { backup: backup.name } })
                 .then(() => {
                     this.load();
                 })

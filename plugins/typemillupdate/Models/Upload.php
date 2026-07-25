@@ -1,6 +1,6 @@
 <?php
 
-namespace Plugins\coreupdate\Models;
+namespace Plugins\typemillupdate\Models;
 
 /**
  * Receives a core archive from the browser in pieces.

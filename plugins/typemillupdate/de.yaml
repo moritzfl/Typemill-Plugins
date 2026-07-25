@@ -1,0 +1,35 @@
+TYPEMILLUPDATE_TITLE: Typemill-Update
+TYPEMILLUPDATE_SUBTITLE: Typemill selbst aktualisieren. Es wird nur der system-Ordner ersetzt.
+TYPEMILLUPDATE_INSTALLED: Installierte Version
+TYPEMILLUPDATE_LATEST: Neueste Version
+TYPEMILLUPDATE_UNKNOWN: Unbekannt
+TYPEMILLUPDATE_UP_TO_DATE: Typemill ist aktuell.
+TYPEMILLUPDATE_AVAILABLE: Ein Update ist verfügbar.
+TYPEMILLUPDATE_CHECK: Erneut prüfen
+TYPEMILLUPDATE_UPDATE_NOW: Jetzt aktualisieren
+TYPEMILLUPDATE_ENVIRONMENT: Umgebung
+TYPEMILLUPDATE_BLOCKED: Diese Installation kann sich nicht selbst aktualisieren. Bitte zuerst die folgenden Punkte beheben.
+TYPEMILLUPDATE_BACKUPS: Frühere Versionen
+TYPEMILLUPDATE_NO_BACKUPS: Noch keine frühere Version gespeichert.
+TYPEMILLUPDATE_RESTORE: Wiederherstellen
+TYPEMILLUPDATE_DELETE: Löschen
+TYPEMILLUPDATE_LOADING: Lädt
+TYPEMILLUPDATE_RUNNING: Update läuft. Diese Seite bitte nicht schließen.
+TYPEMILLUPDATE_LOG: Details
+TYPEMILLUPDATE_CONFIRM_TITLE: Typemill aktualisieren?
+TYPEMILLUPDATE_CONFIRM_TEXT: Der system-Ordner wird ersetzt. Inhalte, Medien, Einstellungen, Plugins und Themes bleiben unverändert, und der aktuelle Core wird zur Wiederherstellung aufbewahrt.
+TYPEMILLUPDATE_CONFIRM_RESTORE_TITLE: Diese Version wiederherstellen?
+TYPEMILLUPDATE_CONFIRM_RESTORE_TEXT: Der aktuelle Core wird durch den gespeicherten ersetzt.
+TYPEMILLUPDATE_CANCEL: Abbrechen
+TYPEMILLUPDATE_CONFIRM: Ja, fortfahren
+TYPEMILLUPDATE_RELOAD: Seite neu laden, um die neue Version zu verwenden.
+TYPEMILLUPDATE_PHP: PHP-Version
+TYPEMILLUPDATE_UPLOAD_TITLE: Aus Datei installieren
+TYPEMILLUPDATE_UPLOAD_HELP: "Ein Typemill-ZIP hochladen, um eine bestimmte Version zu installieren – etwa um zu einer älteren Version zurückzukehren oder wenn dieser Server typemill.net nicht erreichen kann. Das Archiv muss system/typemill und system/vendor enthalten; Downloads von GitHub enthalten die Abhängigkeiten nicht."
+TYPEMILLUPDATE_UPLOADING: Wird hochgeladen
+TYPEMILLUPDATE_UPLOADED_VERSION: Version in der Datei
+TYPEMILLUPDATE_UPLOADED_SIZE: Datei
+TYPEMILLUPDATE_CONFIRM_UPLOAD_TITLE: Diese Version installieren?
+TYPEMILLUPDATE_CONFIRM_UPLOAD_TEXT: Der system-Ordner wird durch den Core aus dieser Datei ersetzt. Inhalte, Medien, Einstellungen, Plugins und Themes bleiben unverändert, und der aktuelle Core wird zur Wiederherstellung aufbewahrt.
+TYPEMILLUPDATE_DOWNGRADE_WARNING: Diese Version ist älter als die aktuell installierte.
+TYPEMILLUPDATE_REINSTALL_WARNING: Diese Version ist bereits installiert.

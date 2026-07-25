@@ -1,4 +1,4 @@
-# Core Update — Typemill Plugin
+# Typemill Update — Typemill Plugin
 
 A Typemill plugin that updates Typemill itself from the dashboard, instead of replacing the
 `system` folder over FTP by hand.
@@ -7,7 +7,7 @@ A Typemill plugin that updates Typemill itself from the dashboard, instead of re
 
 See [Installation in the project README](../../README.md#installation).
 
-Activate **Core Update**, then open **System → Core Update**.
+Activate **Typemill Update**, then open **System → Typemill Update**.
 
 ## What it changes
 
@@ -73,12 +73,12 @@ change is needed.
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `GET` | `/api/v1/coreupdate/status` | Installed version, latest release, environment checks, stored backups |
-| `POST` | `/api/v1/coreupdate/run` | Install. Downloads the current release, or installs a previously uploaded archive when given `archive` |
-| `POST` | `/api/v1/coreupdate/upload/chunk` | Receive one base64 slice of an archive |
-| `POST` | `/api/v1/coreupdate/upload/finalize` | Assemble and verify the upload, and report the version it contains |
-| `POST` | `/api/v1/coreupdate/rollback` | Restore a stored core |
-| `DELETE` | `/api/v1/coreupdate/backup` | Delete a stored core |
+| `GET` | `/api/v1/typemillupdate/status` | Installed version, latest release, environment checks, stored backups |
+| `POST` | `/api/v1/typemillupdate/run` | Install. Downloads the current release, or installs a previously uploaded archive when given `archive` |
+| `POST` | `/api/v1/typemillupdate/upload/chunk` | Receive one base64 slice of an archive |
+| `POST` | `/api/v1/typemillupdate/upload/finalize` | Assemble and verify the upload, and report the version it contains |
+| `POST` | `/api/v1/typemillupdate/rollback` | Restore a stored core |
+| `DELETE` | `/api/v1/typemillupdate/backup` | Delete a stored core |
 
 All routes require an authenticated session. `status` needs `system` / `read`. The three routes that
 change something are restricted to administrators (`user` / `update`) rather than `system` /
@@ -92,12 +92,12 @@ Updates are serialised with a lock file, so a second run while one is in progres
 
 ## Working directory
 
-Downloads, staging and backups live in `.tm-coreupdate/` in the project root. It has to sit there:
+Downloads, staging and backups live in `.tm-update/` in the project root. It has to sit there:
 the swap renames the staged core over `system`, and `rename()` cannot cross filesystems — on a
 typical Docker setup `data/` is a bind mount and would fail with `EXDEV`.
 
 The directory is created with an `.htaccess` that denies all access. **On nginx that file is
-ignored**, so if you run nginx, block `/.tm-coreupdate` in the server config, or delete stored
+ignored**, so if you run nginx, block `/.tm-update` in the server config, or delete stored
 backups once you no longer need them.
 
 ## Requirements and limits

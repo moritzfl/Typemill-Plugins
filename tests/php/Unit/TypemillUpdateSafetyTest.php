@@ -3,15 +3,15 @@
 namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Plugins\coreupdate\Models\Environment;
-use Plugins\coreupdate\Models\Release;
+use Plugins\typemillupdate\Models\Environment;
+use Plugins\typemillupdate\Models\Release;
 
 /**
  * Guards for the pure decisions the core updater makes before it touches
  * anything: which archive entries may be unpacked, which version an archive
  * claims, and which PHP version it demands.
  */
-class CoreUpdateSafetyTest extends TestCase
+class TypemillUpdateSafetyTest extends TestCase
 {
     /**
      * Entry names decide where files land during extraction, so this is the

@@ -1,6 +1,6 @@
 <?php
 
-namespace Plugins\coreupdate\Models;
+namespace Plugins\typemillupdate\Models;
 
 use ZipArchive;
 
@@ -491,7 +491,7 @@ class Installer
             CURLOPT_MAXREDIRS => 3,
             CURLOPT_CONNECTTIMEOUT => 5,
             CURLOPT_TIMEOUT => 15,
-            CURLOPT_USERAGENT => 'Typemill-CoreUpdate/1.0 (self-test)',
+            CURLOPT_USERAGENT => 'Typemill-Update/1.0 (self-test)',
         ]);
 
         $body = curl_exec($curl);

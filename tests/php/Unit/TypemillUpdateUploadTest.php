@@ -3,8 +3,8 @@
 namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Plugins\coreupdate\Models\Environment;
-use Plugins\coreupdate\Models\Upload;
+use Plugins\typemillupdate\Models\Environment;
+use Plugins\typemillupdate\Models\Upload;
 
 /**
  * Chunked upload of a core archive.
@@ -14,7 +14,7 @@ use Plugins\coreupdate\Models\Upload;
  * upload id and the assembled archive name both come from the browser and are
  * used to build file paths, which is what these tests are mostly about.
  */
-class CoreUpdateUploadTest extends TestCase
+class TypemillUpdateUploadTest extends TestCase
 {
     private string $root;
     private Upload $upload;
@@ -23,7 +23,7 @@ class CoreUpdateUploadTest extends TestCase
     {
         $base = realpath(sys_get_temp_dir()) ?: sys_get_temp_dir();
 
-        $this->root = $base . '/coreupdate-upload-' . bin2hex(random_bytes(6));
+        $this->root = $base . '/typemillupdate-upload-' . bin2hex(random_bytes(6));
         mkdir($this->root, 0777, true);
 
         $this->upload = new Upload(new Environment($this->root));
@@ -102,11 +102,11 @@ class CoreUpdateUploadTest extends TestCase
         // Nothing on disk yet.
         $this->assertNull($this->upload->resolveArchive($name));
 
-        mkdir($this->root . '/.tm-coreupdate', 0777, true);
-        file_put_contents($this->root . '/.tm-coreupdate/' . $name, 'zip');
+        mkdir($this->root . '/.tm-update', 0777, true);
+        file_put_contents($this->root . '/.tm-update/' . $name, 'zip');
 
         $this->assertSame(
-            $this->root . '/.tm-coreupdate/' . $name,
+            $this->root . '/.tm-update/' . $name,
             $this->upload->resolveArchive($name)
         );
 

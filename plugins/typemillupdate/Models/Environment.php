@@ -1,6 +1,6 @@
 <?php
 
-namespace Plugins\coreupdate\Models;
+namespace Plugins\typemillupdate\Models;
 
 /**
  * Locates the Typemill installation and answers whether this environment is
@@ -15,7 +15,7 @@ namespace Plugins\coreupdate\Models;
 class Environment
 {
     /** Working directory for downloads, staging and backups, relative to root. */
-    public const WORK_DIRNAME = '.tm-coreupdate';
+    public const WORK_DIRNAME = '.tm-update';
 
     /** Refuse to run when less than this is free, in bytes. */
     public const MIN_FREE_BYTES = 209715200; // 200 MB
@@ -37,7 +37,7 @@ class Environment
     /**
      * Resolve the installation root.
      *
-     * This file lives at <root>/plugins/coreupdate/Models, but plugins can be
+     * This file lives at <root>/plugins/typemillupdate/Models, but plugins can be
      * symlinked, so the derived path is validated and getcwd() is used as a
      * fallback - that is what the core itself relies on when loading plugins.
      */
@@ -215,7 +215,7 @@ class Environment
      */
     private function checkRootWritable(): array
     {
-        $probe = $this->root . DIRECTORY_SEPARATOR . '.tm-coreupdate-probe-' . bin2hex(random_bytes(6));
+        $probe = $this->root . DIRECTORY_SEPARATOR . '.tm-update-probe-' . bin2hex(random_bytes(6));
 
         if (!@mkdir($probe, 0755)) {
             return $this->check('root_writable', false, true,

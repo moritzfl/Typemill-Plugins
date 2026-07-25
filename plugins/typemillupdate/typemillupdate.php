@@ -1,17 +1,17 @@
 <?php
 
-namespace Plugins\coreupdate;
+namespace Plugins\typemillupdate;
 
-use Plugins\coreupdate\Models\Environment;
-use Plugins\coreupdate\Models\Installer;
-use Plugins\coreupdate\Models\Release;
-use Plugins\coreupdate\Models\Upload;
+use Plugins\typemillupdate\Models\Environment;
+use Plugins\typemillupdate\Models\Installer;
+use Plugins\typemillupdate\Models\Release;
+use Plugins\typemillupdate\Models\Upload;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Typemill\Plugin;
 use Typemill\Static\Translations;
 
-class coreupdate extends Plugin
+class typemillupdate extends Plugin
 {
     public static function setPremiumLicense()
     {
@@ -30,17 +30,17 @@ class coreupdate extends Plugin
         return [
             [
                 'httpMethod' => 'get',
-                'route' => '/tm/coreupdate',
-                'name' => 'coreupdate.admin',
+                'route' => '/tm/typemillupdate',
+                'name' => 'typemillupdate.admin',
                 'class' => 'Typemill\Controllers\ControllerWebSystem:blankSystemPage',
                 'resource' => 'system',
                 'privilege' => 'read',
             ],
             [
                 'httpMethod' => 'get',
-                'route' => '/api/v1/coreupdate/status',
-                'name' => 'coreupdate.status',
-                'class' => 'Plugins\coreupdate\coreupdate:getStatus',
+                'route' => '/api/v1/typemillupdate/status',
+                'name' => 'typemillupdate.status',
+                'class' => 'Plugins\typemillupdate\typemillupdate:getStatus',
                 'resource' => 'system',
                 'privilege' => 'read',
             ],
@@ -50,41 +50,41 @@ class coreupdate extends Plugin
             // `user`/`update` is what the core itself uses to mean admin only.
             [
                 'httpMethod' => 'post',
-                'route' => '/api/v1/coreupdate/run',
-                'name' => 'coreupdate.run',
-                'class' => 'Plugins\coreupdate\coreupdate:runUpdate',
+                'route' => '/api/v1/typemillupdate/run',
+                'name' => 'typemillupdate.run',
+                'class' => 'Plugins\typemillupdate\typemillupdate:runUpdate',
                 'resource' => 'user',
                 'privilege' => 'update',
             ],
             [
                 'httpMethod' => 'post',
-                'route' => '/api/v1/coreupdate/upload/chunk',
-                'name' => 'coreupdate.upload.chunk',
-                'class' => 'Plugins\coreupdate\coreupdate:uploadChunk',
+                'route' => '/api/v1/typemillupdate/upload/chunk',
+                'name' => 'typemillupdate.upload.chunk',
+                'class' => 'Plugins\typemillupdate\typemillupdate:uploadChunk',
                 'resource' => 'user',
                 'privilege' => 'update',
             ],
             [
                 'httpMethod' => 'post',
-                'route' => '/api/v1/coreupdate/upload/finalize',
-                'name' => 'coreupdate.upload.finalize',
-                'class' => 'Plugins\coreupdate\coreupdate:finalizeUpload',
+                'route' => '/api/v1/typemillupdate/upload/finalize',
+                'name' => 'typemillupdate.upload.finalize',
+                'class' => 'Plugins\typemillupdate\typemillupdate:finalizeUpload',
                 'resource' => 'user',
                 'privilege' => 'update',
             ],
             [
                 'httpMethod' => 'post',
-                'route' => '/api/v1/coreupdate/rollback',
-                'name' => 'coreupdate.rollback',
-                'class' => 'Plugins\coreupdate\coreupdate:runRollback',
+                'route' => '/api/v1/typemillupdate/rollback',
+                'name' => 'typemillupdate.rollback',
+                'class' => 'Plugins\typemillupdate\typemillupdate:runRollback',
                 'resource' => 'user',
                 'privilege' => 'update',
             ],
             [
                 'httpMethod' => 'delete',
-                'route' => '/api/v1/coreupdate/backup',
-                'name' => 'coreupdate.backup.delete',
-                'class' => 'Plugins\coreupdate\coreupdate:deleteBackup',
+                'route' => '/api/v1/typemillupdate/backup',
+                'name' => 'typemillupdate.backup.delete',
+                'class' => 'Plugins\typemillupdate\typemillupdate:deleteBackup',
                 'resource' => 'user',
                 'privilege' => 'update',
             ],
@@ -93,23 +93,23 @@ class coreupdate extends Plugin
 
     public function onSystemnaviLoaded($navidata)
     {
-        $this->addSvgSymbol('<symbol id="icon-coreupdate" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-9 9H0l4 4 4-4H5a7 7 0 1 1 2.05 4.95l-1.42 1.42A9 9 0 1 0 12 3Zm1 4h-2v6l5 3 1-1.64-4-2.36V7Z"/></symbol>');
+        $this->addSvgSymbol('<symbol id="icon-typemillupdate" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-9 9H0l4 4 4-4H5a7 7 0 1 1 2.05 4.95l-1.42 1.42A9 9 0 1 0 12 3Zm1 4h-2v6l5 3 1-1.64-4-2.36V7Z"/></symbol>');
 
         $navi = $navidata->getData();
-        $navi['Coreupdate'] = [
-            'title' => Translations::translate('coreupdate.title'),
-            'routename' => 'coreupdate.admin',
-            'icon' => 'icon-coreupdate',
+        $navi['Typemillupdate'] = [
+            'title' => Translations::translate('typemillupdate.title'),
+            'routename' => 'typemillupdate.admin',
+            'icon' => 'icon-typemillupdate',
             'aclresource' => 'system',
             'aclprivilege' => 'read',
         ];
 
-        if (trim($this->route, '/') === 'tm/coreupdate') {
-            $navi['Coreupdate']['active'] = true;
+        if (trim($this->route, '/') === 'tm/typemillupdate') {
+            $navi['Typemillupdate']['active'] = true;
 
-            $template = file_get_contents(__DIR__ . '/js/systemcoreupdate.html');
-            $js = file_get_contents(__DIR__ . '/js/systemcoreupdate.js');
-            $this->addInlineJS('const coreupdateTemplate = ' . json_encode($template) . '; ' . $js);
+            $template = file_get_contents(__DIR__ . '/js/systemtypemillupdate.html');
+            $js = file_get_contents(__DIR__ . '/js/systemtypemillupdate.js');
+            $this->addInlineJS('const typemillupdateTemplate = ' . json_encode($template) . '; ' . $js);
         }
 
         $navidata->setData($navi);
@@ -516,7 +516,7 @@ class coreupdate extends Plugin
         try {
             $json = json_encode($payload, JSON_THROW_ON_ERROR);
         } catch (\JsonException $e) {
-            error_log('[coreupdate] Failed to encode JSON response: ' . $e->getMessage());
+            error_log('[typemillupdate] Failed to encode JSON response: ' . $e->getMessage());
             $status = 500;
             $json = '{"message":"Internal server error."}';
         }

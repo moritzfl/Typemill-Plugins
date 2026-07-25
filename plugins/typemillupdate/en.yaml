@@ -1,0 +1,35 @@
+TYPEMILLUPDATE_TITLE: Typemill Update
+TYPEMILLUPDATE_SUBTITLE: Update Typemill itself. Only the system folder is replaced.
+TYPEMILLUPDATE_INSTALLED: Installed version
+TYPEMILLUPDATE_LATEST: Latest release
+TYPEMILLUPDATE_UNKNOWN: Unknown
+TYPEMILLUPDATE_UP_TO_DATE: Typemill is up to date.
+TYPEMILLUPDATE_AVAILABLE: An update is available.
+TYPEMILLUPDATE_CHECK: Check again
+TYPEMILLUPDATE_UPDATE_NOW: Update now
+TYPEMILLUPDATE_ENVIRONMENT: Environment
+TYPEMILLUPDATE_BLOCKED: This installation cannot update itself. Fix the items below first.
+TYPEMILLUPDATE_BACKUPS: Previous versions
+TYPEMILLUPDATE_NO_BACKUPS: No previous version stored yet.
+TYPEMILLUPDATE_RESTORE: Restore
+TYPEMILLUPDATE_DELETE: Delete
+TYPEMILLUPDATE_LOADING: Loading
+TYPEMILLUPDATE_RUNNING: Updating. Do not close this page.
+TYPEMILLUPDATE_LOG: Details
+TYPEMILLUPDATE_CONFIRM_TITLE: Update Typemill?
+TYPEMILLUPDATE_CONFIRM_TEXT: The system folder will be replaced. Your content, media, settings, plugins and themes stay untouched, and the current core is kept so it can be restored.
+TYPEMILLUPDATE_CONFIRM_RESTORE_TITLE: Restore this version?
+TYPEMILLUPDATE_CONFIRM_RESTORE_TEXT: The current core will be replaced by the stored one.
+TYPEMILLUPDATE_CANCEL: Cancel
+TYPEMILLUPDATE_CONFIRM: Yes, continue
+TYPEMILLUPDATE_RELOAD: Reload the page to use the new version.
+TYPEMILLUPDATE_PHP: PHP version
+TYPEMILLUPDATE_UPLOAD_TITLE: Install from a file
+TYPEMILLUPDATE_UPLOAD_HELP: "Upload a Typemill ZIP to install a specific version, for example to go back to an older release or when this server cannot reach typemill.net. The archive must contain system/typemill and system/vendor; downloads from GitHub do not, because they leave out the dependencies."
+TYPEMILLUPDATE_UPLOADING: Uploading
+TYPEMILLUPDATE_UPLOADED_VERSION: Version in the file
+TYPEMILLUPDATE_UPLOADED_SIZE: File
+TYPEMILLUPDATE_CONFIRM_UPLOAD_TITLE: Install this version?
+TYPEMILLUPDATE_CONFIRM_UPLOAD_TEXT: The system folder will be replaced with the core from this file. Your content, media, settings, plugins and themes stay untouched, and the current core is kept so it can be restored.
+TYPEMILLUPDATE_DOWNGRADE_WARNING: This is older than the version you have installed.
+TYPEMILLUPDATE_REINSTALL_WARNING: This is the version you already have installed.

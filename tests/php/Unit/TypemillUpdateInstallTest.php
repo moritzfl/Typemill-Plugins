@@ -3,8 +3,8 @@
 namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Plugins\coreupdate\Models\Environment;
-use Plugins\coreupdate\Models\Installer;
+use Plugins\typemillupdate\Models\Environment;
+use Plugins\typemillupdate\Models\Installer;
 
 /**
  * Installing and rolling back a core.
@@ -15,7 +15,7 @@ use Plugins\coreupdate\Models\Installer;
  * copy fallback. Both are covered here; the copy route is reached through
  * reflection because in a temporary directory renaming always succeeds.
  */
-class CoreUpdateInstallTest extends TestCase
+class TypemillUpdateInstallTest extends TestCase
 {
     private string $root;
 
@@ -27,7 +27,7 @@ class CoreUpdateInstallTest extends TestCase
         // every path - so the tests would never exercise it.
         $base = realpath(sys_get_temp_dir()) ?: sys_get_temp_dir();
 
-        $this->root = $base . '/coreupdate-install-' . bin2hex(random_bytes(6));
+        $this->root = $base . '/typemillupdate-install-' . bin2hex(random_bytes(6));
         mkdir($this->root, 0777, true);
     }
 
@@ -136,13 +136,13 @@ class CoreUpdateInstallTest extends TestCase
     {
         $installer = $this->prepare();
 
-        $missingEverything = $this->root . '/.tm-coreupdate/backup-empty';
+        $missingEverything = $this->root . '/.tm-update/backup-empty';
         mkdir($missingEverything, 0777, true);
 
-        $missingSystem = $this->root . '/.tm-coreupdate/backup-nosystem';
+        $missingSystem = $this->root . '/.tm-update/backup-nosystem';
         mkdir($missingSystem . '/system', 0777, true);
 
-        $missingVendor = $this->root . '/.tm-coreupdate/backup-partial';
+        $missingVendor = $this->root . '/.tm-update/backup-partial';
         $this->writeAbsolute($missingVendor . '/system/typemill/settings/defaults.yaml', "version: '2.20.0'\n");
 
         foreach ([$missingEverything, $missingSystem, $missingVendor] as $backup) {
@@ -227,7 +227,7 @@ class CoreUpdateInstallTest extends TestCase
     {
         $installer = $this->prepare();
 
-        $broken = $this->root . '/.tm-coreupdate/backup-broken';
+        $broken = $this->root . '/.tm-update/backup-broken';
         mkdir($broken . '/system', 0777, true);
 
         $this->assertSame([], $installer->listBackups());

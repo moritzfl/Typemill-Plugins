@@ -52,7 +52,7 @@ function ensureTestPluginsActive() {
     }
 
     let content = readFileSync(SETTINGS_FILE, 'utf8')
-    for (const plugin of ['versions', 'preview', 'files', 'coreupdate']) {
+    for (const plugin of ['versions', 'preview', 'files', 'typemillupdate']) {
         // Anchor continuation lines to deeper indentation than the plugin key,
         // so the match can never run into the next plugin's block.
         const blockRe = new RegExp(
@@ -224,7 +224,7 @@ if (!file_exists($dir . '/settings.yaml')) {
         "        active: true",
         "    files:",
         "        active: true",
-        "    coreupdate:",
+        "    typemillupdate:",
         "        active: true",
         "",
     ]);

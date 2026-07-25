@@ -3,9 +3,9 @@
 namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Plugins\coreupdate\Models\Environment;
-use Plugins\coreupdate\Models\Installer;
-use Plugins\coreupdate\Models\Release;
+use Plugins\typemillupdate\Models\Environment;
+use Plugins\typemillupdate\Models\Installer;
+use Plugins\typemillupdate\Models\Release;
 use ZipArchive;
 
 /**
@@ -17,7 +17,7 @@ use ZipArchive;
  * it wholesale would overwrite a live site, so the decisive test here is that
  * staging takes system/ and nothing else.
  */
-class CoreUpdateArchiveTest extends TestCase
+class TypemillUpdateArchiveTest extends TestCase
 {
     private string $root;
 
@@ -25,7 +25,7 @@ class CoreUpdateArchiveTest extends TestCase
     {
         $base = realpath(sys_get_temp_dir()) ?: sys_get_temp_dir();
 
-        $this->root = $base . '/coreupdate-test-' . bin2hex(random_bytes(6));
+        $this->root = $base . '/typemillupdate-test-' . bin2hex(random_bytes(6));
         mkdir($this->root, 0777, true);
     }
 

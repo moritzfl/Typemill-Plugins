@@ -25,7 +25,7 @@ describe('Core update API', () => {
     })
 
     it.skipIf(!configured)('reports the installed version and environment checks', async () => {
-        const response = await apiGet(session, `${BASE_URL}/api/v1/coreupdate/status?check=0`)
+        const response = await apiGet(session, `${BASE_URL}/api/v1/typemillupdate/status?check=0`)
         expect(response.status).toBe(200)
 
         const body = await response.json()
@@ -38,7 +38,7 @@ describe('Core update API', () => {
     })
 
     it.skipIf(!configured)('checks everything the swap depends on', async () => {
-        const response = await apiGet(session, `${BASE_URL}/api/v1/coreupdate/status?check=0`)
+        const response = await apiGet(session, `${BASE_URL}/api/v1/typemillupdate/status?check=0`)
         const body = await response.json()
 
         const ids = body.preflight.map((check) => check.id)
@@ -56,7 +56,7 @@ describe('Core update API', () => {
     })
 
     it.skipIf(!configured)('is able to update this installation', async () => {
-        const response = await apiGet(session, `${BASE_URL}/api/v1/coreupdate/status?check=0`)
+        const response = await apiGet(session, `${BASE_URL}/api/v1/typemillupdate/status?check=0`)
         const body = await response.json()
 
         const failing = body.preflight.filter((check) => !check.ok && check.blocking)
@@ -68,14 +68,14 @@ describe('Core update API', () => {
 
     it.skipIf(!configured)('rejects a backup name that tries to escape the working directory', async () => {
         for (const name of ['../../etc', 'backup-../../etc', '/etc/passwd', 'not-a-backup']) {
-            const response = await apiPost(session, `${BASE_URL}/api/v1/coreupdate/rollback`, { backup: name })
+            const response = await apiPost(session, `${BASE_URL}/api/v1/typemillupdate/rollback`, { backup: name })
             expect(response.status, `expected rejection for ${name}`).toBe(404)
         }
     })
 
     it.skipIf(!configured)('rejects upload ids that could escape the working directory', async () => {
         for (const uploadId of ['../evil', 'a/b', '', 'has.dot']) {
-            const response = await apiPost(session, `${BASE_URL}/api/v1/coreupdate/upload/chunk`, {
+            const response = await apiPost(session, `${BASE_URL}/api/v1/typemillupdate/upload/chunk`, {
                 uploadId,
                 index: 0,
                 total: 1,
@@ -87,7 +87,7 @@ describe('Core update API', () => {
 
     it.skipIf(!configured)('refuses to install an archive that was never uploaded', async () => {
         for (const archive of ['upload-doesnotexist.zip', '../../etc/passwd', 'download-1.zip']) {
-            const response = await apiPost(session, `${BASE_URL}/api/v1/coreupdate/run`, { archive })
+            const response = await apiPost(session, `${BASE_URL}/api/v1/typemillupdate/run`, { archive })
             expect(response.status, `expected rejection for ${archive}`).toBe(404)
         }
     })
@@ -95,7 +95,7 @@ describe('Core update API', () => {
     it.skipIf(!configured)('rejects an upload that is not a Typemill core', async () => {
         const uploadId = 'apitest' + Math.random().toString(36).slice(2, 10)
 
-        const chunk = await apiPost(session, `${BASE_URL}/api/v1/coreupdate/upload/chunk`, {
+        const chunk = await apiPost(session, `${BASE_URL}/api/v1/typemillupdate/upload/chunk`, {
             uploadId,
             index: 0,
             total: 1,
@@ -103,7 +103,7 @@ describe('Core update API', () => {
         })
         expect(chunk.status).toBe(200)
 
-        const finalize = await apiPost(session, `${BASE_URL}/api/v1/coreupdate/upload/finalize`, {
+        const finalize = await apiPost(session, `${BASE_URL}/api/v1/typemillupdate/upload/finalize`, {
             uploadId,
             total: 1,
         })
@@ -114,7 +114,7 @@ describe('Core update API', () => {
     })
 
     it.skipIf(!configured)('requires an authenticated session', async () => {
-        const response = await fetch(`${BASE_URL}/api/v1/coreupdate/status`)
+        const response = await fetch(`${BASE_URL}/api/v1/typemillupdate/status`)
         expect(response.status).toBeGreaterThanOrEqual(400)
     })
 })

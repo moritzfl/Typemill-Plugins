@@ -1,6 +1,6 @@
 <?php
 
-namespace Plugins\coreupdate\Models;
+namespace Plugins\typemillupdate\Models;
 
 use ZipArchive;
 
@@ -119,7 +119,7 @@ class Release
             // Refuse an oversized response before it can fill the disk; the
             // archive limits are only checkable once the file is complete.
             CURLOPT_MAXFILESIZE => self::MAX_DOWNLOAD_BYTES,
-            CURLOPT_USERAGENT => 'Typemill-CoreUpdate/1.0',
+            CURLOPT_USERAGENT => 'Typemill-Update/1.0',
         ]);
 
         $success = curl_exec($curl);
@@ -151,7 +151,7 @@ class Release
                 'timeout' => 300,
                 'follow_location' => 1,
                 'max_redirects' => 5,
-                'user_agent' => 'Typemill-CoreUpdate/1.0',
+                'user_agent' => 'Typemill-Update/1.0',
                 'ignore_errors' => true,
             ],
         ]);
@@ -368,7 +368,7 @@ class Release
                 CURLOPT_CONNECTTIMEOUT => 10,
                 CURLOPT_TIMEOUT => 20,
                 CURLOPT_HTTPHEADER => $headers,
-                CURLOPT_USERAGENT => 'Typemill-CoreUpdate/1.0',
+                CURLOPT_USERAGENT => 'Typemill-Update/1.0',
             ]);
 
             $body = curl_exec($curl);
@@ -389,7 +389,7 @@ class Release
                 'timeout' => 20,
                 'header' => implode("\r\n", $headers),
                 'ignore_errors' => true,
-                'user_agent' => 'Typemill-CoreUpdate/1.0',
+                'user_agent' => 'Typemill-Update/1.0',
             ],
         ]);
 

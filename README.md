@@ -29,14 +29,14 @@ express. Includes a CSP setting to whitelist external domains used by embedded c
 
 ---
 
-### `coreupdate` — Core Update
+### `typemillupdate` — Typemill Update
 
 Updates Typemill itself from the dashboard instead of replacing the `system` folder over FTP by hand. Downloads the
 official release archive from typemill.net, verifies it, and replaces **only** the `system` folder — content, media,
 settings, data, plugins, and themes are never touched. The previous core is kept so it can be restored, and an
 environment panel says up front whether the installation is able to update itself at all.
 
-→ See [`plugins/coreupdate/README.md`](plugins/coreupdate/README.md) for full documentation.
+→ See [`plugins/typemillupdate/README.md`](plugins/typemillupdate/README.md) for full documentation.
 
 ---
 

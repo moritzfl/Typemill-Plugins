@@ -1,40 +1,40 @@
 <Transition name="initial" appear>
     <div class="tm-cu">
         <header class="tm-cu__page-header">
-            <h1 class="text-3xl font-bold">{{ $filters.translate('coreupdate.title') }}</h1>
-            <p class="text-stone-500 dark:text-stone-400 text-sm">{{ $filters.translate('coreupdate.subtitle') }}</p>
+            <h1 class="text-3xl font-bold">{{ $filters.translate('typemillupdate.title') }}</h1>
+            <p class="text-stone-500 dark:text-stone-400 text-sm">{{ $filters.translate('typemillupdate.subtitle') }}</p>
         </header>
 
         <div v-if="message" class="tm-cu-banner text-white" :class="messageClass">{{ message }}</div>
 
         <section class="tm-cu-panel bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-600 shadow-sm">
-            <div v-if="loading" class="tm-cu-body text-stone-500 dark:text-stone-400">{{ $filters.translate('coreupdate.loading') }}…</div>
+            <div v-if="loading" class="tm-cu-body text-stone-500 dark:text-stone-400">{{ $filters.translate('typemillupdate.loading') }}…</div>
 
             <div v-else class="tm-cu-body">
                 <div class="tm-cu-versions">
                     <div class="tm-cu-version">
-                        <span class="tm-cu-version__label">{{ $filters.translate('coreupdate.installed') }}</span>
-                        <span class="tm-cu-version__value">{{ status.installed || $filters.translate('coreupdate.unknown') }}</span>
+                        <span class="tm-cu-version__label">{{ $filters.translate('typemillupdate.installed') }}</span>
+                        <span class="tm-cu-version__value">{{ status.installed || $filters.translate('typemillupdate.unknown') }}</span>
                     </div>
                     <div class="tm-cu-version">
-                        <span class="tm-cu-version__label">{{ $filters.translate('coreupdate.latest') }}</span>
-                        <span class="tm-cu-version__value">{{ status.latest || $filters.translate('coreupdate.unknown') }}</span>
+                        <span class="tm-cu-version__label">{{ $filters.translate('typemillupdate.latest') }}</span>
+                        <span class="tm-cu-version__value">{{ status.latest || $filters.translate('typemillupdate.unknown') }}</span>
                     </div>
                     <div class="tm-cu-version">
-                        <span class="tm-cu-version__label">{{ $filters.translate('coreupdate.php') }}</span>
+                        <span class="tm-cu-version__label">{{ $filters.translate('typemillupdate.php') }}</span>
                         <span class="tm-cu-version__value">{{ status.php_version }}</span>
                     </div>
                 </div>
 
                 <p v-if="status.check_error" class="tm-cu-note tm-cu-note--warn">{{ status.check_error }}</p>
-                <p v-else-if="status.update_available" class="tm-cu-note tm-cu-note--ok">{{ $filters.translate('coreupdate.available') }}</p>
-                <p v-else class="tm-cu-note">{{ $filters.translate('coreupdate.up_to_date') }}</p>
+                <p v-else-if="status.update_available" class="tm-cu-note tm-cu-note--ok">{{ $filters.translate('typemillupdate.available') }}</p>
+                <p v-else class="tm-cu-note">{{ $filters.translate('typemillupdate.up_to_date') }}</p>
 
-                <p v-if="status.blocked" class="tm-cu-note tm-cu-note--error">{{ $filters.translate('coreupdate.blocked') }}</p>
+                <p v-if="status.blocked" class="tm-cu-note tm-cu-note--error">{{ $filters.translate('typemillupdate.blocked') }}</p>
 
                 <div class="tm-cu-actions">
                     <button type="button" class="tm-cu-btn" :disabled="busy" @click.prevent="load">
-                        {{ $filters.translate('coreupdate.check') }}
+                        {{ $filters.translate('typemillupdate.check') }}
                     </button>
                     <button
                         type="button"
@@ -42,18 +42,18 @@
                         :disabled="busy || status.blocked || !status.update_available"
                         @click.prevent="confirmUpdate = true"
                     >
-                        {{ $filters.translate('coreupdate.update_now') }}
+                        {{ $filters.translate('typemillupdate.update_now') }}
                         <template v-if="status.latest"> → {{ status.latest }}</template>
                     </button>
                 </div>
 
-                <p v-if="busy" class="tm-cu-note tm-cu-note--warn">{{ $filters.translate('coreupdate.running') }}</p>
+                <p v-if="busy" class="tm-cu-note tm-cu-note--warn">{{ $filters.translate('typemillupdate.running') }}</p>
             </div>
         </section>
 
         <section v-if="!loading" class="tm-cu-panel bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-600 shadow-sm">
-            <h2 class="tm-cu-heading">{{ $filters.translate('coreupdate.upload_title') }}</h2>
-            <p class="tm-cu-note">{{ $filters.translate('coreupdate.upload_help') }}</p>
+            <h2 class="tm-cu-heading">{{ $filters.translate('typemillupdate.upload_title') }}</h2>
+            <p class="tm-cu-note">{{ $filters.translate('typemillupdate.upload_help') }}</p>
 
             <div class="tm-cu-actions">
                 <input
@@ -67,12 +67,12 @@
             </div>
 
             <p v-if="uploadProgress !== null" class="tm-cu-note tm-cu-note--warn">
-                {{ $filters.translate('coreupdate.uploading') }} {{ uploadProgress }}%
+                {{ $filters.translate('typemillupdate.uploading') }} {{ uploadProgress }}%
             </p>
         </section>
 
         <section v-if="!loading" class="tm-cu-panel bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-600 shadow-sm">
-            <h2 class="tm-cu-heading">{{ $filters.translate('coreupdate.environment') }}</h2>
+            <h2 class="tm-cu-heading">{{ $filters.translate('typemillupdate.environment') }}</h2>
             <ul class="tm-cu-checks">
                 <li v-for="check in status.preflight" :key="check.id" class="tm-cu-check">
                     <span class="tm-cu-check__dot" :class="checkClass(check)"></span>
@@ -82,10 +82,10 @@
         </section>
 
         <section v-if="!loading" class="tm-cu-panel bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-600 shadow-sm">
-            <h2 class="tm-cu-heading">{{ $filters.translate('coreupdate.backups') }}</h2>
+            <h2 class="tm-cu-heading">{{ $filters.translate('typemillupdate.backups') }}</h2>
 
             <p v-if="!status.backups || status.backups.length === 0" class="tm-cu-note">
-                {{ $filters.translate('coreupdate.no_backups') }}
+                {{ $filters.translate('typemillupdate.no_backups') }}
             </p>
 
             <ul v-else class="tm-cu-backups">
@@ -94,10 +94,10 @@
                     <span class="tm-cu-backup__date">{{ backup.created }}</span>
                     <span class="tm-cu-backup__actions">
                         <button type="button" class="tm-cu-btn tm-cu-btn--small" :disabled="busy" @click.prevent="restoreTarget = backup">
-                            {{ $filters.translate('coreupdate.restore') }}
+                            {{ $filters.translate('typemillupdate.restore') }}
                         </button>
                         <button type="button" class="tm-cu-btn tm-cu-btn--small" :disabled="busy" @click.prevent="removeBackup(backup)">
-                            {{ $filters.translate('coreupdate.delete') }}
+                            {{ $filters.translate('typemillupdate.delete') }}
                         </button>
                     </span>
                 </li>
@@ -105,7 +105,7 @@
         </section>
 
         <section v-if="log.length" class="tm-cu-panel bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-600 shadow-sm">
-            <h2 class="tm-cu-heading">{{ $filters.translate('coreupdate.log') }}</h2>
+            <h2 class="tm-cu-heading">{{ $filters.translate('typemillupdate.log') }}</h2>
             <ol class="tm-cu-log">
                 <li v-for="(entry, index) in log" :key="index">{{ entry }}</li>
             </ol>
@@ -113,14 +113,14 @@
 
         <div v-if="confirmUpdate" class="tm-cu-overlay" @click.self="confirmUpdate = false">
             <div class="tm-cu-dialog bg-white dark:bg-stone-800">
-                <h3 class="tm-cu-dialog__title">{{ $filters.translate('coreupdate.confirm_title') }}</h3>
-                <p class="tm-cu-dialog__text">{{ $filters.translate('coreupdate.confirm_text') }}</p>
+                <h3 class="tm-cu-dialog__title">{{ $filters.translate('typemillupdate.confirm_title') }}</h3>
+                <p class="tm-cu-dialog__text">{{ $filters.translate('typemillupdate.confirm_text') }}</p>
                 <div class="tm-cu-dialog__actions">
                     <button type="button" class="tm-cu-btn" @click.prevent="confirmUpdate = false">
-                        {{ $filters.translate('coreupdate.cancel') }}
+                        {{ $filters.translate('typemillupdate.cancel') }}
                     </button>
                     <button type="button" class="tm-cu-btn tm-cu-btn--primary" @click.prevent="runUpdate">
-                        {{ $filters.translate('coreupdate.confirm') }}
+                        {{ $filters.translate('typemillupdate.confirm') }}
                     </button>
                 </div>
             </div>
@@ -128,36 +128,36 @@
 
         <div v-if="uploadResult" class="tm-cu-overlay" @click.self="uploadResult = null">
             <div class="tm-cu-dialog bg-white dark:bg-stone-800">
-                <h3 class="tm-cu-dialog__title">{{ $filters.translate('coreupdate.confirm_upload_title') }}</h3>
+                <h3 class="tm-cu-dialog__title">{{ $filters.translate('typemillupdate.confirm_upload_title') }}</h3>
                 <p class="tm-cu-dialog__text">
-                    {{ $filters.translate('coreupdate.confirm_upload_text') }}
+                    {{ $filters.translate('typemillupdate.confirm_upload_text') }}
                 </p>
                 <ul class="tm-cu-summary">
                     <li>
-                        <span>{{ $filters.translate('coreupdate.installed') }}</span>
+                        <span>{{ $filters.translate('typemillupdate.installed') }}</span>
                         <strong>{{ uploadResult.installed }}</strong>
                     </li>
                     <li>
-                        <span>{{ $filters.translate('coreupdate.uploaded_version') }}</span>
+                        <span>{{ $filters.translate('typemillupdate.uploaded_version') }}</span>
                         <strong>{{ uploadResult.version }}</strong>
                     </li>
                     <li>
-                        <span>{{ $filters.translate('coreupdate.uploaded_size') }}</span>
+                        <span>{{ $filters.translate('typemillupdate.uploaded_size') }}</span>
                         <strong>{{ uploadResult.size }} · {{ uploadResult.core_files }}</strong>
                     </li>
                 </ul>
                 <p v-if="uploadResult.is_downgrade" class="tm-cu-note tm-cu-note--error">
-                    {{ $filters.translate('coreupdate.downgrade_warning') }}
+                    {{ $filters.translate('typemillupdate.downgrade_warning') }}
                 </p>
                 <p v-else-if="uploadResult.is_same" class="tm-cu-note tm-cu-note--warn">
-                    {{ $filters.translate('coreupdate.reinstall_warning') }}
+                    {{ $filters.translate('typemillupdate.reinstall_warning') }}
                 </p>
                 <div class="tm-cu-dialog__actions">
                     <button type="button" class="tm-cu-btn" @click.prevent="uploadResult = null">
-                        {{ $filters.translate('coreupdate.cancel') }}
+                        {{ $filters.translate('typemillupdate.cancel') }}
                     </button>
                     <button type="button" class="tm-cu-btn tm-cu-btn--primary" @click.prevent="installUploaded">
-                        {{ $filters.translate('coreupdate.confirm') }}
+                        {{ $filters.translate('typemillupdate.confirm') }}
                     </button>
                 </div>
             </div>
@@ -165,17 +165,17 @@
 
         <div v-if="restoreTarget" class="tm-cu-overlay" @click.self="restoreTarget = null">
             <div class="tm-cu-dialog bg-white dark:bg-stone-800">
-                <h3 class="tm-cu-dialog__title">{{ $filters.translate('coreupdate.confirm_restore_title') }}</h3>
+                <h3 class="tm-cu-dialog__title">{{ $filters.translate('typemillupdate.confirm_restore_title') }}</h3>
                 <p class="tm-cu-dialog__text">
-                    {{ $filters.translate('coreupdate.confirm_restore_text') }}
+                    {{ $filters.translate('typemillupdate.confirm_restore_text') }}
                     <strong>{{ restoreTarget.version || restoreTarget.name }}</strong>
                 </p>
                 <div class="tm-cu-dialog__actions">
                     <button type="button" class="tm-cu-btn" @click.prevent="restoreTarget = null">
-                        {{ $filters.translate('coreupdate.cancel') }}
+                        {{ $filters.translate('typemillupdate.cancel') }}
                     </button>
                     <button type="button" class="tm-cu-btn tm-cu-btn--primary" @click.prevent="runRollback">
-                        {{ $filters.translate('coreupdate.confirm') }}
+                        {{ $filters.translate('typemillupdate.confirm') }}
                     </button>
                 </div>
             </div>
