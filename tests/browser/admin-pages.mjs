@@ -71,14 +71,20 @@ async function assertPageLoads(page, spec) {
     await page.waitForSelector(spec.readySelector, { timeout: 15000 })
     await page.waitForSelector(spec.contentSelector, { timeout: 15000 })
 
-    const loadingVisible = await page.evaluate((selector) => {
-        const root = document.querySelector(selector)
-        if (!root) {
-            return true
-        }
-        const loading = root.querySelector('.tm-files-loading, .tm-trash-loading')
-        return loading ? loading.offsetParent !== null : false
-    }, spec.contentSelector)
+    // Wait for the spinner to go rather than sampling the moment the container
+    // appears: the list is fetched, so how long it takes depends on how much
+    // there is to show, and a full recycle bin took longer than the sample.
+    const loadingVisible = await page
+        .waitForFunction((selector) => {
+            const root = document.querySelector(selector)
+            if (!root) {
+                return false
+            }
+            const loading = root.querySelector('.tm-files-loading, .tm-trash-loading')
+            return !loading || loading.offsetParent === null
+        }, { timeout: 15000 }, spec.contentSelector)
+        .then(() => false)
+        .catch(() => true)
 
     assert(!loadingVisible, `${spec.name} stayed in loading state`)
 
