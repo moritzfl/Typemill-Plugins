@@ -402,6 +402,21 @@
   }
 }
 
+/* On a touch screen the navigation rows and their expand buttons become
+   proper targets. A 28px button sitting beside a link is easy to miss with a
+   thumb, and easy to hit when you meant the link. A pointer device keeps the
+   sidebar's compact rhythm, which is what makes a long tree readable. */
+@media (pointer: coarse) {
+  #sidebar nav a {
+    min-height: 44px;
+  }
+
+  #sidebar [data-nav-toggle] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
 @media print {
   #topbar,
   #sidebar,
