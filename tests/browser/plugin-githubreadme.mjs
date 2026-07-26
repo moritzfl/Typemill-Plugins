@@ -41,6 +41,34 @@ const UNREACHABLE_API = 'http://127.0.0.1:9/does-not-listen'
 const OWN_TEXT = 'This sentence belongs to the page itself.'
 const STORED_TEXT = 'This paragraph came from the stored copy.'
 
+/**
+ * A readme shaped like the ones this is for: a layout table that centres a logo
+ * and a row of badges, and a markdown table with a centred column. Both are the
+ * things a theme's own prose styling tends to flatten.
+ */
+const README_WITH_TABLES = `# Stored readme
+
+${STORED_TEXT}
+
+<table align="center">
+  <tr>
+    <td align="center">
+      <img src="logo.png" alt="Logo" width="96" />
+      <br />
+      <a href="https://example.com/marketplace">On the marketplace</a>
+      <br />
+      <img src="https://img.shields.io/badge/one-1-blue.svg" alt="Badge one" />
+      <img src="https://img.shields.io/badge/two-2-green.svg" alt="Badge two" />
+      <img src="https://img.shields.io/badge/three-3-red.svg" alt="Badge three" />
+    </td>
+  </tr>
+</table>
+
+| Provider | Quota | Proxy |
+|---|:-:|--:|
+| OpenAI | yes | yes |
+`
+
 function assert(condition, message) {
     if (!condition) {
         throw new Error(message)
@@ -243,6 +271,157 @@ async function assertNothingStored(page) {
     )
 }
 
+/**
+ * A readme keeps the shape its author gave it.
+ *
+ * A theme styles an article: pictures are photographs, one to a line and as wide
+ * as the column, and table cells read from the left. A readme is not written like
+ * that — it centres a logo, puts three badges in a row, and centres a column with
+ * markdown's own |:-:| — and all of that has to survive being put on the page.
+ */
+async function assertReadmeKeepsItsShape(page) {
+    configure({ api_base: UNREACHABLE_API, fresh_minutes: 60, timeout_seconds: 2 })
+    writePage({ repository: REPOSITORY, position: 'replace', droptitle: 'true' })
+    seedStoredCopy(README_WITH_TABLES, { checkedSecondsAgo: 0 })
+
+    await page.setViewport({ width: 1280, height: 900 })
+    const result = await read(page)
+    assert(result.status === 200, `shape: the page answered with HTTP ${result.status}`)
+
+    const shape = await page.evaluate(() => {
+        const readme = document.querySelector('.github-readme')
+        const layout = readme.querySelector('table[align="center"]')
+        const cell = layout ? layout.querySelector('td') : null
+        const badges = Array.from(readme.querySelectorAll('img')).filter((img) =>
+            /^Badge /.test(img.getAttribute('alt') || '')
+        )
+        const centredColumn = Array.from(readme.querySelectorAll('th')).find(
+            (th) => (th.textContent || '').trim() === 'Quota'
+        )
+
+        const tops = badges.map((b) => Math.round(b.getBoundingClientRect().top))
+
+        return {
+            layoutTable: Boolean(layout),
+            tableDisplay: layout ? getComputedStyle(layout).display : null,
+            cellAlign: cell ? getComputedStyle(cell).textAlign : null,
+            badgeCount: badges.length,
+            badgesOnOneLine: tops.length > 1 && tops.every((top) => Math.abs(top - tops[0]) <= 2),
+            columnAlign: centredColumn ? getComputedStyle(centredColumn).textAlign : null,
+            wrapped: readme.querySelectorAll('.tm-table').length,
+            tables: readme.querySelectorAll('table').length,
+            overflow: Math.round(document.documentElement.scrollWidth - document.documentElement.clientWidth),
+        }
+    })
+
+    assert(shape.layoutTable, 'shape: the centred layout table did not survive')
+    assert(
+        shape.tableDisplay === 'table',
+        `shape: the table is displayed as "${shape.tableDisplay}", so its cells no longer share a row`
+    )
+    assert(
+        /center/.test(shape.cellAlign || ''),
+        `shape: the centred cell reads as "${shape.cellAlign}" - a theme's table rule has overruled the readme`
+    )
+    assert(shape.badgeCount === 3, `shape: expected three badges, found ${shape.badgeCount}`)
+    assert(shape.badgesOnOneLine, 'shape: the badges were put on separate lines, as photographs would be')
+    assert(
+        /center/.test(shape.columnAlign || ''),
+        `shape: markdown's centred column reads as "${shape.columnAlign}"; that alignment is written as a style, and styles are stripped`
+    )
+    assert(
+        shape.wrapped === shape.tables,
+        `shape: ${shape.tables - shape.wrapped} table(s) lack the container a theme scrolls with`
+    )
+    assert(shape.overflow <= 1, `shape: the readme pushes the page sideways by ${shape.overflow}px`)
+
+    // The same readme on a phone must not push the page sideways either.
+    await page.setViewport({ width: 390, height: 900 })
+    await read(page)
+    const narrow = await page.evaluate(() =>
+        Math.round(document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    )
+    assert(narrow <= 1, `shape: on a narrow screen the readme pushes the page sideways by ${narrow}px`)
+
+    await page.setViewport({ width: 1280, height: 900 })
+}
+
+function setLanguage(language) {
+    const content = readFileSync(SETTINGS_FILE, 'utf8')
+
+    writeFileSync(
+        SETTINGS_FILE,
+        /^language:.*$/m.test(content)
+            ? content.replace(/^language:.*$/m, `language: ${language}`)
+            : `language: ${language}\n${content}`
+    )
+    clearNavigationCache()
+}
+
+async function readLink(page) {
+    await page.goto(`${BASE_URL}${PAGE_URL}`, { waitUntil: 'domcontentloaded' })
+
+    return page.evaluate(() => {
+        const link = document.querySelector('.github-readme__source-link')
+        const paragraph = document.querySelector('.github-readme__source')
+        const readme = document.querySelector('.github-readme')
+
+        let beforeReadme = null
+        if (paragraph && readme) {
+            const text = (readme.textContent || '')
+            beforeReadme = text.indexOf((paragraph.textContent || '').trim()) < text.indexOf('stored copy')
+        }
+
+        return {
+            href: link ? link.getAttribute('href') : null,
+            label: link ? (link.textContent || '').trim() : null,
+            beforeReadme,
+        }
+    })
+}
+
+/**
+ * The way back to the repository, which a readme seldom carries itself.
+ */
+async function assertRepositoryLink(page) {
+    seedStoredCopy(`# Stored readme\n\n${STORED_TEXT}\n`, { checkedSecondsAgo: 0 })
+
+    configure({ api_base: UNREACHABLE_API, fresh_minutes: 60, link_position: 'start' })
+    writePage({ repository: REPOSITORY, position: 'replace', droptitle: 'true' })
+
+    const start = await readLink(page)
+    assert(start.href === `https://github.com/${REPOSITORY}`, `link: points at ${start.href}`)
+    assert(start.label === 'View on GitHub', `link: reads "${start.label}"`)
+    assert(start.beforeReadme, 'link: should come before the readme')
+
+    configure({ api_base: UNREACHABLE_API, fresh_minutes: 60, link_position: 'end' })
+    const end = await readLink(page)
+    assert(end.href !== null, 'link: disappeared when asked for below the readme')
+    assert(end.beforeReadme === false, 'link: should come after the readme')
+
+    configure({ api_base: UNREACHABLE_API, fresh_minutes: 60, link_position: 'none' })
+    assert((await readLink(page)).href === null, 'link: still shown after being switched off')
+
+    // A page may decide for itself, against the plugin's setting.
+    writePage({ repository: REPOSITORY, position: 'replace', droptitle: 'true', sourcelink: 'start' })
+    assert((await readLink(page)).href !== null, 'link: a page could not ask for it')
+
+    // The wording follows the site language.
+    configure({ api_base: UNREACHABLE_API, fresh_minutes: 60, link_position: 'start' })
+    writePage({ repository: REPOSITORY, position: 'replace', droptitle: 'true' })
+    setLanguage('de')
+
+    const german = await readLink(page)
+    assert(german.label === 'Auf GitHub ansehen', `link: on a German site it reads "${german.label}"`)
+
+    setLanguage('en')
+
+    // An author's own words are not second-guessed.
+    configure({ api_base: UNREACHABLE_API, fresh_minutes: 60, link_position: 'start', link_label: 'Zum Repository' })
+    const custom = await readLink(page)
+    assert(custom.label === 'Zum Repository', `link: the setting was ignored, it reads "${custom.label}"`)
+}
+
 /** A page that names no repository is an ordinary page. */
 async function assertPageWithoutRepository(page) {
     writePage({ repository: '', position: 'replace' })
@@ -389,6 +568,12 @@ async function main() {
 
         await assertPlacement(page)
         console.log('ok: github readme (replace, append and prepend)')
+
+        await assertReadmeKeepsItsShape(page)
+        console.log('ok: github readme (centred tables, badges in a row, aligned columns)')
+
+        await assertRepositoryLink(page)
+        console.log('ok: github readme (the link back to the repository)')
 
         await assertNothingStored(page)
         console.log('ok: github readme (nothing stored: the page keeps its own content)')

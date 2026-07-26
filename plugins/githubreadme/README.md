@@ -20,9 +20,28 @@ Name the repository on the page and leave the page empty:
 | **File** | Empty lets GitHub pick the readme, whatever it is called. Or name another file, such as `docs/usage.md`. |
 | **This page's own content** | Replaced by the readme (default), before it, or after it. |
 | **Opening heading** | Drop the readme's first heading, because the page already has a title. |
+| **Link to the repository** | Follow the plugin setting, or decide for this page alone. |
 
 An address that carries a branch or a file works too — `github.com/owner/name/blob/main/docs/usage.md` —
 and the two fields win over it when both are given.
+
+## The link back to GitHub
+
+A readme seldom links to its own repository — on github.com it is already there — so the plugin adds
+the way back: **View on GitHub**, above the readme by default, below it or not at all if you prefer.
+
+The wording follows the site language. English and German ship with the plugin; another language is
+another file beside `en.yaml`, with one line in it:
+
+```yaml
+GITHUBREADME_VIEW_ON_GITHUB: "Voir sur GitHub"
+```
+
+Typemill loads a plugin's language files for the admin only, so the plugin reads them itself. A **Link
+text** setting overrides the translation when you want your own words.
+
+The link points at what the reader just read: the repository, the branch when one is named, or the
+file when the page names a file.
 
 ## The page does not go empty
 
@@ -77,6 +96,14 @@ way in:
 
 Markup that cannot be parsed is not rendered at all.
 
+**A readme keeps its own shape.** A theme styles an article — pictures are photographs, one to a line
+and as wide as the column; table cells read from the left — and a readme is not written like that. So
+its pictures are put back to their natural size and stay in a row, and alignment written onto a cell,
+a table or a paragraph is honoured. Markdown writes a column's `|:-:|` as a `style` attribute, which
+is stripped; the alignment is carried over to an `align` attribute so it survives. Tables get the
+`.tm-table` wrapper that Typemill's own renderer gives them, which is what themes hang horizontal
+scrolling off, so a wide table scrolls in its column instead of pushing the page sideways.
+
 ## Settings
 
 | Setting | Default | Meaning |
@@ -85,6 +112,8 @@ Markup that cannot be parsed is not rendered at all.
 | Give up after | 5 seconds | How long to wait for GitHub |
 | GitHub token | empty | For private repositories, or a higher allowance |
 | API address | `https://api.github.com` | Change only for GitHub Enterprise |
+| Show a link to the repository | above the readme | Or below it, or not at all |
+| Link text | empty | Empty follows the site language |
 | Raw HTML | on | Keep the HTML a readme contains, sanitised |
 
 ## Limits

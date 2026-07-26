@@ -6,6 +6,7 @@ use Plugins\githubreadme\Models\GitHubClient;
 use Plugins\githubreadme\Models\ReadmeCache;
 use Plugins\githubreadme\Models\ReadmeRenderer;
 use Plugins\githubreadme\Models\ReadmeSource;
+use Plugins\githubreadme\Models\RepositoryLink;
 use Plugins\githubreadme\Models\RepositoryReference;
 use Typemill\Models\StorageWrapper;
 use Typemill\Plugin;
@@ -27,6 +28,28 @@ class githubreadme extends Plugin
 {
     /** Where the fallback copies live, under Typemill's data folder. */
     private const CACHE_FOLDER = 'githubreadme';
+
+    /**
+     * What a readme needs that an article does not.
+     *
+     * A theme styles the pictures in an article as photographs: full width of
+     * the column, one per line. A readme's pictures are mostly badges and icons
+     * that belong at their own size, several to a line - so they are put back to
+     * their natural size, and only a picture that is alone in its block is
+     * treated as a figure. Alignment written onto a cell or a table is honoured
+     * whatever the theme says, because in a readme it is the author speaking.
+     */
+    private const CSS = '
+.github-readme img{max-width:100%;height:auto;display:inline-block;vertical-align:middle}
+.github-readme p>img:only-child,.github-readme figure>img:only-child{display:block;margin-inline:auto}
+.github-readme .tm-table{max-width:100%;overflow-x:auto}
+.github-readme table[align="center"]{margin-inline:auto}
+.github-readme th[align="left"],.github-readme td[align="left"]{text-align:left}
+.github-readme th[align="center"],.github-readme td[align="center"]{text-align:center}
+.github-readme th[align="right"],.github-readme td[align="right"]{text-align:right}
+.github-readme p[align="center"],.github-readme div[align="center"]{text-align:center}
+.github-readme p[align="right"],.github-readme div[align="right"]{text-align:right}
+';
 
     /** The meta tab this plugin adds, and the fields on it. */
     private const META_TAB = 'github';
@@ -88,12 +111,20 @@ class githubreadme extends Plugin
             return;
         }
 
+        $this->addInlineCSS(self::CSS);
+
+        // A readme seldom links to its own repository, so the way back is added
+        // here - at the top by default, where a reader looks for it.
+        $link = $this->repositoryLink($reference, $settings, $pagesettings);
+
         $readme = '<div class="github-readme"'
             . ' data-repository="' . htmlspecialchars($result['slug'], ENT_QUOTES, 'UTF-8') . '"'
             . ' data-origin="' . htmlspecialchars($result['origin'], ENT_QUOTES, 'UTF-8') . '"'
             . ($result['stale'] ? ' data-stale="true"' : '')
             . '>'
+            . $link['start']
             . $html
+            . $link['end']
             . '</div>';
 
         $position = (string) ($pagesettings['position'] ?? 'replace');
@@ -127,6 +158,35 @@ class githubreadme extends Plugin
             trim((string) ($fields['branch'] ?? '')),
             trim((string) ($fields['path'] ?? ''))
         );
+    }
+
+    /**
+     * The link to the repository, at whichever end of the readme it was asked
+     * for.
+     *
+     * @return array{start: string, end: string}
+     */
+    private function repositoryLink(RepositoryReference $reference, array $settings, array $pagesettings): array
+    {
+        // The page's own choice, or the plugin's. An empty value is the "as set
+        // in the plugin" option, and an empty string is not null, so ?? alone
+        // would take it for an answer.
+        $page = trim((string) ($pagesettings['sourcelink'] ?? ''));
+        $place = $page !== '' ? $page : (string) ($settings['link_position'] ?? 'start');
+
+        if ($place === 'none') {
+            return ['start' => '', 'end' => ''];
+        }
+
+        $html = (new RepositoryLink(__DIR__))->html(
+            $reference,
+            (string) ($this->getSettings()['language'] ?? 'en'),
+            (string) ($settings['link_label'] ?? '')
+        );
+
+        return $place === 'end'
+            ? ['start' => '', 'end' => $html]
+            : ['start' => $html, 'end' => ''];
     }
 
     private function source(array $settings): ReadmeSource
