@@ -1,6 +1,6 @@
-name: GitHub Readme
-version: 1.0.0
-description: "Fill a page with a repository's readme from GitHub, so the text is written once and lives with the code. The readme is kept on disk, so a page stays filled when GitHub is unreachable, rate-limits the site, or the repository goes away."
+name: Readme MD
+version: 2.0.0
+description: "Fill a page with a repository's readme, so the text is written once and lives with the code. The readme is kept on disk, so a page stays filled when the forge is unreachable, rate-limits the site, or the repository goes away. GitHub is the forge it reads today."
 author: Moritz
 homepage: https://github.com/moritzfl/Typemill-Plugins
 license: GPL-2.0
@@ -69,7 +69,7 @@ forms:
           description: "Readmes write their badges and centred logos as HTML, so this is on by default. Scripts, styles, frames, forms, event handlers and inline data are removed either way; switching this off additionally drops everything Markdown did not produce itself."
 
 metatabs:
-  github:
+  readme:
     fields:
       repository:
         type: text

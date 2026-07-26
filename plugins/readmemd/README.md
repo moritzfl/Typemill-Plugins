@@ -1,13 +1,24 @@
-# GitHub Readme — Typemill Plugin
+# Readme MD — Typemill Plugin
 
 Fills a page with a repository's readme, so the text is written once and lives where the code lives.
-GitHub stays the source of truth; the page follows it.
+The repository stays the source of truth; the page follows it.
+
+**GitHub is the forge it reads today.** The plugin is named after what it puts on a page rather than
+after where it gets it, so Codeberg or GitLab can be added beside GitHub instead of around it. Only the
+one class that speaks to a forge is named after GitHub.
 
 ## Installation
 
 See [Installation in the project README](../../README.md#installation).
 
-Activate **GitHub Readme**, then open any page in the editor and use the **github** meta tab.
+Activate **Readme MD**, then open any page in the editor and use the **readme** meta tab.
+
+Coming from the older **GitHub Readme**? Pages keep working with their fields under the old tab, and
+the stored copies are taken over from `data/githubreadme/` the first time a page is viewed. The plugin
+settings are keyed by folder name, so copy `plugins.githubreadme` to `plugins.readmemd` in
+`settings.yaml` (token, API address, freshness, link text) and activate **Readme MD**. Without that,
+private-repository tokens and a GitHub Enterprise address fall back to the defaults. Delete the old
+plugin folder, and the old data folder once you have seen a page load.
 
 ## Using it
 
@@ -27,7 +38,7 @@ and the two fields win over it when both are given.
 
 ## Fetching it now
 
-The **github** tab has a **Fetch the readme now** button. The stored copy is only checked now and then
+The **readme** tab has a **Fetch the readme now** button. The stored copy is only checked now and then
 — that is what keeps the page working when GitHub is unreachable — so a change you have just pushed
 would otherwise wait for the freshness window to pass. The button ignores both that window and the
 quiet minutes after a failure, and asks for the file unconditionally.
@@ -37,7 +48,7 @@ exactly as it was, so a page that was complete stays complete. The button sends 
 holds, so you can check a repository you have typed but not saved yet.
 
 Typemill's editor draws a meta tab with the Vue component named after it, and falls back to its own
-generic form otherwise. The plugin registers `tab-github`, which renders that same generic form inside
+generic form otherwise. The plugin registers `tab-readme`, which renders that same generic form inside
 itself — so the fields are still drawn, validated and saved by Typemill, with only the button added.
 
 ## The link back to GitHub
@@ -51,7 +62,7 @@ everywhere. It follows the site language. English and German ship with the plugi
 another file beside `en.yaml`, with one line in it:
 
 ```yaml
-GITHUBREADME_VIEW_ON_GITHUB: "Voir sur GitHub"
+READMEMD_VIEW_ON_GITHUB: "Voir sur GitHub"
 ```
 
 Typemill loads a plugin's language files for the admin only, so the plugin reads them itself. The
@@ -62,7 +73,7 @@ file when the page names a file.
 
 ## The page does not go empty
 
-This is the part worth knowing. A fetched readme is written to `data/githubreadme/` and that copy is
+This is the part worth knowing. A fetched readme is written to `data/readmemd/` and that copy is
 what the site serves whenever GitHub does not answer:
 
 | Situation | What the reader gets |
@@ -142,7 +153,7 @@ the link is shown. The one thing that was in both places, the link's placement, 
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `POST` | `/api/v1/githubreadme/refresh` | Fetch a readme now for `repository`, with optional `branch` and `path`. What the button in the editor calls. |
+| `POST` | `/api/v1/readmemd/refresh` | Fetch a readme now for `repository`, with optional `branch` and `path`. What the button in the editor calls. |
 
 Restricted to `content` / `update` — whoever may change what a page says may refetch what fills it.
 

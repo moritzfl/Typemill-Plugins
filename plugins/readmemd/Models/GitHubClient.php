@@ -1,6 +1,6 @@
 <?php
 
-namespace Plugins\githubreadme\Models;
+namespace Plugins\readmemd\Models;
 
 /**
  * One GET against the GitHub API.
@@ -47,7 +47,7 @@ class GitHubClient
             'Accept: application/vnd.github.raw',
             'X-GitHub-Api-Version: 2022-11-28',
             // GitHub refuses requests that do not name their sender.
-            'User-Agent: Typemill-GithubReadme/1.0',
+            'User-Agent: Typemill-ReadmeMd/2.0',
         ];
 
         if ($this->token !== null) {

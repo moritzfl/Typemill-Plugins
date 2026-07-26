@@ -1,13 +1,13 @@
 <?php
 
-namespace Plugins\githubreadme;
+namespace Plugins\readmemd;
 
-use Plugins\githubreadme\Models\GitHubClient;
-use Plugins\githubreadme\Models\ReadmeCache;
-use Plugins\githubreadme\Models\ReadmeRenderer;
-use Plugins\githubreadme\Models\ReadmeSource;
-use Plugins\githubreadme\Models\RepositoryLink;
-use Plugins\githubreadme\Models\RepositoryReference;
+use Plugins\readmemd\Models\GitHubClient;
+use Plugins\readmemd\Models\ReadmeCache;
+use Plugins\readmemd\Models\ReadmeRenderer;
+use Plugins\readmemd\Models\ReadmeSource;
+use Plugins\readmemd\Models\RepositoryLink;
+use Plugins\readmemd\Models\RepositoryReference;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Typemill\Models\StorageWrapper;
@@ -20,16 +20,33 @@ use Typemill\Plugin;
  * A page names a repository in its meta tab and is otherwise left empty. On the
  * frontend the readme is fetched, kept on disk, and rendered into the page.
  *
+ * GitHub is the only forge it can read today, which is why the one class that
+ * speaks to a forge is called GitHubClient and nothing else is. The plugin, its
+ * settings and its fields are named after what they do - a readme - so that
+ * Codeberg or GitLab can be added beside it rather than around it.
+ *
  * Two details of Typemill shape how this is done. The frontend dispatches
  * `onMarkdownLoaded` *before* the page's meta is read, so the repository is not
  * known yet at that point; the meta arrives with `onMetaLoaded`, and the content
  * can still be changed afterwards at `onHtmlLoaded`. The readme is therefore
  * rendered to HTML by the plugin rather than handed to the core as Markdown.
  */
-class githubreadme extends Plugin
+class readmemd extends Plugin
 {
     /** Where the fallback copies live, under Typemill's data folder. */
-    private const CACHE_FOLDER = 'githubreadme';
+    private const CACHE_FOLDER = 'readmemd';
+
+    /**
+     * What the plugin was called when it was tied to one forge.
+     *
+     * Kept so that a site which used it under that name keeps working: the pages
+     * still carry their settings under the old tab, and the stored copies - the
+     * whole reason a page survives GitHub being down - are still on disk under
+     * the old folder.
+     */
+    private const FORMER_NAME = 'githubreadme';
+
+    private const FORMER_META_TAB = 'github';
 
     /**
      * What a readme needs that an article does not.
@@ -51,20 +68,20 @@ class githubreadme extends Plugin
      * This stylesheet is served after the theme\'s, so these rules win the ties.
      */
     private const CSS = '
-.github-readme img{max-width:100%;height:auto;display:inline-block;vertical-align:middle}
-.github-readme p>img:only-child,.github-readme figure>img:only-child{display:block;margin-inline:auto}
-.github-readme .tm-table{max-width:100%;overflow-x:auto}
-.github-readme table{display:table;width:auto;max-width:100%;border-collapse:collapse}
-.github-readme table[align="center"]{margin-inline:auto}
-.github-readme th[align="left"],.github-readme td[align="left"]{text-align:left}
-.github-readme th[align="center"],.github-readme td[align="center"]{text-align:center}
-.github-readme th[align="right"],.github-readme td[align="right"]{text-align:right}
-.github-readme p[align="center"],.github-readme div[align="center"]{text-align:center}
-.github-readme p[align="right"],.github-readme div[align="right"]{text-align:right}
+.readme-md img{max-width:100%;height:auto;display:inline-block;vertical-align:middle}
+.readme-md p>img:only-child,.readme-md figure>img:only-child{display:block;margin-inline:auto}
+.readme-md .tm-table{max-width:100%;overflow-x:auto}
+.readme-md table{display:table;width:auto;max-width:100%;border-collapse:collapse}
+.readme-md table[align="center"]{margin-inline:auto}
+.readme-md th[align="left"],.readme-md td[align="left"]{text-align:left}
+.readme-md th[align="center"],.readme-md td[align="center"]{text-align:center}
+.readme-md th[align="right"],.readme-md td[align="right"]{text-align:right}
+.readme-md p[align="center"],.readme-md div[align="center"]{text-align:center}
+.readme-md p[align="right"],.readme-md div[align="right"]{text-align:right}
 ';
 
     /** The meta tab this plugin adds, and the fields on it. */
-    private const META_TAB = 'github';
+    private const META_TAB = 'readme';
 
     private ?array $pagemeta = null;
 
@@ -74,7 +91,7 @@ class githubreadme extends Plugin
             // The meta carries the repository, and arrives before the HTML.
             'onMetaLoaded' => ['onMetaLoaded', 0],
             'onHtmlLoaded' => ['onHtmlLoaded', 0],
-            // Puts the refresh button into the page's github tab.
+            // Puts the refresh button into the page's readme tab.
             'onTwigLoaded' => ['onTwigLoaded', 0],
         ];
     }
@@ -84,14 +101,14 @@ class githubreadme extends Plugin
      *
      * Typemill's editor renders a meta tab with the Vue component named after it
      * when one is registered, and falls back to its own generic form otherwise.
-     * So a component named tab-github takes over this tab - and it renders that
+     * So a component named tab-readme takes over this tab - and it renders that
      * same generic form inside itself, so the fields keep being drawn and saved
      * by the core, with only the button added.
      */
     public function onTwigLoaded($event)
     {
         if ($this->editorroute) {
-            $this->addInlineJS(file_get_contents(__DIR__ . '/js/editor-githubreadme.js'));
+            $this->addInlineJS(file_get_contents(__DIR__ . '/js/editor-readmemd.js'));
         }
     }
 
@@ -100,9 +117,9 @@ class githubreadme extends Plugin
         return [
             [
                 'httpMethod' => 'post',
-                'route' => '/api/v1/githubreadme/refresh',
-                'name' => 'githubreadme.refresh',
-                'class' => 'Plugins\githubreadme\githubreadme:refreshReadme',
+                'route' => '/api/v1/readmemd/refresh',
+                'name' => 'readmemd.refresh',
+                'class' => 'Plugins\readmemd\readmemd:refreshReadme',
                 // Whoever may change a page's content may refetch what fills it.
                 'resource' => 'content',
                 'privilege' => 'update',
@@ -161,14 +178,14 @@ class githubreadme extends Plugin
 
     public function onHtmlLoaded($event)
     {
-        $reference = $this->referenceFromMeta();
+        $pagesettings = $this->pageFields();
+        $reference = $this->referenceFromMeta($pagesettings);
 
         if ($reference === null) {
             return;
         }
 
         $settings = $this->getPluginSettings();
-        $pagesettings = $this->pagemeta[self::META_TAB] ?? [];
 
         $result = $this->source($settings)->markdownFor($reference);
         $html = '';
@@ -202,7 +219,7 @@ class githubreadme extends Plugin
         // here - at the top by default, where a reader looks for it.
         $link = $this->repositoryLink($reference, $settings, $pagesettings);
 
-        $readme = '<div class="github-readme"'
+        $readme = '<div class="readme-md"'
             . ' data-repository="' . htmlspecialchars($result['slug'], ENT_QUOTES, 'UTF-8') . '"'
             . ' data-origin="' . htmlspecialchars($result['origin'], ENT_QUOTES, 'UTF-8') . '"'
             . ($result['stale'] ? ' data-stale="true"' : '')
@@ -223,14 +240,37 @@ class githubreadme extends Plugin
         $event->setData($combined . $this->diagnostics($result));
     }
 
-    /** The page's repository field, once, and only if it names a repository. */
-    private function referenceFromMeta(): ?RepositoryReference
+    /**
+     * The page's own settings for this plugin.
+     *
+     * A page saved while the plugin was named after GitHub keeps its fields under
+     * that tab, and Typemill has no reason to move them. They are read here so
+     * that renaming the plugin does not empty a page that was already working.
+     *
+     * The new tab wins whenever it is present, even empty: otherwise an author
+     * who opens the page, clears the repository and saves would still see the
+     * readme, because Typemill only rewrites the tab that was just saved and the
+     * old block would keep answering.
+     *
+     * @return array<string, mixed>
+     */
+    private function pageFields(): array
     {
-        $fields = $this->pagemeta[self::META_TAB] ?? null;
+        $current = $this->pagemeta[self::META_TAB] ?? null;
 
-        if (!is_array($fields)) {
-            return null;
+        if (is_array($current)) {
+            return $current;
         }
+
+        $former = $this->pagemeta[self::FORMER_META_TAB] ?? null;
+
+        return is_array($former) ? $former : [];
+    }
+
+    /** The page's repository field, once, and only if it names a repository. */
+    private function referenceFromMeta(?array $fields = null): ?RepositoryReference
+    {
+        $fields ??= $this->pageFields();
 
         $repository = trim((string) ($fields['repository'] ?? ''));
 
@@ -281,7 +321,11 @@ class githubreadme extends Plugin
         $storage = new StorageWrapper('\Typemill\Models\Storage');
         $storage->createFolder('dataFolder', self::CACHE_FOLDER);
 
-        $cache = new ReadmeCache($storage->getFolderPath('dataFolder', self::CACHE_FOLDER));
+        $folder = rtrim($storage->getFolderPath('dataFolder', self::CACHE_FOLDER), DIRECTORY_SEPARATOR);
+
+        // A site that used this plugin under its former name keeps its stored
+        // copies, which are what carry a page when GitHub cannot be reached.
+        $cache = new ReadmeCache($folder, dirname($folder) . DIRECTORY_SEPARATOR . self::FORMER_NAME);
 
         $client = new GitHubClient(
             (string) ($settings['api_base'] ?? GitHubClient::DEFAULT_API_BASE),
@@ -312,7 +356,7 @@ class githubreadme extends Plugin
 
         $age = $result['age'] === null ? 'never fetched' : (int) round($result['age'] / 60) . ' minutes old';
 
-        return "\n<!-- github-readme: " . htmlspecialchars(
+        return "\n<!-- readme-md: " . htmlspecialchars(
             $result['slug'] . ' — ' . $result['failure'] . ' (stored copy: ' . $age . ')',
             ENT_QUOTES | ENT_SUBSTITUTE,
             'UTF-8'
@@ -333,7 +377,7 @@ class githubreadme extends Plugin
         }
 
         error_log(sprintf(
-            '[githubreadme] %s: %s%s',
+            '[readmemd] %s: %s%s',
             $result['slug'],
             $result['failure'],
             $result['markdown'] === null

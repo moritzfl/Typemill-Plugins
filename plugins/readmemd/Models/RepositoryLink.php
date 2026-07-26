@@ -1,6 +1,6 @@
 <?php
 
-namespace Plugins\githubreadme\Models;
+namespace Plugins\readmemd\Models;
 
 /**
  * The "view this on GitHub" line that the readme itself does not carry.
@@ -18,7 +18,7 @@ class RepositoryLink
     /** Shown when no language file has a wording for the site's language. */
     private const FALLBACK = 'View on GitHub';
 
-    private const KEY = 'GITHUBREADME_VIEW_ON_GITHUB';
+    private const KEY = 'READMEMD_VIEW_ON_GITHUB';
 
     private string $directory;
 
@@ -39,10 +39,10 @@ class RepositoryLink
         $label = trim($custom) !== '' ? trim($custom) : $this->label($language);
         $url = $this->url($reference);
 
-        return '<p class="github-readme__source">'
+        return '<p class="readme-md__source">'
             . '<a href="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '"'
             . ' rel="noopener noreferrer"'
-            . ' class="github-readme__source-link">'
+            . ' class="readme-md__source-link">'
             . htmlspecialchars($label, ENT_QUOTES, 'UTF-8')
             . '</a></p>';
     }

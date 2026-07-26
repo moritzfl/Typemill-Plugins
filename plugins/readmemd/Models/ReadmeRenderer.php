@@ -1,6 +1,6 @@
 <?php
 
-namespace Plugins\githubreadme\Models;
+namespace Plugins\readmemd\Models;
 
 use DOMDocument;
 use DOMElement;
@@ -87,7 +87,7 @@ class ReadmeRenderer
 
         // Fragment, not a document: the wrapper gives libxml a single root and a
         // declared encoding, and is unwrapped again afterwards.
-        $wrapped = '<?xml encoding="UTF-8"?><div id="tm-github-readme">' . $html . '</div>';
+        $wrapped = '<?xml encoding="UTF-8"?><div id="tm-readme-md">' . $html . '</div>';
 
         $previous = libxml_use_internal_errors(true);
         $loaded = $document->loadHTML($wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NOERROR | LIBXML_NOWARNING);
@@ -100,7 +100,7 @@ class ReadmeRenderer
             return '';
         }
 
-        $root = $document->getElementById('tm-github-readme');
+        $root = $document->getElementById('tm-readme-md');
         if ($root === null) {
             return '';
         }
@@ -384,7 +384,7 @@ class ReadmeRenderer
 
         foreach ($xpath->query('//*') ?: [] as $element) {
             if ($element instanceof DOMElement
-                && $element->getAttribute('id') !== 'tm-github-readme'
+                && $element->getAttribute('id') !== 'tm-readme-md'
                 && !in_array(strtolower($element->tagName), $allowed, true)) {
                 $unknown[] = $element;
             }

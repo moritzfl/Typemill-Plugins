@@ -1,9 +1,9 @@
 /**
- * The refresh button in a page's github tab.
+ * The refresh button in a page's readme tab.
  *
  * Typemill's editor draws a meta tab with the Vue component named after that tab
  * when one is registered, and falls back to `tab-defaulttab` - its own generic
- * form - otherwise. Registering `tab-github` therefore takes this tab over, so
+ * form - otherwise. Registering `tab-readme` therefore takes this tab over, so
  * the generic form is rendered inside it: the fields keep being drawn, validated
  * and saved by the core, and this only adds a button above them and passes the
  * save event back up.
@@ -17,7 +17,7 @@
         return;
     }
 
-    app.component('tab-github', {
+    app.component('tab-readme', {
         props: [
             'item',
             'formData',
@@ -56,6 +56,7 @@
                 >
                     <button
                         type="button"
+                        data-readmemd-refresh
                         class="bg-stone-700 dark:bg-stone-600 hover:bg-stone-900 hover:dark:bg-stone-900 text-white transition duration-100"
                         :style="{
                             padding: '0.7rem 1.2rem',
@@ -66,14 +67,14 @@
                         :disabled="busy || !repository"
                         @click.prevent="refresh"
                     >
-                        {{ busy ? $filters.translate('githubreadme.refreshing') : $filters.translate('githubreadme.refresh_now') }}
+                        {{ busy ? $filters.translate('readmemd.refreshing') : $filters.translate('readmemd.refresh_now') }}
                     </button>
 
                     <span
                         class="text-sm text-stone-500 dark:text-stone-300"
                         style="flex:1 1 18rem;line-height:1.5"
                     >
-                        {{ $filters.translate('githubreadme.refresh_help') }}
+                        {{ $filters.translate('readmemd.refresh_help') }}
                     </span>
 
                     <span
@@ -81,7 +82,7 @@
                         :class="noteClass"
                         class="text-sm"
                         style="flex:1 1 100%;line-height:1.5"
-                        data-githubreadme-note
+                        data-readmemd-note
                     >{{ note }}</span>
                 </div>
 
@@ -118,7 +119,7 @@
                 this.noteClass = '';
 
                 tmaxios
-                    .post('/api/v1/githubreadme/refresh', {
+                    .post('/api/v1/readmemd/refresh', {
                         repository: this.repository,
                         branch: this.formData.branch || '',
                         path: this.formData.path || '',
@@ -127,7 +128,7 @@
                         var data = response.data || {};
 
                         if (data.ok) {
-                            self.say('githubreadme.refresh_done', 'text-teal-600 dark:text-teal-400', data);
+                            self.say('readmemd.refresh_done', 'text-teal-600 dark:text-teal-400', data);
                             return;
                         }
 
@@ -135,7 +136,7 @@
                         // page is still whole - the message says which of the two
                         // situations this is.
                         self.say(
-                            data.kept ? 'githubreadme.refresh_kept' : 'githubreadme.refresh_empty',
+                            data.kept ? 'readmemd.refresh_kept' : 'readmemd.refresh_empty',
                             'text-rose-600 dark:text-rose-400',
                             data
                         );
@@ -144,7 +145,7 @@
                         var status = error && error.response ? error.response.status : 0;
 
                         self.say(
-                            status === 422 ? 'githubreadme.refresh_invalid' : 'githubreadme.refresh_failed',
+                            status === 422 ? 'readmemd.refresh_invalid' : 'readmemd.refresh_failed',
                             'text-rose-600 dark:text-rose-400',
                             {}
                         );

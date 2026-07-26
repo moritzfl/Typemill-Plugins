@@ -1,6 +1,6 @@
 <?php
 
-namespace Plugins\githubreadme\Models;
+namespace Plugins\readmemd\Models;
 
 /**
  * A pointer to one file in one GitHub repository.

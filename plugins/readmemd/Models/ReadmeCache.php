@@ -1,6 +1,6 @@
 <?php
 
-namespace Plugins\githubreadme\Models;
+namespace Plugins\readmemd\Models;
 
 /**
  * The copy of the readme that the site falls back on.
@@ -18,9 +18,21 @@ class ReadmeCache
 {
     private string $directory;
 
-    public function __construct(string $directory)
+    /**
+     * Where copies were kept before the plugin was renamed, if anywhere.
+     *
+     * The plugin used to be named after GitHub and wrote to a folder of that
+     * name. Those copies are the only reason a page still has its text when
+     * GitHub cannot be reached, so a rename must not be what takes it away.
+     */
+    private ?string $formerDirectory;
+
+    public function __construct(string $directory, ?string $formerDirectory = null)
     {
         $this->directory = rtrim($directory, DIRECTORY_SEPARATOR);
+
+        $former = $formerDirectory === null ? null : rtrim($formerDirectory, DIRECTORY_SEPARATOR);
+        $this->formerDirectory = $former === $this->directory ? null : $former;
     }
 
     /**
@@ -32,7 +44,15 @@ class ReadmeCache
     public function read(string $key): ?array
     {
         $file = $this->fileFor($key);
-        if ($file === null || !is_file($file)) {
+        if ($file === null) {
+            return null;
+        }
+
+        if (!is_file($file)) {
+            $file = $this->inheritedFile($key, $file);
+        }
+
+        if ($file === null) {
             return null;
         }
 
@@ -107,6 +127,45 @@ class ReadmeCache
         $entry['failure'] = $failure;
 
         return $this->write($key, $entry);
+    }
+
+    /**
+     * The copy a previous folder holds for this key, taken over on the way.
+     *
+     * Only ever consulted when nothing is held here, so a newer copy is never
+     * replaced by an older one, and only for a key that has already been checked,
+     * so the file name cannot be anything but one this cache would write itself.
+     * The copy is brought over so the next read finds it here, and is read from
+     * where it is if that fails - a data folder that cannot be written to is a
+     * reason to serve the page, not to lose it. Nothing deletes the old folder,
+     * because nothing here is entitled to.
+     */
+    private function inheritedFile(string $key, string $target): ?string
+    {
+        if ($this->formerDirectory === null) {
+            return null;
+        }
+
+        $former = $this->formerDirectory . DIRECTORY_SEPARATOR . $key . '.json';
+
+        if (!is_file($former) || !is_readable($former)) {
+            return null;
+        }
+
+        // Whole or not at all, same as write(): a half-copied file would make
+        // the next read discard a good former copy forever.
+        if (is_dir($this->directory) || @mkdir($this->directory, 0755, true) || is_dir($this->directory)) {
+            $temporary = $target . '.' . bin2hex(random_bytes(4)) . '.tmp';
+
+            if (@copy($former, $temporary) && @rename($temporary, $target)) {
+                return $target;
+            }
+
+            @unlink($temporary);
+        }
+
+        // The data folder could not be written to; serve from where the copy is.
+        return $former;
     }
 
     /** Seconds since the copy was last confirmed current, or null when there is none. */

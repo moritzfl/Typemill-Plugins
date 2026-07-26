@@ -1,6 +1,6 @@
 <?php
 
-namespace Plugins\githubreadme\Models;
+namespace Plugins\readmemd\Models;
 
 /**
  * Decides what the page gets: GitHub's answer, or the copy on disk.
