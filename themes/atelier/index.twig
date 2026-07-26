@@ -4,9 +4,19 @@
 
 {# The bar floats over a full-bleed picture, and sits on the surface without one. #}
 {% block nav %}
-  {% set hasHero = home
-      ? (settings.themes.atelier.heroImage|default('') ?: metatabs.meta.heroimage|default(''))
-      : ((settings.themes.atelier.pageHero ?? true) ? metatabs.meta.heroimage|default('') : '') %}
+  {% set atelier = settings.themes.atelier %}
+
+  {#
+    The journal homepage opens with a plain hero whatever pictures the entries
+    carry, so it must not ask for the floating bar: pale type over a pale
+    surface, with nothing behind it to read against.
+  #}
+  {% set hasHero = home and atelier.blog
+      ? ''
+      : (home
+          ? (atelier.heroImage|default('') ?: metatabs.meta.heroimage|default(''))
+          : ((atelier.pageHero ?? true) ? metatabs.meta.heroimage|default('') : '')) %}
+
   {% include 'partials/topnav.twig' with { overlay: hasHero ? true : false } %}
 {% endblock %}
 

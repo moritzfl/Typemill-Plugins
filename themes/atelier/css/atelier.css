@@ -57,6 +57,21 @@ body[data-surface="warm"] {
     --at-border: #e2ded6;
 }
 
+/*
+ * The warm surface only sets backgrounds, and it outweighs the dark palette
+ * above, which sets both. Under a dark system theme the result was the dark
+ * scheme's near-white text on this near-white paper - the site read as blank.
+ * Warm therefore needs its own dark paper: the same warmth, taken to the other
+ * end, so the text set by the dark palette still lands on it.
+ */
+@media (prefers-color-scheme: dark) {
+    body[data-surface="warm"] {
+        --at-bg: #17150f;
+        --at-bg-alt: #201d16;
+        --at-border: #322d24;
+    }
+}
+
 body[data-surface="dark"] {
     --at-text: #f2f2f0;
     --at-text-secondary: #a6a6ad;

@@ -2,11 +2,19 @@
 {% set heroImage = theme.heroImage|default('') ?: metatabs.meta.heroimage|default('') %}
 {% set heroTitle = theme.heroTitle|default('') ?: title %}
 
+{# The page's alt text describes the page's own picture. When the theme setting
+   overrides it, that description belongs to a different image, so the theme
+   image carries its own - and none means decorative, which a picture chosen
+   purely to open the site usually is. #}
+{% set heroAlt = theme.heroImage|default('')
+    ? theme.heroImageAlt|default('')
+    : metatabs.meta.heroimagealt|default('') %}
+
 {% if heroImage %}
   <section class="at-hero">
     <div class="at-hero__media">
       <img src="{{ base_url }}/{{ heroImage|e }}"
-           alt="{{ metatabs.meta.heroimagealt|default('')|e('html_attr') }}" />
+           alt="{{ heroAlt|e('html_attr') }}" />
     </div>
     <div class="at-hero__inner">
       {% if theme.heroEyebrow %}

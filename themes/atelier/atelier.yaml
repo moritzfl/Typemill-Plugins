@@ -7,6 +7,7 @@ license: GPL-2.0
 
 settings:
   heroImage: ''
+  heroImageAlt: ''
   heroTitle: ''
   heroEyebrow: ''
   heroCaption: ''
@@ -114,6 +115,10 @@ forms:
           type: image
           label: 'Homepage picture'
           description: 'Shown full bleed with the navigation floating over it. Without one the homepage opens with type only.'
+        heroImageAlt:
+          type: text
+          label: 'Description of the homepage picture'
+          description: 'Read out instead of the picture. Leave blank if it is decorative and the title already says what the page is.'
         heroTitle:
           type: text
           label: 'Title'
