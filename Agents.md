@@ -80,9 +80,15 @@ Browser tests live in `tests/browser/`:
 | File | Covers |
 |------|--------|
 | `admin-pages.mjs` | Logs in through the real login form, opens admin pages (e.g. **System → Files**, **System → Versions**), and fails on JS console errors or stuck loading states. |
-| `theme-prose.mjs` | Renders one fixture page in **every** theme at four widths and measures the running text: no block may be pulled over the one above it, consecutive paragraphs may not sit flush, and nothing with a background (e.g. a Link Buttons button) may overlap text it does not own. |
+| `theme-prose.mjs` | Renders one fixture page in every **own** theme at four widths and measures the running text: no block may be pulled over the one above it, consecutive paragraphs may not sit flush, nothing with a background (e.g. a Link Buttons button) may overlap text it does not own, and the page may not scroll sideways. |
+| `blog-homepage.mjs` | Makes the post list the homepage in each theme, follows the pager to page two (it must stay on this site), and asks for a page of zero posts. |
+| `theme-language.mjs` | Switches the site to German and reads the words that come out: labels must follow the site language, not the theme's shipped English. |
+| `theme-navigation.mjs` | Opens the mobile drawer with the keyboard and checks where focus goes, then closes it with Escape and checks again. |
+| `theme-contrast.mjs` | Hides the text, photographs what is behind it, and measures every run of text against the worst pixel underneath — in light and dark, and on each of Atelier's surfaces. |
 
-`theme-prose.mjs` writes its own fixture page and switches the active theme, then restores `settings.yaml` and deletes the fixture in a `finally` block. Layout faults of this kind are invisible to the API and PHPUnit suites, and often invisible in a screenshot of ordinary prose, because a negative margin only shows up once an element paints a background.
+These write their own fixture page and settings and restore both in a `finally` block. Faults of this kind are invisible to the API and PHPUnit suites, which never render a theme: a negative margin only shows once an element paints a background, and contrast is decided by a stack of palettes, surfaces, gradients and scrims that no single declaration reveals.
+
+**Cyanine ships with Typemill and is kept only as a reference**, so it is excluded from these suites — it is not ours to fix.
 
 **When Puppeteer is not an option**, use a comparable tool (Playwright, Selenium, Cypress, etc.) with the same full-circle flow: Docker Typemill → real login → exercise the changed UI → assert no console/page errors and expected DOM state.
 
