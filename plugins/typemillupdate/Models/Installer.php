@@ -389,8 +389,12 @@ class Installer
     }
 
     /**
-     * Drop staging leftovers and stale backups. Safe to run broadly because
-     * runs are serialised by acquireLock().
+     * Drop staging leftovers and stale backups.
+     *
+     * Staging directories, downloads and backups belong to update runs, which
+     * acquireLock() serialises, so they can be cleared broadly. Uploads cannot:
+     * they arrive over many requests that hold no lock, so they are swept by
+     * age instead of by ownership.
      */
     public function cleanup(): void
     {
@@ -412,14 +416,8 @@ class Installer
                 continue;
             }
 
-            if ((str_starts_with($entry, 'download-') || str_starts_with($entry, 'upload-')) && is_file($path)) {
+            if (str_starts_with($entry, 'download-') && is_file($path)) {
                 @unlink($path);
-                continue;
-            }
-
-            // Half-finished chunk uploads.
-            if ($entry === Upload::CHUNK_DIRNAME) {
-                $this->removeDirectory($path);
                 continue;
             }
 
@@ -434,6 +432,8 @@ class Installer
         foreach (array_slice($this->listBackups(), self::KEEP_BACKUPS) as $backup) {
             $this->removeDirectory($backup['path']);
         }
+
+        (new Upload($this->environment))->purgeStale();
     }
 
     public function removeBackup(string $name): array

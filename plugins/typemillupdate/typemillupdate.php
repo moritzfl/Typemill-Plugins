@@ -356,6 +356,13 @@ class typemillupdate extends Plugin
         }
 
         $installer->cleanup();
+
+        // The archive has served its purpose; leaving it would keep a copy of
+        // the core in the working directory until the sweep caught up with it.
+        if ($uploadedArchive !== null) {
+            @unlink($uploadedArchive);
+        }
+
         $log[] = 'Cleaned up staging data.';
 
         $this->emitAndExit([
@@ -441,7 +448,7 @@ class typemillupdate extends Plugin
             ], 409);
         }
 
-        $upload->discardOtherArchives($name);
+        $upload->purgeStale();
         $installed = $environment->installedVersion();
 
         return $this->jsonResponse($response, [
@@ -502,10 +509,17 @@ class typemillupdate extends Plugin
         $params = (array) $request->getParsedBody();
         $name = (string) ($params['backup'] ?? '');
 
-        $installer = new Installer(new Environment());
+        $environment = new Environment();
+        $installer = new Installer($environment);
 
         if ($installer->resolveBackupPath($name) === null) {
             return $this->jsonResponse($response, ['message' => 'That backup could not be found.'], 404);
+        }
+
+        // Under the same lock as an update or a rollback: deleting a backup
+        // while it is being restored would pull the core out from under it.
+        if (!$environment->ensureWorkPath() || !$installer->acquireLock()) {
+            return $this->jsonResponse($response, ['message' => 'Another update is already running.'], 409);
         }
 
         $result = $installer->removeBackup($name);

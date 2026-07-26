@@ -18,6 +18,9 @@ class Upload
     /** Rejects a single oversized chunk before it is decoded. */
     public const MAX_CHUNK_BYTES = 4194304; // 4 MB
 
+    /** How long chunks and assembled archives are kept before being swept. */
+    public const STALE_SECONDS = 21600; // 6 hours
+
     private Environment $environment;
 
     public function __construct(Environment $environment)
@@ -148,29 +151,54 @@ class Upload
     }
 
     /**
-     * Drop previously assembled archives.
+     * Drop chunks and archives that nothing is waiting for any more.
      *
-     * Only the most recent upload can be acted on, so an archive left behind by
-     * an upload the admin did not confirm would otherwise sit in the working
-     * directory until the next install.
+     * An upload the browser abandoned leaves its chunks behind, and an archive
+     * the admin never confirmed stays in the working directory; without a sweep
+     * both accumulate for as long as the site stands.
+     *
+     * Age is the only usable signal. An upload is many requests long, so at no
+     * point are another admin's pieces known to be finished - deleting whatever
+     * is not the caller's own would cut a colleague's upload in half.
      */
-    public function discardOtherArchives(string $keepName): void
+    public function purgeStale(int $maxAgeSeconds = self::STALE_SECONDS): void
     {
+        $cutoff = time() - max($maxAgeSeconds, 0);
         $work = $this->environment->workPath();
+
         if (!is_dir($work)) {
             return;
         }
 
         foreach ((array) @scandir($work) as $entry) {
-            if (!is_string($entry) || $entry === $keepName || !str_starts_with($entry, 'upload-')) {
+            if (!is_string($entry) || !str_starts_with($entry, 'upload-') || !str_ends_with($entry, '.zip')) {
                 continue;
             }
 
             $path = $work . DIRECTORY_SEPARATOR . $entry;
-            if (is_file($path)) {
+            if (is_file($path) && (int) @filemtime($path) < $cutoff) {
                 @unlink($path);
             }
         }
+
+        $chunks = $this->chunkDirectory();
+        if (!is_dir($chunks)) {
+            return;
+        }
+
+        foreach ((array) @scandir($chunks) as $entry) {
+            if (!is_string($entry) || $entry === '.' || $entry === '..') {
+                continue;
+            }
+
+            $path = $chunks . DIRECTORY_SEPARATOR . $entry;
+            if (is_file($path) && (int) @filemtime($path) < $cutoff) {
+                @unlink($path);
+            }
+        }
+
+        // Succeeds only once the last chunk is gone.
+        @rmdir($chunks);
     }
 
     /**

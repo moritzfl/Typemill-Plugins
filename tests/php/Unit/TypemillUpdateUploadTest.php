@@ -122,6 +122,52 @@ class TypemillUpdateUploadTest extends TestCase
         }
     }
 
+    /**
+     * Chunks from an upload the browser abandoned have nothing to finish them,
+     * so they are swept by age.
+     */
+    public function testAbandonedChunksAreSweptOnceTheyAreOldEnough(): void
+    {
+        $this->upload->storeChunk('abandoned', 0, base64_encode('half an upload'));
+        $chunk = $this->upload->chunkDirectory() . '/abandoned.0';
+        $this->assertFileExists($chunk);
+
+        touch($chunk, time() - Upload::STALE_SECONDS - 60);
+        $this->upload->purgeStale();
+
+        $this->assertFileDoesNotExist($chunk);
+    }
+
+    /**
+     * An upload in progress belongs to somebody. Sweeping it because another
+     * admin happened to run an update would cut their file in half.
+     */
+    public function testAnUploadInProgressSurvivesTheSweep(): void
+    {
+        $this->upload->storeChunk('inflight', 0, base64_encode('first piece'));
+
+        $this->upload->purgeStale();
+
+        $this->assertFileExists($this->upload->chunkDirectory() . '/inflight.0');
+    }
+
+    public function testAssembledArchivesAreSweptOnlyWhenTheyAreStale(): void
+    {
+        $work = $this->root . '/.tm-update';
+        mkdir($work, 0777, true);
+
+        $fresh = $work . '/' . Upload::archiveName('fresh');
+        $stale = $work . '/' . Upload::archiveName('stale');
+        file_put_contents($fresh, 'zip');
+        file_put_contents($stale, 'zip');
+        touch($stale, time() - Upload::STALE_SECONDS - 60);
+
+        $this->upload->purgeStale();
+
+        $this->assertFileExists($fresh);
+        $this->assertFileDoesNotExist($stale);
+    }
+
     private function removeTree(string $path): void
     {
         if (!is_dir($path)) {

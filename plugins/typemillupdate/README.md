@@ -91,8 +91,13 @@ is a far wider blast radius than the settings screens that privilege normally gu
 
 Add `?check=0` to `status` to skip the request to typemill.net.
 
-Updates are serialised with a lock file, so a second run while one is in progress is refused with
-409 rather than deleting the first run's staging directory.
+Updates, rollbacks and backup deletions are serialised with a lock file, so a second one while
+another is in progress is refused with 409 rather than deleting the first one's staging directory or
+pulling a backup out from under a restore.
+
+Uploads cannot take that lock — they arrive over many requests — so they are never deleted by
+ownership. Chunks from an upload the browser abandoned, and archives that were never confirmed, are
+swept once they are six hours old.
 
 ## Working directory
 
