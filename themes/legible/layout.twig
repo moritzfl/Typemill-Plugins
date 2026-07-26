@@ -134,9 +134,22 @@
       }
 
       function setDrawer(open) {
+        var wasOpen = nav.classList.contains('lg-nav--open');
+
         nav.classList.toggle('lg-nav--open', open);
         if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
         if (!open) closeAll();
+
+        // The links sit before the button in the document, so opening the
+        // drawer without moving focus leaves the next Tab past the whole menu.
+        // Closing hands focus back, but only if it was inside the drawer -
+        // leaving the breakpoint also closes it, and that must not steal it.
+        if (open && !wasOpen) {
+          var first = nav.querySelector('.lg-nav__link');
+          if (first) first.focus();
+        } else if (!open && wasOpen && toggle && nav.contains(document.activeElement)) {
+          toggle.focus();
+        }
       }
 
       if (toggle) {
@@ -195,17 +208,19 @@
 
       document.addEventListener('keydown', function (e) {
         if (e.key !== 'Escape') return;
+        var drawerOpen = nav.classList.contains('lg-nav--open');
         var open = items.filter(function (i) { return i.classList.contains('is-open'); })[0];
         closeAll();
         setDrawer(false);
-        if (open) {
-          var link = open.querySelector('[data-nav-parent]');
-          if (link) {
-            // Guard the focus handler, or restoring focus would reopen the menu.
-            restoringFocus = true;
-            link.focus();
-            setTimeout(function () { restoringFocus = false; }, 0);
-          }
+
+        // In the drawer focus belongs on the menu button: closing it hides the
+        // section link that was open. Guarded, or restoring focus to a section
+        // link would reopen the menu.
+        var target = drawerOpen ? toggle : (open ? open.querySelector('[data-nav-parent]') : null);
+        if (target) {
+          restoringFocus = true;
+          target.focus();
+          setTimeout(function () { restoringFocus = false; }, 0);
         }
       });
 

@@ -112,10 +112,23 @@
       }
 
       function setDrawer(open) {
+        var wasOpen = nav.classList.contains('at-nav--open');
+
         nav.classList.toggle('at-nav--open', open);
         if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
         document.body.style.overflow = open ? 'hidden' : '';
         if (!open) closeAll();
+
+        // The links sit before the button in the document, so opening the
+        // drawer without moving focus leaves the next Tab past the whole menu.
+        // Closing hands focus back, but only if it was inside the drawer -
+        // leaving the breakpoint also closes it, and that must not steal it.
+        if (open && !wasOpen) {
+          var first = nav.querySelector('.at-nav__link');
+          if (first) first.focus();
+        } else if (!open && wasOpen && toggle && nav.contains(document.activeElement)) {
+          toggle.focus();
+        }
       }
 
       if (toggle) {
@@ -171,16 +184,19 @@
 
       document.addEventListener('keydown', function (e) {
         if (e.key !== 'Escape') return;
+        var drawerOpen = nav.classList.contains('at-nav--open');
         var open = items.filter(function (i) { return i.classList.contains('is-open'); })[0];
         closeAll();
         setDrawer(false);
-        if (open) {
-          var link = open.querySelector('[data-nav-parent]');
-          if (link) {
-            restoringFocus = true;
-            link.focus();
-            setTimeout(function () { restoringFocus = false; }, 0);
-          }
+
+        // In the drawer focus belongs on the menu button: closing it hides the
+        // section link that was open. Guarded, or focusing a section link would
+        // reopen it and make Escape a no-op.
+        var target = drawerOpen ? toggle : (open ? open.querySelector('[data-nav-parent]') : null);
+        if (target) {
+          restoringFocus = true;
+          target.focus();
+          setTimeout(function () { restoringFocus = false; }, 0);
         }
       });
 
