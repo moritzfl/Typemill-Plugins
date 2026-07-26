@@ -45,7 +45,7 @@ TYPEMILLUPDATE_CHECK_ROOT_WRITABLE_NOCREATE: PHP cannot create entries in {root}
 TYPEMILLUPDATE_CHECK_ROOT_WRITABLE_NORENAME: PHP cannot rename entries in {root}, which the update needs in order to swap the system directory.
 TYPEMILLUPDATE_CHECK_SYSTEM_WRITABLE_OK: Write access to the system directory is available.
 TYPEMILLUPDATE_CHECK_SYSTEM_WRITABLE_READONLY: The system directory is not writable. The update then depends on being able to rename it, which not every filesystem allows.
-TYPEMILLUPDATE_CHECK_DISK_SPACE_OK: "{size} free."
+TYPEMILLUPDATE_CHECK_DISK_SPACE_OK: "{size} free on the volume."
 TYPEMILLUPDATE_CHECK_DISK_SPACE_LOW: "Only {size} free; at least {required} is required."
 TYPEMILLUPDATE_CHECK_DISK_SPACE_UNKNOWN: Free disk space could not be determined.
 TYPEMILLUPDATE_CHECK_OPCACHE_OFF: OPcache is not enabled.
@@ -73,3 +73,6 @@ TYPEMILLUPDATE_MSG_ARCHIVE_VERSION_MISMATCH: "The archive contains Typemill {fou
 TYPEMILLUPDATE_MSG_PHP_TOO_OLD: "Typemill {version} requires a newer PHP version than {php}."
 TYPEMILLUPDATE_MSG_UPDATED: "Typemill was updated from {from} to {to}."
 TYPEMILLUPDATE_MSG_UPLOAD_PHP_TOO_OLD: "That archive contains Typemill {version}, which needs a newer PHP version than {php}."
+TYPEMILLUPDATE_CHECK_USABLE_SPACE_OK: "{needed} could be written."
+TYPEMILLUPDATE_CHECK_USABLE_SPACE_SHORT: "Only {written} of the {needed} an update needs could be written. On shared hosting this is usually the account quota."
+TYPEMILLUPDATE_CHECK_USABLE_SPACE_NOFILE: A test file could not be created in {root}.

@@ -20,6 +20,16 @@ class Environment
     /** Refuse to run when less than this is free, in bytes. */
     public const MIN_FREE_BYTES = 209715200; // 200 MB
 
+    /**
+     * Bytes actually written to prove the space is available before an update.
+     *
+     * An update holds the downloaded archive, the unpacked staging copy and a
+     * backup of the current core at the same time. That is around 35 MB for a
+     * current release, so this leaves room to spare without writing the full
+     * MIN_FREE_BYTES, which would be slow for no added certainty.
+     */
+    public const PROBE_BYTES = 67108864; // 64 MB
+
     private string $root;
 
     public function __construct(?string $root = null)
@@ -142,7 +152,7 @@ class Environment
      * Only the writability probe touches the filesystem, and it cleans up after
      * itself. Nothing here modifies the installation.
      */
-    public function preflight(): array
+    public function preflight(bool $thorough = false): array
     {
         $checks = [];
 
@@ -152,6 +162,13 @@ class Environment
         $checks[] = $this->checkRootWritable();
         $checks[] = $this->checkSystemWritable();
         $checks[] = $this->checkDiskSpace();
+
+        // Only before an install: it writes real bytes, which is too costly to
+        // repeat every time the page is opened.
+        if ($thorough) {
+            $checks[] = $this->checkUsableSpace();
+        }
+
         $checks[] = $this->checkOpcache();
 
         return $checks;
@@ -283,9 +300,12 @@ class Environment
 
         $ok = $free >= self::MIN_FREE_BYTES;
 
+        // Deliberately says "on the volume": disk_free_space() reports the
+        // filesystem, and on shared hosting the filesystem is far bigger than
+        // the account may use. A 25 GB quota on a 1 TB disk reads as 1 TB free.
         return $ok
             ? $this->check('disk_space', true, true,
-                self::formatBytes((int) $free) . ' free.',
+                self::formatBytes((int) $free) . ' free on the volume.',
                 'disk_space_ok', ['size' => self::formatBytes((int) $free)])
             : $this->check('disk_space', false, true,
                 'Only ' . self::formatBytes((int) $free) . ' free; at least ' . self::formatBytes(self::MIN_FREE_BYTES) . ' is required.',
@@ -293,6 +313,66 @@ class Environment
                     'size' => self::formatBytes((int) $free),
                     'required' => self::formatBytes(self::MIN_FREE_BYTES),
                 ]);
+    }
+
+    /**
+     * Prove the space is really available to this account.
+     *
+     * disk_free_space() asks the filesystem, and a shared host gives every
+     * account a slice of a much larger disk: 24 GB of quota on a 1 TB volume
+     * is reported as 1 TB free, so the cheap check above passes a site that
+     * has no room left at all. PHP has no portable way to read a quota, and
+     * neither `quota` nor the panel's numbers are reachable from here.
+     *
+     * Writing the bytes is the one answer that cannot be wrong, so before an
+     * install they are claimed for real and released again.
+     */
+    private function checkUsableSpace(): array
+    {
+        $path = $this->root . DIRECTORY_SEPARATOR . '.tm-update-space-' . bin2hex(random_bytes(6));
+        $handle = @fopen($path, 'wb');
+
+        if ($handle === false) {
+            return $this->check('usable_space', false, true,
+                'A test file could not be created in ' . $this->root . '.',
+                'usable_space_nofile', ['root' => $this->root]);
+        }
+
+        $chunk = str_repeat("\0", 1048576);
+        $written = 0;
+        $failed = false;
+
+        while ($written < self::PROBE_BYTES) {
+            $bytes = @fwrite($handle, $chunk);
+            if ($bytes === false || $bytes < strlen($chunk)) {
+                $failed = true;
+                break;
+            }
+            $written += $bytes;
+        }
+
+        // A quota can surface on flush rather than on write, when the buffer
+        // is handed to the filesystem.
+        if (!$failed && !@fflush($handle)) {
+            $failed = true;
+        }
+
+        @fclose($handle);
+        @unlink($path);
+
+        if ($failed) {
+            return $this->check('usable_space', false, true,
+                'Only ' . self::formatBytes($written) . ' of the ' . self::formatBytes(self::PROBE_BYTES)
+                    . ' an update needs could be written. On shared hosting this is usually the account quota.',
+                'usable_space_short', [
+                    'written' => self::formatBytes($written),
+                    'needed' => self::formatBytes(self::PROBE_BYTES),
+                ]);
+        }
+
+        return $this->check('usable_space', true, true,
+            self::formatBytes(self::PROBE_BYTES) . ' could be written.',
+            'usable_space_ok', ['needed' => self::formatBytes(self::PROBE_BYTES)]);
     }
 
     /**
