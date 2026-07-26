@@ -63,8 +63,10 @@ nothing, and there is no font flash and no third-party request.
 | `page.twig` | Content pages, folder listings, prev/next pager |
 | `404.twig` | Not found |
 
-Folder pages list their children automatically; folders marked as containing posts render the post
-grid instead.
+Folder pages list their children automatically as one grouped panel: hairline separators, the title
+in plain text and a chevron per row, the way a settings pane presents a set of links. A card each
+would give a bare list of names the weight of five articles, and the accent stays on the things you
+act on. Folders marked as containing posts render the post grid instead.
 
 ## Settings
 
@@ -87,7 +89,7 @@ and every value stays editable afterwards.
 | Readymade | What it sets up |
 |---|---|
 | **Product page** | Hero with an eyebrow, a rounded button and a secondary link, section tiles, two footer columns |
-| **Documentation** | Breadcrumbs, author and date on every page, tiles that read as a table of contents |
+| **Documentation** | Breadcrumbs, author and date on every page, folder pages that read as a table of contents |
 | **Journal** | Homepage as a grid of posts with images and a short intro above the list |
 
 Own combinations can be saved as readymades from the same panel.

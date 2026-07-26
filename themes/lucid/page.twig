@@ -56,13 +56,22 @@
         {% include 'partials/posts.twig' %}
       </div>
     {% elseif item.elementType == 'folder' and item.folderContent|length > 0 %}
+      {#
+        The pages inside a folder are a list of places to go, so they are shown
+        as one grouped panel rather than a card each: a card carries a heading,
+        a summary and an image, and here there is only a name to carry.
+      #}
       <div class="lc-article" style="margin-top:48px">
-        <ul class="lc-tiles" style="grid-template-columns:1fr">
+        <ul class="lc-rows">
           {% for child in item.folderContent %}
-            <li class="lc-tile" style="min-height:auto;text-align:left;padding:24px 28px">
-              <h2 class="lc-tile__title" style="font-size:21px;margin-bottom:4px">
-                <a href="{{ child.urlRel }}">{{ child.name|e }}</a>
-              </h2>
+            <li class="lc-row">
+              <a class="lc-row__link" href="{{ child.urlRel }}">
+                <span class="lc-row__title">{{ child.name|e }}</span>
+                <svg class="lc-row__chevron" width="7" height="12" viewBox="0 0 7 12"
+                     fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M1 1l5 5-5 5" />
+                </svg>
+              </a>
             </li>
           {% endfor %}
         </ul>
