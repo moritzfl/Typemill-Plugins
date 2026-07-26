@@ -45,9 +45,6 @@ TYPEMILLUPDATE_CHECK_ROOT_WRITABLE_NOCREATE: PHP kann in {root} keine Einträge 
 TYPEMILLUPDATE_CHECK_ROOT_WRITABLE_NORENAME: PHP kann in {root} keine Einträge umbenennen, was das Update braucht, um das system-Verzeichnis auszutauschen.
 TYPEMILLUPDATE_CHECK_SYSTEM_WRITABLE_OK: Schreibzugriff auf das system-Verzeichnis ist vorhanden.
 TYPEMILLUPDATE_CHECK_SYSTEM_WRITABLE_READONLY: Das system-Verzeichnis ist nicht beschreibbar. Das Update hängt dann davon ab, dass es umbenannt werden kann, was nicht jedes Dateisystem erlaubt.
-TYPEMILLUPDATE_CHECK_DISK_SPACE_OK: "{size} frei auf dem Datenträger."
-TYPEMILLUPDATE_CHECK_DISK_SPACE_LOW: "Nur {size} frei; benötigt werden mindestens {required}."
-TYPEMILLUPDATE_CHECK_DISK_SPACE_UNKNOWN: Der freie Speicherplatz konnte nicht ermittelt werden.
 TYPEMILLUPDATE_CHECK_OPCACHE_OFF: OPcache ist nicht aktiv.
 TYPEMILLUPDATE_CHECK_OPCACHE_RESET: OPcache ist aktiv und wird nach dem Austausch zurückgesetzt.
 TYPEMILLUPDATE_CHECK_OPCACHE_RESET_STALE: "OPcache läuft mit abgeschaltetem validate_timestamps; er wird nach dem Austausch zurückgesetzt."
@@ -73,6 +70,6 @@ TYPEMILLUPDATE_MSG_ARCHIVE_VERSION_MISMATCH: "Das Archiv enthält Typemill {foun
 TYPEMILLUPDATE_MSG_PHP_TOO_OLD: "Typemill {version} benötigt eine neuere PHP-Version als {php}."
 TYPEMILLUPDATE_MSG_UPDATED: "Typemill wurde von {from} auf {to} aktualisiert."
 TYPEMILLUPDATE_MSG_UPLOAD_PHP_TOO_OLD: "Das Archiv enthält Typemill {version} und benötigt eine neuere PHP-Version als {php}."
-TYPEMILLUPDATE_CHECK_USABLE_SPACE_OK: "{needed} konnten geschrieben werden."
-TYPEMILLUPDATE_CHECK_USABLE_SPACE_SHORT: "Von den {needed}, die ein Update braucht, konnten nur {written} geschrieben werden. Auf Shared Hosting liegt das meist am Speicherkontingent des Kontos."
+TYPEMILLUPDATE_CHECK_USABLE_SPACE_OK: Es ist genug Speicherplatz für ein Update vorhanden.
+TYPEMILLUPDATE_CHECK_USABLE_SPACE_SHORT: "Zu wenig Speicherplatz für ein Update; benötigt werden {needed}. Auf Shared Hosting liegt das meist am Speicherkontingent des Kontos."
 TYPEMILLUPDATE_CHECK_USABLE_SPACE_NOFILE: In {root} konnte keine Testdatei angelegt werden.

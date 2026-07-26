@@ -46,7 +46,7 @@ describe('Core update API', () => {
         expect(ids).toContain('system_layout')
         expect(ids).toContain('vendor_location')
         expect(ids).toContain('root_writable')
-        expect(ids).toContain('disk_space')
+        expect(ids).toContain('usable_space')
 
         for (const check of body.preflight) {
             expect(typeof check.ok).toBe('boolean')

@@ -168,9 +168,7 @@ class typemillupdate extends Plugin
             return $this->jsonResponse($response, ['message' => 'Could not determine the installed Typemill version.'], 500);
         }
 
-        // Thorough: this one writes the bytes an update needs, which catches a
-        // hosting quota that the reported free space cannot show.
-        $checks = $environment->preflight(true);
+        $checks = $environment->preflight();
         if (Environment::isBlocked($checks)) {
             return $this->jsonResponse($response, [
                 'message' => 'This installation cannot update itself. See the environment checks.',

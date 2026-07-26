@@ -17,18 +17,14 @@ class Environment
     /** Working directory for downloads, staging and backups, relative to root. */
     public const WORK_DIRNAME = '.tm-update';
 
-    /** Refuse to run when less than this is free, in bytes. */
-    public const MIN_FREE_BYTES = 209715200; // 200 MB
-
     /**
-     * Bytes actually written to prove the space is available before an update.
+     * Floor for the space probe, in bytes.
      *
-     * An update holds the downloaded archive, the unpacked staging copy and a
-     * backup of the current core at the same time. That is around 35 MB for a
-     * current release, so this leaves room to spare without writing the full
-     * MIN_FREE_BYTES, which would be slow for no added certainty.
+     * The requirement is measured from the core itself; this only guards the
+     * case where that measurement comes back implausibly small, for instance
+     * because the directory could not be read.
      */
-    public const PROBE_BYTES = 67108864; // 64 MB
+    public const MIN_PROBE_BYTES = 16777216; // 16 MB
 
     private string $root;
 
@@ -152,7 +148,7 @@ class Environment
      * Only the writability probe touches the filesystem, and it cleans up after
      * itself. Nothing here modifies the installation.
      */
-    public function preflight(bool $thorough = false): array
+    public function preflight(): array
     {
         $checks = [];
 
@@ -161,17 +157,49 @@ class Environment
         $checks[] = $this->checkLegacyVendor();
         $checks[] = $this->checkRootWritable();
         $checks[] = $this->checkSystemWritable();
-        $checks[] = $this->checkDiskSpace();
-
-        // Only before an install: it writes real bytes, which is too costly to
-        // repeat every time the page is opened.
-        if ($thorough) {
-            $checks[] = $this->checkUsableSpace();
-        }
-
+        $checks[] = $this->checkUsableSpace();
         $checks[] = $this->checkOpcache();
 
         return $checks;
+    }
+
+    /**
+     * Bytes an update has to be able to write, measured from the core itself.
+     *
+     * While it runs, an update holds a backup of the current core, the
+     * unpacked new one, and the archive it came from. The backup is a copy
+     * whenever the filesystem refuses to rename the core aside, so it is
+     * always counted. Three times the core covers all three with room over.
+     *
+     * Sizes are rounded up to whole blocks, because a core is largely small
+     * files: this one is 6.3 MB of content that occupies 9 MB on disk.
+     */
+    public function requiredBytes(): int
+    {
+        $system = $this->systemPath();
+
+        if (!is_dir($system)) {
+            return self::MIN_PROBE_BYTES;
+        }
+
+        $onDisk = 0;
+
+        try {
+            $entries = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($system, \FilesystemIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::LEAVES_ONLY
+            );
+
+            foreach ($entries as $entry) {
+                if ($entry->isFile()) {
+                    $onDisk += (int) (ceil($entry->getSize() / 4096) * 4096);
+                }
+            }
+        } catch (\Throwable $e) {
+            return self::MIN_PROBE_BYTES;
+        }
+
+        return max(self::MIN_PROBE_BYTES, $onDisk * 3);
     }
 
     public static function isBlocked(array $checks): bool
@@ -289,32 +317,6 @@ class Environment
                 'system_writable_readonly');
     }
 
-    private function checkDiskSpace(): array
-    {
-        $free = @disk_free_space($this->root);
-
-        if ($free === false) {
-            return $this->check('disk_space', true, false,
-                'Free disk space could not be determined.', 'disk_space_unknown');
-        }
-
-        $ok = $free >= self::MIN_FREE_BYTES;
-
-        // Deliberately says "on the volume": disk_free_space() reports the
-        // filesystem, and on shared hosting the filesystem is far bigger than
-        // the account may use. A 25 GB quota on a 1 TB disk reads as 1 TB free.
-        return $ok
-            ? $this->check('disk_space', true, true,
-                self::formatBytes((int) $free) . ' free on the volume.',
-                'disk_space_ok', ['size' => self::formatBytes((int) $free)])
-            : $this->check('disk_space', false, true,
-                'Only ' . self::formatBytes((int) $free) . ' free; at least ' . self::formatBytes(self::MIN_FREE_BYTES) . ' is required.',
-                'disk_space_low', [
-                    'size' => self::formatBytes((int) $free),
-                    'required' => self::formatBytes(self::MIN_FREE_BYTES),
-                ]);
-    }
-
     /**
      * Prove the space is really available to this account.
      *
@@ -329,6 +331,7 @@ class Environment
      */
     private function checkUsableSpace(): array
     {
+        $needed = $this->requiredBytes();
         $path = $this->root . DIRECTORY_SEPARATOR . '.tm-update-space-' . bin2hex(random_bytes(6));
         $handle = @fopen($path, 'wb');
 
@@ -342,7 +345,7 @@ class Environment
         $written = 0;
         $failed = false;
 
-        while ($written < self::PROBE_BYTES) {
+        while ($written < $needed) {
             $bytes = @fwrite($handle, $chunk);
             if ($bytes === false || $bytes < strlen($chunk)) {
                 $failed = true;
@@ -360,19 +363,18 @@ class Environment
         @fclose($handle);
         @unlink($path);
 
+        // How far the probe got is not reported: that figure is free space by
+        // another name, and free space is the number that cannot be trusted
+        // here. The answer is whether an update fits, and what it would take.
         if ($failed) {
             return $this->check('usable_space', false, true,
-                'Only ' . self::formatBytes($written) . ' of the ' . self::formatBytes(self::PROBE_BYTES)
-                    . ' an update needs could be written. On shared hosting this is usually the account quota.',
-                'usable_space_short', [
-                    'written' => self::formatBytes($written),
-                    'needed' => self::formatBytes(self::PROBE_BYTES),
-                ]);
+                'Not enough space for an update; it needs ' . self::formatBytes($needed)
+                    . '. On shared hosting this is usually the account quota.',
+                'usable_space_short', ['needed' => self::formatBytes($needed)]);
         }
 
         return $this->check('usable_space', true, true,
-            self::formatBytes(self::PROBE_BYTES) . ' could be written.',
-            'usable_space_ok', ['needed' => self::formatBytes(self::PROBE_BYTES)]);
+            'There is enough space for an update.', 'usable_space_ok');
     }
 
     /**
