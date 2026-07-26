@@ -85,6 +85,7 @@ Browser tests live in `tests/browser/`:
 | `theme-language.mjs` | Switches the site to German and reads the words that come out: labels must follow the site language, not the theme's shipped English. |
 | `theme-navigation.mjs` | Opens the mobile drawer with the keyboard and checks where focus goes, then closes it with Escape and checks again. |
 | `theme-contrast.mjs` | Hides the text, photographs what is behind it, and measures every run of text against the worst pixel underneath — in light and dark, and on each of Atelier's surfaces. |
+| `court-club.mjs` | Stress-tests Court with 200 news posts: bounded folder pagination, no post explosion in navigation, a full-height focus-contained mobile drawer, dark hover legibility, and right-aligned Next. |
 | `plugin-readmemd.mjs` | Points a page at a repository and then takes GitHub away: the stored copy has to carry the page. Also checks placement, a page naming no repository, the live fetch (tolerantly), and that the admin screens load. |
 
 These write their own fixture page and settings and restore both in a `finally` block. Faults of this kind are invisible to the API and PHPUnit suites, which never render a theme: a negative margin only shows once an element paints a background, and contrast is decided by a stack of palettes, surfaces, gradients and scrims that no single declaration reveals.

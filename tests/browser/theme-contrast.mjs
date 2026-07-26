@@ -41,6 +41,7 @@ const CASES = [
     { theme: 'lucid', settings: {} },
     { theme: 'medium', settings: {} },
     { theme: 'prism', settings: {} },
+    { theme: 'court', settings: {} },
     { theme: 'rueckenwind', settings: {} },
 ]
 
@@ -74,7 +75,10 @@ function configure(theme, settings) {
 
     const lines = Object.entries(settings).map(([key, value]) => `        ${key}: ${value}`)
     const block = [`    ${theme}:`, ...lines].join('\n') + '\n'
-    const existing = new RegExp(`^ {4}${theme}:\\n(?:(?: {5,}.*)?\\n)*`, 'm')
+    const existing = new RegExp(
+        `^ {4}${theme}:(?:\\n(?: {5,}.*)?)*\\n|^ {4}${theme}:[^\\n]*\\n`,
+        'm'
+    )
 
     if (existing.test(content)) {
         content = content.replace(existing, block)

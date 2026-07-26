@@ -36,7 +36,7 @@ const TEXT_ONLY_URL = '/text-only-posts'
 // A folder that already holds several posts, so one post per page really pages.
 const BLOG_FOLDER = process.env.TM_BLOG_FOLDER || '/news'
 
-const THEMES = ['atelier', 'legible', 'lucid', 'medium', 'prism']
+const THEMES = ['atelier', 'court', 'legible', 'lucid', 'medium', 'prism']
 
 function assert(condition, message) {
     if (!condition) {
@@ -75,7 +75,10 @@ function configure(theme, pageSize, folder = BLOG_FOLDER) {
 
     // Replace this theme's own block, or add one under themes:. A continuation
     // line is anything indented deeper than the theme name, or empty.
-    const existing = new RegExp(`^ {4}${theme}:\\n(?:(?: {5,}.*)?\\n)*`, 'm')
+    const existing = new RegExp(
+        `^ {4}${theme}:(?:\\n(?: {5,}.*)?)*\\n|^ {4}${theme}:[^\\n]*\\n`,
+        'm'
+    )
 
     if (existing.test(content)) {
         content = content.replace(existing, `${block}\n`)
@@ -172,6 +175,38 @@ async function assertBlogHomepage(page, theme) {
 
     const second = await fetchStatus(page, pager.resolved)
     assert(second === 200, `${theme}: ${pager.resolved} answered with HTTP ${second}`)
+
+    if (theme === 'court') {
+        const postsOnPageTwo = await page.evaluate(() => document.querySelectorAll('.ct-post').length)
+        assert(postsOnPageTwo === 1, `court: page two rendered ${postsOnPageTwo} posts, expected 1`)
+
+        const canonical = await page.evaluate(() =>
+            document.querySelector('link[rel="canonical"]')?.getAttribute('href') || ''
+        )
+        const canonicalPath = new URL(canonical, BASE_URL).pathname
+        const basePath = new URL(BASE_URL).pathname.replace(/\/$/, '')
+        assert(
+            canonicalPath === `${basePath}/p/2`,
+            `court: page-two canonical path is "${canonicalPath}", not "${basePath}/p/2"`
+        )
+
+        const pageNumbers = await page.evaluate(() =>
+            Array.from(document.querySelectorAll('.ct-pagination__page'))
+                .map((element) => Number((element.textContent || '').trim()))
+                .filter(Number.isFinite)
+        )
+        const lastPage = Math.max(...pageNumbers)
+        await fetchStatus(page, `${BASE_URL}/p/999`)
+        const invalid = await page.evaluate(() => ({
+            canonical: document.querySelector('link[rel="canonical"]')?.getAttribute('href') || '',
+            robots: document.querySelector('meta[name="robots"]')?.getAttribute('content') || '',
+        }))
+        assert(
+            new URL(invalid.canonical, BASE_URL).pathname === `${basePath}/p/${lastPage}`,
+            `court: out-of-range homepage canonical is "${invalid.canonical}"`
+        )
+        assert(invalid.robots === 'noindex,follow', 'court: out-of-range homepage remains indexable')
+    }
 
     // Zero survives Twig's default filter and used to divide by zero.
     configure(theme, 0)

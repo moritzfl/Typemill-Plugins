@@ -27,7 +27,7 @@ const NAV_CACHE = join(TM_ROOT, 'data', 'navigation')
 // A page below a folder, so it has a breadcrumb and neighbours to page to.
 const PAGE_URL = process.env.TM_SUBPAGE || '/getting-started/edit-the-page-meta'
 
-const THEMES = ['atelier', 'legible', 'lucid', 'medium', 'prism']
+const THEMES = ['atelier', 'court', 'legible', 'lucid', 'medium', 'prism']
 
 // What the theme's own de.yaml says. If a theme ever ships different German,
 // this is the list to change.
@@ -72,7 +72,11 @@ function configure(theme) {
         : `theme: ${theme}\n${content}`
 
     const block = `    ${theme}:\n        breadcrumb: true\n`
-    const existing = new RegExp(`^ {4}${theme}:\\n(?:(?: {5,}.*)?\\n)*`, 'm')
+    // Multi-line blocks, or a single-line value such as `court: {  }`.
+    const existing = new RegExp(
+        `^ {4}${theme}:(?:\\n(?: {5,}.*)?)*\\n|^ {4}${theme}:[^\\n]*\\n`,
+        'm'
+    )
 
     if (existing.test(content)) {
         content = content.replace(existing, block)

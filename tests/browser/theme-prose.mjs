@@ -104,7 +104,7 @@ function assert(condition, message) {
  * it is not held to any of these checks - its own grid overflows a 900px
  * viewport by 7px on every page, table or no table, and that is not ours.
  */
-const OWN_THEMES = ['atelier', 'legible', 'lucid', 'medium', 'prism', 'rueckenwind']
+const OWN_THEMES = ['atelier', 'court', 'legible', 'lucid', 'medium', 'prism', 'rueckenwind']
 
 function listThemes() {
     return readdirSync(THEMES_DIR, { withFileTypes: true })

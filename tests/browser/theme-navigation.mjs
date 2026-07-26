@@ -30,7 +30,7 @@ const NAV_CACHE = join(TM_ROOT, 'data', 'navigation')
 // Narrow enough for every theme to be in drawer mode.
 const VIEWPORT = { width: 390, height: 800 }
 
-const THEMES = ['atelier', 'legible', 'lucid', 'medium', 'prism']
+const THEMES = ['atelier', 'court', 'legible', 'lucid', 'medium', 'prism']
 
 function assert(condition, message) {
     if (!condition) {
