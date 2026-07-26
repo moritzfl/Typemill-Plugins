@@ -6,7 +6,14 @@
   still looks deliberate.
 #}
 {% set theme = settings.themes.atelier %}
-{% set entries = entries is defined and entries ? entries : item.folderContent %}
+
+{#
+  Only the absence of the variable falls back to the page's own children, not an
+  empty list: page.twig includes this without `entries` for a folder, while
+  blog.twig passes a page of entries that can legitimately come out empty. On
+  truthiness the empty page would have rendered the homepage's sections instead.
+#}
+{% set entries = entries is defined ? entries : item.folderContent %}
 {% set layout = theme.galleryLayout|default('masonry') %}
 {% set captions = theme.galleryCaptions|default('below') %}
 

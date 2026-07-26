@@ -19,7 +19,7 @@
  *   npm run test:browser
  */
 import puppeteer from 'puppeteer'
-import { readFileSync, writeFileSync, existsSync, readdirSync, rmSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync, readdirSync, rmSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 
 const BASE_URL = process.env.TM_BASE_URL || 'http://127.0.0.1:8080'
@@ -27,6 +27,11 @@ const TM_ROOT = process.env.TM_ROOT || '/var/www/html'
 
 const SETTINGS_FILE = join(TM_ROOT, 'settings', 'settings.yaml')
 const NAV_CACHE = join(TM_ROOT, 'data', 'navigation')
+const CONTENT_DIR = join(TM_ROOT, 'content')
+
+// A folder of posts that carry no picture at all.
+const TEXT_ONLY_DIR = '97-text-only-posts'
+const TEXT_ONLY_URL = '/text-only-posts'
 
 // A folder that already holds several posts, so one post per page really pages.
 const BLOG_FOLDER = process.env.TM_BLOG_FOLDER || '/news'
@@ -54,7 +59,7 @@ function clearNavigationCache() {
  * The settings file is edited as text rather than parsed: a YAML round trip
  * would rewrite the whole file, and this has to put it back byte for byte.
  */
-function configure(theme, pageSize) {
+function configure(theme, pageSize, folder = BLOG_FOLDER) {
     let content = readFileSync(SETTINGS_FILE, 'utf8')
 
     content = /^theme:.*$/m.test(content)
@@ -64,7 +69,7 @@ function configure(theme, pageSize) {
     const block = [
         `    ${theme}:`,
         '        blog: true',
-        `        blogfolder: '${BLOG_FOLDER}'`,
+        `        blogfolder: '${folder}'`,
         `        blogpagesize: ${pageSize}`,
     ].join('\n')
 
@@ -82,6 +87,57 @@ function configure(theme, pageSize) {
 
     writeFileSync(SETTINGS_FILE, content)
     clearNavigationCache()
+}
+
+function writeTextOnlyFolder() {
+    const folder = join(CONTENT_DIR, TEXT_ONLY_DIR)
+    mkdirSync(folder, { recursive: true })
+    writeFileSync(join(folder, 'index.md'), '# Text only\n\nPosts without a single picture.\n')
+    writeFileSync(join(folder, 'index.yaml'), "meta:\n    title: 'Text only'\n    contains: posts\n")
+
+    for (const [i, name] of ['20240101-first', '20240102-second'].entries()) {
+        writeFileSync(join(folder, `${name}.md`), `# Post ${i + 1}\n\nText only, no picture.\n`)
+        writeFileSync(join(folder, `${name}.yaml`), `meta:\n    title: 'Post ${i + 1}'\n`)
+    }
+
+    clearNavigationCache()
+}
+
+function removeTextOnlyFolder() {
+    rmSync(join(CONTENT_DIR, TEXT_ONLY_DIR), { recursive: true, force: true })
+    clearNavigationCache()
+}
+
+/**
+ * Atelier's wall only shows entries that carry a picture, and it counts its
+ * pages from those, so a folder of text-only posts leaves the page empty. An
+ * empty page must stay a page: the gallery partial falls back to the current
+ * page's own children when it is given no entries, and an empty list must not
+ * be mistaken for none - that fallback answered 500 on the homepage.
+ */
+async function assertTextOnlyJournal(page) {
+    configure('atelier', 12, TEXT_ONLY_URL)
+
+    const status = await fetchStatus(page, `${BASE_URL}/`)
+    assert(status === 200, `atelier: a journal of text-only posts answered with HTTP ${status}`)
+
+    const tiles = await page.evaluate(() => document.querySelectorAll('.at-tile').length)
+    assert(
+        tiles === 0,
+        `atelier: a journal of text-only posts showed ${tiles} tiles, which cannot be its own posts`
+    )
+}
+
+/**
+ * A blog folder that is not in the navigation - mistyped, or hidden - leaves the
+ * page list with no content at all. That is a settings mistake, and it has to
+ * read as one rather than as a server error.
+ */
+async function assertMissingFolder(page, theme) {
+    configure(theme, 10, '/no-such-folder-at-all')
+
+    const status = await fetchStatus(page, `${BASE_URL}/`)
+    assert(status === 200, `${theme}: a blog folder that does not exist answered with HTTP ${status}`)
 }
 
 async function fetchStatus(page, url) {
@@ -150,9 +206,19 @@ async function main() {
             const href = await assertBlogHomepage(page, theme)
             console.log(`ok: blog homepage (${theme}, pager ${href})`)
         }
+
+        for (const theme of THEMES) {
+            await assertMissingFolder(page, theme)
+        }
+        console.log('ok: blog homepage (a folder that does not exist, all themes)')
+
+        writeTextOnlyFolder()
+        await assertTextOnlyJournal(page)
+        console.log('ok: blog homepage (atelier, a journal of text-only posts)')
     } finally {
         await browser.close()
         writeFileSync(SETTINGS_FILE, originalSettings)
+        removeTextOnlyFolder()
         clearNavigationCache()
     }
 }
