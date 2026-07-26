@@ -331,14 +331,16 @@ a {
 
 /* The navigation sits flush against the right margin, so a centred panel on the
    last entry would hang past the edge of the window and widen the page. Anchor
-   that one to the right instead. The mobile rules below reset this. */
-.at-nav__item:last-child .at-dropdown {
+   that one to the right instead. The last section rather than the last item:
+   language links follow the sections when a site has more than one language.
+   The mobile rules below reset this. */
+.at-nav__item--has-menu:not(:has(~ .at-nav__item--has-menu)) .at-dropdown {
     left: auto;
     right: 0;
     transform: translate(0, -6px);
 }
 
-.at-nav__item:last-child.is-open .at-dropdown {
+.at-nav__item--has-menu:not(:has(~ .at-nav__item--has-menu)).is-open .at-dropdown {
     transform: translate(0, 0);
 }
 
@@ -840,8 +842,14 @@ a {
     padding: 0;
 }
 
+/* A table is as wide as its columns need, and a phone is not. Left in the flow
+   it pushed the whole page sideways; as a block of its own it scrolls within
+   the column instead. */
 .at-prose table {
+    display: block;
     width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
     border-collapse: collapse;
     font-size: 14px;
 }

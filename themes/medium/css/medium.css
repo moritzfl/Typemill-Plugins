@@ -257,6 +257,27 @@ a {
     transform: translate(-50%, 0);
 }
 
+/*
+ * The bar sits flush against the right margin, so a panel centred under the
+ * last section hangs past the edge of the window - and it is laid out whether
+ * it is open or not, so the page itself scrolled sideways by the overhang.
+ * That one is anchored to the right of its item instead.
+ *
+ * The last section rather than the last item: language links follow the
+ * sections when a site has more than one language.
+ */
+@media (min-width: 821px) {
+    .md-nav__item--has-menu:not(:has(~ .md-nav__item--has-menu)) .md-dropdown {
+        left: auto;
+        right: 0;
+        transform: translate(0, -6px);
+    }
+
+    .md-nav__item--has-menu:not(:has(~ .md-nav__item--has-menu)).is-open .md-dropdown {
+        transform: translate(0, 0);
+    }
+}
+
 .md-dropdown__list {
     list-style: none;
     margin: 0;
@@ -600,8 +621,14 @@ a {
     font-size: inherit;
 }
 
+/* A table is as wide as its columns need, and a phone is not. Left in the flow
+   it pushed the whole page sideways; as a block of its own it scrolls within
+   the column instead. */
 .md-prose table {
+    display: block;
     width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
     border-collapse: collapse;
     font-family: var(--md-sans);
     font-size: 15px;

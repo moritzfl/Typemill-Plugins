@@ -473,6 +473,11 @@ main {
     line-height: 1.4;
     letter-spacing: normal;
     word-spacing: normal;
+    /* Three groups of buttons at the largest text size are taller than a phone
+       held sideways. Without this the top of the panel - the text size itself -
+       sat above the screen with no way to reach it. */
+    max-height: calc(100dvh - 2 * var(--lg-gutter));
+    overflow-y: auto;
 }
 
 .lg-reader__panel[hidden] {
@@ -1009,6 +1014,8 @@ main {
         border-radius: 0;
     }
 
+    /* Anchored to the bottom of the screen; the height cap above keeps it on
+       the screen and scrolls it when the controls do not fit. */
     .lg-reader__panel {
         position: fixed;
         top: auto;

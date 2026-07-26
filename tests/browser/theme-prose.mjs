@@ -80,6 +80,14 @@ not touch the line above or the line below it.
 
 > A quote with a button [[Read](https://example.com/)] inside it.
 
+### Sub heading followed by a wide table
+
+| Setting | Type | Default | Applies to | Description |
+|---------|------|---------|------------|-------------|
+| blogfolder | text | /blog | homepage | Relative path to the folder that holds the posts |
+| blogpagesize | number | 10 | homepage | How many posts one page of the list shows |
+| breadcrumb | checkbox | true | every page | Whether the trail above the text is shown |
+
 A closing paragraph.
 `
 
@@ -89,9 +97,18 @@ function assert(condition, message) {
     }
 }
 
+/**
+ * The themes this repository writes.
+ *
+ * Cyanine ships with Typemill itself and is kept here only as a reference, so
+ * it is not held to any of these checks - its own grid overflows a 900px
+ * viewport by 7px on every page, table or no table, and that is not ours.
+ */
+const OWN_THEMES = ['atelier', 'legible', 'lucid', 'medium', 'prism', 'rueckenwind']
+
 function listThemes() {
     return readdirSync(THEMES_DIR, { withFileTypes: true })
-        .filter((entry) => entry.isDirectory())
+        .filter((entry) => entry.isDirectory() && OWN_THEMES.includes(entry.name))
         .map((entry) => entry.name)
         .sort()
 }
@@ -254,12 +271,26 @@ function measure() {
         }
     }
 
+    // Nothing in the running text may make the page itself scroll sideways. A
+    // table is the usual culprit: it is as wide as its columns need, and a
+    // phone is not, so left in the flow it drags the whole layout with it.
+    const overflow = Math.round(document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    const widest = Array.from(root.children)
+        .map((element) => ({
+            name: element.tagName.toLowerCase(),
+            width: Math.round(element.getBoundingClientRect().width),
+        }))
+        .sort((a, b) => b.width - a.width)[0]
+
     return {
         container: root.className || root.tagName.toLowerCase(),
         buttons: painted.length,
         negativeGaps,
         paragraphGaps,
         collisions,
+        overflow,
+        widest,
+        viewport: window.innerWidth,
     }
 }
 
@@ -296,6 +327,13 @@ async function assertThemeProse(page, theme, widths) {
                 + result.collisions
                     .map((hit) => `  "${hit.button}" covers "${hit.covers}" by ${hit.by}px`)
                     .join('\n')
+        )
+
+        assert(
+            result.overflow <= 1,
+            `${theme} @${width}px: the running text makes the page scroll sideways by `
+                + `${result.overflow}px (widest block: <${result.widest.name}> at ${result.widest.width}px `
+                + `in a ${result.viewport}px viewport)`
         )
     }
 }

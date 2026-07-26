@@ -952,8 +952,14 @@ a:hover {
     font-size: inherit;
 }
 
+/* A table is as wide as its columns need, and a phone is not. Left in the flow
+   it pushed the whole page sideways; as a block of its own it scrolls within
+   the column instead. */
 .lc-prose table {
+    display: block;
     width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
     border-collapse: collapse;
     font-size: 15px;
 }
@@ -981,7 +987,9 @@ a:hover {
 
 .lc-posts {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    /* min() so the track can go below its ideal width rather than overflow:
+       300px is wider than the content column on a small phone. */
+    grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
     gap: 24px;
     list-style: none;
     margin: 0;

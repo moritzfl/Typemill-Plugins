@@ -19,9 +19,13 @@
       <p class="lc-hero__subtitle">{{ theme.heroSubtitle|e }}</p>
     {% endif %}
 
-    {% if theme.heroBtnLabel and theme.heroBtnLink %}
+    {# Either action stands on its own: the quieter link was nested inside the
+       button's condition, so filling in only the link produced nothing at all. #}
+    {% if (theme.heroBtnLabel and theme.heroBtnLink) or (theme.heroLinkLabel and theme.heroLinkTarget) %}
       <div class="lc-hero__actions">
-        <a class="lc-btn" href="{{ theme.heroBtnLink|e }}">{{ theme.heroBtnLabel|e }}</a>
+        {% if theme.heroBtnLabel and theme.heroBtnLink %}
+          <a class="lc-btn" href="{{ theme.heroBtnLink|e }}">{{ theme.heroBtnLabel|e }}</a>
+        {% endif %}
         {% if theme.heroLinkLabel and theme.heroLinkTarget %}
           <a class="lc-link" href="{{ theme.heroLinkTarget|e }}">{{ theme.heroLinkLabel|e }}</a>
         {% endif %}
