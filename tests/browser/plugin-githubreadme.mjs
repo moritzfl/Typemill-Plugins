@@ -525,6 +525,47 @@ async function assertRefreshButton(page) {
     })
 
     assert(tab.hasButton, 'refresh: the button is not in the github tab')
+
+    /*
+     * The button must not sit against the text beside it. Worth measuring rather
+     * than trusting: Typemill's admin stylesheet is a trimmed Tailwind build with
+     * no gap-* utilities, so a class-based flex gap silently does nothing.
+     */
+    const spacing = await page.evaluate(() => {
+        const button = Array.from(document.querySelectorAll('button')).find((b) =>
+            /readme/i.test(b.textContent || '')
+        )
+        const help = button.parentElement.querySelector('span')
+
+        if (!help) {
+            return { gap: null }
+        }
+
+        const b = button.getBoundingClientRect()
+        const h = help.getBoundingClientRect()
+        const panel = button.parentElement.getBoundingClientRect()
+
+        return {
+            // Side by side on a wide screen, so the gap is horizontal.
+            gap: Math.round(h.left - b.right),
+            padding: Math.round(b.left - panel.left),
+            buttonHeight: Math.round(b.height),
+        }
+    })
+
+    assert(spacing.gap !== null, 'refresh: no help text was rendered beside the button')
+    assert(
+        spacing.gap >= 12,
+        `refresh: only ${spacing.gap}px between the button and the text beside it`
+    )
+    assert(
+        spacing.padding >= 12,
+        `refresh: the button sits ${spacing.padding}px from the edge of its panel`
+    )
+    assert(
+        spacing.buttonHeight >= 32,
+        `refresh: the button is only ${spacing.buttonHeight}px tall, so its padding was lost too`
+    )
     assert(
         tab.hasRepositoryField || tab.fieldCount > 3,
         `refresh: the tab lost the fields it is supposed to keep (found ${tab.fieldCount} inputs)`

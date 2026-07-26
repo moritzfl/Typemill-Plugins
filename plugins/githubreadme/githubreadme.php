@@ -40,11 +40,21 @@ class githubreadme extends Plugin
      * their natural size, and only a picture that is alone in its block is
      * treated as a figure. Alignment written onto a cell or a table is honoured
      * whatever the theme says, because in a readme it is the author speaking.
+     *
+     * Tables are held to being tables. A theme may well make them display:block
+     * to stop a wide one pushing the page sideways - Typemill\'s own themes did
+     * exactly that - and a table that is a block has lost its layout: its cells
+     * no longer share a row and a centred table sits at the left. The scrolling
+     * belongs on the .tm-table wrapper instead, which is added around every table
+     * here, so the plugin does not depend on the theme having worked that out.
+     *
+     * This stylesheet is served after the theme\'s, so these rules win the ties.
      */
     private const CSS = '
 .github-readme img{max-width:100%;height:auto;display:inline-block;vertical-align:middle}
 .github-readme p>img:only-child,.github-readme figure>img:only-child{display:block;margin-inline:auto}
 .github-readme .tm-table{max-width:100%;overflow-x:auto}
+.github-readme table{display:table;width:auto;max-width:100%;border-collapse:collapse}
 .github-readme table[align="center"]{margin-inline:auto}
 .github-readme th[align="left"],.github-readme td[align="left"]{text-align:left}
 .github-readme th[align="center"],.github-readme td[align="center"]{text-align:center}

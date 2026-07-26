@@ -40,23 +40,49 @@
             };
         },
 
+        /*
+         * The spacing is written as inline styles on purpose. Typemill's admin
+         * stylesheet is a trimmed Tailwind build that carries no gap-* or
+         * min-w-* utilities, so a class-based flex gap silently does nothing and
+         * the button ends up against the text beside it. Colours are left to the
+         * admin's classes, which it does have, so the panel follows the theme of
+         * the editor and its dark mode.
+         */
         template: `
             <section>
-                <div class="flex flex-wrap items-center gap-3 border-2 border-stone-200 dark:border-stone-600 p-4 my-8">
+                <div
+                    class="border-2 border-stone-200 dark:border-stone-600"
+                    style="display:flex;flex-wrap:wrap;align-items:center;gap:1.25rem;padding:1.25rem;margin:2rem 0"
+                >
                     <button
                         type="button"
-                        class="px-4 py-2 bg-stone-700 dark:bg-stone-600 hover:bg-stone-900 hover:dark:bg-stone-900 text-white cursor-pointer transition duration-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        class="bg-stone-700 dark:bg-stone-600 hover:bg-stone-900 hover:dark:bg-stone-900 text-white transition duration-100"
+                        :style="{
+                            padding: '0.7rem 1.2rem',
+                            flex: '0 0 auto',
+                            opacity: (busy || !repository) ? 0.5 : 1,
+                            cursor: (busy || !repository) ? 'not-allowed' : 'pointer'
+                        }"
                         :disabled="busy || !repository"
                         @click.prevent="refresh"
                     >
                         {{ busy ? $filters.translate('githubreadme.refreshing') : $filters.translate('githubreadme.refresh_now') }}
                     </button>
 
-                    <span class="text-sm text-stone-500 dark:text-stone-300 flex-1 min-w-48">
+                    <span
+                        class="text-sm text-stone-500 dark:text-stone-300"
+                        style="flex:1 1 18rem;line-height:1.5"
+                    >
                         {{ $filters.translate('githubreadme.refresh_help') }}
                     </span>
 
-                    <span v-if="note" :class="noteClass" class="text-sm w-full" data-githubreadme-note>{{ note }}</span>
+                    <span
+                        v-if="note"
+                        :class="noteClass"
+                        class="text-sm"
+                        style="flex:1 1 100%;line-height:1.5"
+                        data-githubreadme-note
+                    >{{ note }}</span>
                 </div>
 
                 <tab-defaulttab
