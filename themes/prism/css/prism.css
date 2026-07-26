@@ -349,6 +349,11 @@ a:hover {
     line-height: 0;
 }
 
+@keyframes pr-row-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: none; }
+}
+
 @media (max-width: 860px) {
     .pr-nav__links {
         display: none;
@@ -381,9 +386,29 @@ a:hover {
         font-size: 17px;
     }
 
+    /* Without this the row stays a flex row from the bar, and the section's
+       panel sits beside its own link instead of under it. */
+    .pr-nav--open .pr-nav__item {
+        display: block;
+        width: 100%;
+        animation: pr-row-in 0.34s cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+
+    .pr-nav--open .pr-nav__item:nth-child(1) { animation-delay: 0.03s; }
+    .pr-nav--open .pr-nav__item:nth-child(2) { animation-delay: 0.06s; }
+    .pr-nav--open .pr-nav__item:nth-child(3) { animation-delay: 0.09s; }
+    .pr-nav--open .pr-nav__item:nth-child(4) { animation-delay: 0.12s; }
+    .pr-nav--open .pr-nav__item:nth-child(5) { animation-delay: 0.15s; }
+    .pr-nav--open .pr-nav__item:nth-child(n + 6) { animation-delay: 0.18s; }
+
     .pr-nav--open .pr-nav__link {
         /* Block, or the padding and divider only span the text width. */
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+        min-height: 48px;
         padding: 15px 0;
         border-bottom: 1px solid var(--pr-border);
     }
@@ -400,9 +425,13 @@ a:hover {
         background: none;
         border-radius: 0;
         box-shadow: none;
-        max-height: 0;
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .pr-nav--open .pr-dropdown > * {
         overflow: hidden;
-        transition: max-height 0.28s ease;
     }
 
     .pr-nav--open .pr-dropdown::before {
@@ -413,8 +442,7 @@ a:hover {
         /* The open state carries the popover's centring transform, which would
            drag the accordion half its width off-screen. */
         transform: none;
-        max-height: 70vh;
-        overflow-y: auto;
+        grid-template-rows: 1fr;
     }
 
     .pr-nav--open .pr-dropdown__list a {
@@ -1055,6 +1083,7 @@ a:hover {
     *::after {
         transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
+        animation-delay: 0.01ms !important;
     }
 }
 
