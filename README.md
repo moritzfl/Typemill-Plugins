@@ -106,15 +106,15 @@ environment panel says up front whether the installation is able to update itsel
 
 ---
 
-### `githubreadme` — GitHub Readme
+### `readmemd` — Readme MD
 
 Fills a page with a repository's readme, so the text is written once and lives where the code lives. A page names
-`owner/name` in its **github** meta tab and stays empty; the readme is fetched on the frontend, its relative links and
-pictures are pointed back at GitHub, and its markup is limited to what belongs in an article. Every fetched readme is
-kept on disk and that copy carries the page whenever GitHub is unreachable, rate-limits the site, or the repository
-goes away — so a page that has been filled once does not go empty.
+`owner/name` in its **readme** meta tab and stays empty; the readme is fetched on the frontend, its relative links and
+pictures are pointed back at the repository, and its markup is limited to what belongs in an article. Every fetched
+readme is kept on disk and that copy carries the page whenever the forge is unreachable, rate-limits the site, or the
+repository goes away — so a page that has been filled once does not go empty. GitHub is the forge it reads today.
 
-→ See [`plugins/githubreadme/README.md`](plugins/githubreadme/README.md) for full documentation.
+→ See [`plugins/readmemd/README.md`](plugins/readmemd/README.md) for full documentation.
 
 ---
 
