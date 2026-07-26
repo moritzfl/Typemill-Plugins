@@ -692,7 +692,12 @@ a {
     padding: 0;
 }
 
+/* The whole row is the target. Only the title is a link - the thumbnail is
+   already kept out of the tab order - so there is one stop per entry and its
+   name is the article's. Text inside a row cannot be selected as a result,
+   which is the price of the row being a single large target. */
 .md-post {
+    position: relative;
     display: flex;
     gap: 32px;
     align-items: flex-start;
@@ -717,6 +722,17 @@ a {
 .md-post__meta span + span::before {
     content: "·";
     margin-right: 8px;
+}
+
+.md-post__title a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+}
+
+.md-post:focus-within {
+    outline: 3px solid var(--md-accent);
+    outline-offset: 4px;
 }
 
 .md-post__title {

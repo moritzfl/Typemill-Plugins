@@ -71,13 +71,21 @@
                 ? element.folderContent|length ~ ' ' ~ theme.tilesCountLabel|default(translate('pages'))
                 : '') %}
 
+          {#
+            The link sits on the title and covers the whole tile. The title is
+            what the destination is called, so that is what a screen reader
+            reads out; a card full of links named "Open" tells a reader
+            nothing. The label below repeats it for the eye only.
+          #}
           <li class="lc-tile">
-            <h3 class="lc-tile__title">{{ element.name|e }}</h3>
+            <h3 class="lc-tile__title">
+              <a class="lc-tile__link" href="{{ element.urlRel }}">{{ element.name|e }}</a>
+            </h3>
             {% if summary %}
               <p class="lc-tile__text">{{ summary|e }}</p>
             {% endif %}
-            <div class="lc-tile__action">
-              <a class="lc-link" href="{{ element.urlRel }}">{{ theme.tilesLinkLabel|default(translate('Open'))|e }}</a>
+            <div class="lc-tile__action" aria-hidden="true">
+              <span class="lc-link">{{ theme.tilesLinkLabel|default(translate('Open'))|e }}</span>
             </div>
           </li>
         {% endfor %}

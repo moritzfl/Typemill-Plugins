@@ -55,12 +55,14 @@
         {% for child in item.folderContent %}
           {% set meta = getPageMeta(settings, child).meta|default({}) %}
           <li class="pr-card">
-            <h2 class="pr-card__title">{{ meta.title|default(child.name)|e }}</h2>
+            <h2 class="pr-card__title">
+              <a class="pr-card__link" href="{{ child.urlRel }}">{{ meta.title|default(child.name)|e }}</a>
+            </h2>
             {% if meta.description %}
               <p class="pr-card__text">{{ meta.description|e }}</p>
             {% endif %}
-            <div class="pr-card__action">
-              <a class="pr-link pr-link--cover" href="{{ child.urlRel }}">{{ theme.cardsLinkLabel|default(translate('Open'))|e }}</a>
+            <div class="pr-card__action" aria-hidden="true">
+              <span class="pr-link">{{ theme.cardsLinkLabel|default(translate('Open'))|e }}</span>
             </div>
           </li>
         {% endfor %}

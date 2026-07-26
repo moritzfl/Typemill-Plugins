@@ -681,7 +681,13 @@ a:hover {
     list-style: none;
 }
 
+/* The whole tile is the target: it holds a title, a summary and a label, all
+   of them the same destination, and nothing else to click. Only the title is
+   a link, stretched over the tile, so there is one stop in the tab order and
+   its name is the page's. The cost is that text inside cannot be selected,
+   which is a fair trade for a tile whose only purpose is to be followed. */
 .lc-tile {
+    position: relative;
     background: var(--lc-bg-alt);
     border-radius: var(--lc-radius-lg);
     padding: 36px 32px;
@@ -697,6 +703,28 @@ a:hover {
 
 .lc-tile:hover {
     transform: translateY(-4px);
+}
+
+.lc-tile:hover .lc-link {
+    text-decoration: underline;
+}
+
+.lc-tile__link,
+.lc-tile__link:hover {
+    color: inherit;
+    text-decoration: none;
+}
+
+.lc-tile__link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+}
+
+.lc-tile:focus-within {
+    outline: 3px solid var(--lc-accent);
+    outline-offset: 3px;
 }
 
 .lc-tile__title {

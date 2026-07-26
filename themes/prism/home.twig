@@ -64,12 +64,14 @@
 
           <li class="pr-card">
             <p class="pr-card__index">{{ '%02d'|format(loop.index) }}</p>
-            <h3 class="pr-card__title">{{ element.name|e }}</h3>
+            <h3 class="pr-card__title">
+              <a class="pr-card__link" href="{{ element.urlRel }}">{{ element.name|e }}</a>
+            </h3>
             {% if summary %}
               <p class="pr-card__text">{{ summary|e }}</p>
             {% endif %}
-            <div class="pr-card__action">
-              <a class="pr-link pr-link--cover" href="{{ element.urlRel }}">{{ theme.cardsLinkLabel|default(translate('Open'))|e }}</a>
+            <div class="pr-card__action" aria-hidden="true">
+              <span class="pr-link">{{ theme.cardsLinkLabel|default(translate('Open'))|e }}</span>
             </div>
           </li>
         {% endfor %}
