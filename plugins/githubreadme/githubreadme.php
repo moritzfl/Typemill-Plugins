@@ -249,15 +249,17 @@ class githubreadme extends Plugin
      * The link to the repository, at whichever end of the readme it was asked
      * for.
      *
+     * Whether it appears is the page's business, because it is the page that
+     * names a repository. Only the wording is a plugin setting: it reads the
+     * same on every page, and repeating it on each one would be a copy to keep
+     * in step for nothing.
+     *
      * @return array{start: string, end: string}
      */
     private function repositoryLink(RepositoryReference $reference, array $settings, array $pagesettings): array
     {
-        // The page's own choice, or the plugin's. An empty value is the "as set
-        // in the plugin" option, and an empty string is not null, so ?? alone
-        // would take it for an answer.
-        $page = trim((string) ($pagesettings['sourcelink'] ?? ''));
-        $place = $page !== '' ? $page : (string) ($settings['link_position'] ?? 'start');
+        $place = trim((string) ($pagesettings['sourcelink'] ?? ''));
+        $place = $place !== '' ? $place : 'start';
 
         if ($place === 'none') {
             return ['start' => '', 'end' => ''];

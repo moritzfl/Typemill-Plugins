@@ -385,30 +385,31 @@ async function readLink(page) {
  */
 async function assertRepositoryLink(page) {
     seedStoredCopy(`# Stored readme\n\n${STORED_TEXT}\n`, { checkedSecondsAgo: 0 })
+    configure({ api_base: UNREACHABLE_API, fresh_minutes: 60 })
 
-    configure({ api_base: UNREACHABLE_API, fresh_minutes: 60, link_position: 'start' })
-    writePage({ repository: REPOSITORY, position: 'replace', droptitle: 'true' })
+    // Whether the link appears is the page's business - it is the page that names
+    // a repository - so all three placements are set there.
+    writePage({ repository: REPOSITORY, position: 'replace', droptitle: 'true', sourcelink: 'start' })
 
     const start = await readLink(page)
     assert(start.href === `https://github.com/${REPOSITORY}`, `link: points at ${start.href}`)
     assert(start.label === 'View on GitHub', `link: reads "${start.label}"`)
     assert(start.beforeReadme, 'link: should come before the readme')
 
-    configure({ api_base: UNREACHABLE_API, fresh_minutes: 60, link_position: 'end' })
+    writePage({ repository: REPOSITORY, position: 'replace', droptitle: 'true', sourcelink: 'end' })
     const end = await readLink(page)
     assert(end.href !== null, 'link: disappeared when asked for below the readme')
     assert(end.beforeReadme === false, 'link: should come after the readme')
 
-    configure({ api_base: UNREACHABLE_API, fresh_minutes: 60, link_position: 'none' })
+    writePage({ repository: REPOSITORY, position: 'replace', droptitle: 'true', sourcelink: 'none' })
     assert((await readLink(page)).href === null, 'link: still shown after being switched off')
 
-    // A page may decide for itself, against the plugin's setting.
-    writePage({ repository: REPOSITORY, position: 'replace', droptitle: 'true', sourcelink: 'start' })
-    assert((await readLink(page)).href !== null, 'link: a page could not ask for it')
-
-    // The wording follows the site language.
-    configure({ api_base: UNREACHABLE_API, fresh_minutes: 60, link_position: 'start' })
+    // A page that says nothing about it gets the link, which is the useful
+    // default for a page whose whole purpose is to show a readme.
     writePage({ repository: REPOSITORY, position: 'replace', droptitle: 'true' })
+    assert((await readLink(page)).href !== null, 'link: a page that said nothing about it lost the link')
+
+    // The wording is a plugin setting, and follows the site language.
     setLanguage('de')
 
     const german = await readLink(page)
@@ -417,7 +418,7 @@ async function assertRepositoryLink(page) {
     setLanguage('en')
 
     // An author's own words are not second-guessed.
-    configure({ api_base: UNREACHABLE_API, fresh_minutes: 60, link_position: 'start', link_label: 'Zum Repository' })
+    configure({ api_base: UNREACHABLE_API, fresh_minutes: 60, link_label: 'Zum Repository' })
     const custom = await readLink(page)
     assert(custom.label === 'Zum Repository', `link: the setting was ignored, it reads "${custom.label}"`)
 }

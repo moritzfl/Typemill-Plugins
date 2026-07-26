@@ -20,7 +20,7 @@ Name the repository on the page and leave the page empty:
 | **File** | Empty lets GitHub pick the readme, whatever it is called. Or name another file, such as `docs/usage.md`. |
 | **This page's own content** | Replaced by the readme (default), before it, or after it. |
 | **Opening heading** | Drop the readme's first heading, because the page already has a title. |
-| **Link to the repository** | Follow the plugin setting, or decide for this page alone. |
+| **Link to the repository** | Above the readme (default), below it, or not at all. |
 
 An address that carries a branch or a file works too — `github.com/owner/name/blob/main/docs/usage.md` —
 and the two fields win over it when both are given.
@@ -43,17 +43,19 @@ itself — so the fields are still drawn, validated and saved by Typemill, with 
 ## The link back to GitHub
 
 A readme seldom links to its own repository — on github.com it is already there — so the plugin adds
-the way back: **View on GitHub**, above the readme by default, below it or not at all if you prefer.
+the way back: **View on GitHub**, above the readme by default. Whether it appears, and at which end,
+is set on the page, because it is the page that names a repository.
 
-The wording follows the site language. English and German ship with the plugin; another language is
+Its **wording** is the one part that lives in the plugin settings, because it reads the same
+everywhere. It follows the site language. English and German ship with the plugin; another language is
 another file beside `en.yaml`, with one line in it:
 
 ```yaml
 GITHUBREADME_VIEW_ON_GITHUB: "Voir sur GitHub"
 ```
 
-Typemill loads a plugin's language files for the admin only, so the plugin reads them itself. A **Link
-text** setting overrides the translation when you want your own words.
+Typemill loads a plugin's language files for the admin only, so the plugin reads them itself. The
+**Link text** setting overrides the translation when you want your own words.
 
 The link points at what the reader just read: the repository, the branch when one is named, or the
 file when the page names a file.
@@ -127,9 +129,14 @@ scrolling off, so a wide table scrolls in its column instead of pushing the page
 | Give up after | 5 seconds | How long to wait for GitHub |
 | GitHub token | empty | For private repositories, or a higher allowance |
 | API address | `https://api.github.com` | Change only for GitHub Enterprise |
-| Show a link to the repository | above the readme | Or below it, or not at all |
 | Link text | empty | Empty follows the site language |
 | Raw HTML | on | Keep the HTML a readme contains, sanitised |
+
+Nothing here is repeated on the page, and nothing on the page is repeated here. A setting belongs in
+the plugin when it is about **this site's connection to GitHub** — the token, the address, how often to
+ask, how long to wait, and how much of a readme's own HTML to trust. It belongs on the page when it is
+about **that page** — which repository, which branch, which file, where the readme goes, and whether
+the link is shown. The one thing that was in both places, the link's placement, is on the page now.
 
 ## API
 

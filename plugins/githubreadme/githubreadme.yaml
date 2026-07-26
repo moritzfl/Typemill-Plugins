@@ -11,7 +11,6 @@ settings:
   allow_html: true
   token: ''
   api_base: 'https://api.github.com'
-  link_position: 'start'
   link_label: ''
 
 forms:
@@ -53,19 +52,11 @@ forms:
       type: fieldset
       legend: Link to the repository
       fields:
-        link_position:
-          type: select
-          label: Show a link to the repository
-          description: "A readme seldom links to its own repository, because on GitHub it is already there. This adds the way back. Individual pages can override it."
-          options:
-            start: 'Above the readme'
-            end: 'Below the readme'
-            none: 'Not at all'
         link_label:
           type: text
           label: Link text
           placeholder: 'View on GitHub'
-          description: "Leave empty to use the wording that follows the site language. The plugin ships English and German; adding a language means adding a file beside its en.yaml."
+          description: "The wording only, because it reads the same on every page. Whether the link is shown, and at which end, is decided on the page itself. Leave empty to follow the site language: the plugin ships English and German, and another language is another file beside its en.yaml."
 
     fieldsetRendering:
       type: fieldset
@@ -111,9 +102,8 @@ metatabs:
       sourcelink:
         type: select
         label: Link to the repository
-        description: 'Leave on the plugin setting unless this page wants something else.'
+        description: "A readme seldom links to its own repository, because on GitHub it is already there. This adds the way back. Its wording is a plugin setting, because it reads the same everywhere."
         options:
-          '': 'As set in the plugin'
           start: 'Above the readme'
           end: 'Below the readme'
           none: 'Not at all'
