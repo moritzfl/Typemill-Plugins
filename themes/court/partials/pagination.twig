@@ -1,0 +1,35 @@
+{% if pages > 1 %}
+  <nav class="ct-pagination" aria-label="{{ translate('Pagination')|e('html_attr') }}">
+    {% if page > 1 %}
+      {% set previousUrl = page == 2 ? pagerbase : pagerbase ~ '/p/' ~ (page - 1) %}
+      <a class="ct-pagination__edge" href="{{ previousUrl }}">
+        <span aria-hidden="true">&larr;</span> {{ theme.previous|default(translate('Previous'))|e }}
+      </a>
+    {% else %}
+      <span class="ct-pagination__edge ct-pagination__edge--empty" aria-hidden="true"></span>
+    {% endif %}
+
+    <div class="ct-pagination__pages">
+      {% for i in 1..pages %}
+        {% if i == 1 or i == pages or (i >= page - 2 and i <= page + 2) %}
+          {% set pageUrl = i == 1 ? pagerbase : pagerbase ~ '/p/' ~ i %}
+          {% if i == page %}
+            <span class="ct-pagination__page" aria-current="page">{{ i }}</span>
+          {% else %}
+            <a class="ct-pagination__page" href="{{ pageUrl }}">{{ i }}</a>
+          {% endif %}
+        {% elseif (i == 2 and page > 4) or (i == pages - 1 and page < pages - 3) %}
+          <span class="ct-pagination__gap" aria-hidden="true">&hellip;</span>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {% if page < pages %}
+      <a class="ct-pagination__edge ct-pagination__edge--next" href="{{ pagerbase }}/p/{{ page + 1 }}">
+        {{ theme.next|default(translate('Next'))|e }} <span aria-hidden="true">&rarr;</span>
+      </a>
+    {% else %}
+      <span class="ct-pagination__edge ct-pagination__edge--empty" aria-hidden="true"></span>
+    {% endif %}
+  </nav>
+{% endif %}

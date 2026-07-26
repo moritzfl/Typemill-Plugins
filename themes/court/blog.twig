@@ -1,0 +1,54 @@
+{% set theme = settings.themes.court %}
+
+<section class="ct-hero ct-hero--compact">
+  <div class="ct-hero__lines" aria-hidden="true"></div>
+  <div class="ct-container ct-hero__inner">
+    <h1 class="ct-hero__title">{{ (theme.heroTitle|default('') ?: title)|e }}</h1>
+    {% if theme.heroSubtitle %}
+      <p class="ct-hero__subtitle">{{ theme.heroSubtitle|e }}</p>
+    {% elseif metatabs.meta.description %}
+      <p class="ct-hero__subtitle">{{ metatabs.meta.description|e }}</p>
+    {% endif %}
+  </div>
+</section>
+
+{% if theme.blogintro and content|trim %}
+  <section class="ct-section ct-section--tight">
+    <div class="ct-container">
+      <div class="ct-article"><div class="ct-prose">{{ content }}</div></div>
+    </div>
+  </section>
+{% endif %}
+
+<section class="ct-section">
+  <div class="ct-container">
+
+    {% set pagelist = getPageList(navigation, theme.blogfolder, base_url) %}
+    {% set pagesize = theme.blogpagesize|default(9) %}
+    {% set pagesize = pagesize > 0 ? pagesize : 9 %}
+    {% set pages = (pagelist.folderContent|length / pagesize)|round(0, 'ceil') %}
+    {% set blogpage = themeCurrentPage %}
+    {% set blogpage = pages > 0 and blogpage > pages ? pages : blogpage %}
+    {% set offset = (blogpage - 1) * pagesize %}
+    {% set pagerbase = item.urlRel == '/' ? base_url : item.urlRel %}
+
+    {% if pagelist.contains == 'posts' %}
+
+      {% include 'partials/posts.twig' with {
+        postitems: pagelist.folderContent|slice(offset, pagesize)
+      } %}
+
+      {% include 'partials/pagination.twig' with {
+        page: blogpage,
+        pages: pages,
+        pagerbase: pagerbase
+      } %}
+
+    {% else %}
+      <p class="ct-section__lead">
+        {{ theme.blogEmptyText|default(translate('The configured folder does not contain posts. Check the blog folder in the theme settings.'))|e }}
+      </p>
+    {% endif %}
+
+  </div>
+</section>

@@ -1,0 +1,83 @@
+{#
+  Compact club bar: brand on the left, sections on the right.
+  Folders still open a full-width panel (desktop) / accordion (drawer).
+#}
+<header class="ct-nav" data-nav>
+  <div class="ct-nav__inner">
+
+    <a href="{{ base_url }}" class="ct-nav__brand">
+      {% if logo %}
+        <img src="{{ base_url }}/{{ logo }}" alt="" />
+        <span class="ct-nav__brand-text">{{ settings.title|e }}</span>
+      {% else %}
+        <span class="ct-nav__mark" aria-hidden="true"></span>
+        <span class="ct-nav__brand-text">{{ settings.title|e }}</span>
+      {% endif %}
+    </a>
+
+    <nav aria-label="{{ settings.themes.court.navLabel|default(translate('Main'))|e('html_attr') }}">
+      <ul class="ct-nav__links" id="ct-nav-links">
+        {% for element in navigation %}
+          {# A news folder may grow to hundreds of posts. It is one destination
+             in the site menu, not a menu containing every article. #}
+          {% set children = element.elementType == 'folder' and element.contains|default('pages') != 'posts'
+              ? element.folderContent : [] %}
+          {% set panelId = 'ct-sub-' ~ loop.index %}
+
+          <li class="ct-nav__item{{ children|length > 0 ? ' ct-nav__item--has-menu' : '' }}"
+              {% if children|length > 0 %}data-nav-item{% endif %}>
+
+            <a href="{{ element.urlRel }}"
+               class="ct-nav__link"
+               {% if element.active %}aria-current="page"{% elseif element.activeParent %}aria-current="location"{% endif %}
+               {% if children|length > 0 %}
+                 data-nav-parent
+                 aria-expanded="false"
+                 aria-controls="{{ panelId }}"
+               {% endif %}>{{ element.name|e }}{% if children|length > 0 %}
+              <svg class="ct-nav__caret" width="10" height="6" viewBox="0 0 10 6" fill="none"
+                   stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M1 1l4 4 4-4" />
+              </svg>
+            {% endif %}</a>
+
+            {% if children|length > 0 %}
+              <div class="ct-mega" id="{{ panelId }}" data-nav-panel>
+                <div class="ct-mega__inner">
+                  <p class="ct-mega__eyebrow">{{ element.name|e }}</p>
+                  <ul class="ct-mega__list">
+                    {% for child in children %}
+                      <li>
+                        <a href="{{ child.urlRel }}"{% if child.active %} aria-current="page"{% endif %}>
+                          {{ child.name|e }}
+                        </a>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+            {% endif %}
+          </li>
+        {% endfor %}
+
+        {% if multilang is defined and multilang %}
+          {% for lang, link in multilang %}
+            <li class="ct-nav__item"><a class="ct-nav__link" href="{{ base_url }}{{ link }}">{{ lang|upper }}</a></li>
+          {% endfor %}
+        {% endif %}
+      </ul>
+    </nav>
+
+    {% if navigation|length > 0 or (multilang is defined and multilang) %}
+      <button type="button"
+              class="ct-nav__toggle"
+              data-nav-toggle
+              aria-expanded="false"
+              aria-controls="ct-nav-links"
+              aria-label="{{ settings.themes.court.menuLabel|default(translate('Menu'))|e('html_attr') }}">
+        <span class="ct-burger" aria-hidden="true"><span></span><span></span></span>
+      </button>
+    {% endif %}
+
+  </div>
+</header>

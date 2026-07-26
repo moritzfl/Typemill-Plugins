@@ -1,0 +1,19 @@
+{% extends 'layout.twig' %}
+
+{% block title %}{{ settings.themes.court.notFoundTitle|default(translate('Page not found'))|e }} | {{ settings.title|e }}{% endblock %}
+
+{% block content %}
+  <section class="ct-hero ct-hero--compact">
+    <div class="ct-hero__lines" aria-hidden="true"></div>
+    <div class="ct-container ct-hero__inner">
+      <p class="ct-hero__eyebrow">404</p>
+      <h1 class="ct-hero__title">{{ settings.themes.court.notFoundTitle|default(translate('Page not found'))|e }}</h1>
+      <p class="ct-hero__subtitle">
+        {{ settings.themes.court.notFoundText|default(translate('The page you were looking for is not here.'))|e }}
+      </p>
+      <div class="ct-hero__actions">
+        <a class="ct-btn" href="{{ base_url }}">{{ settings.themes.court.homeLabel|default(translate('Home'))|e }}</a>
+      </div>
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,341 @@
+{% set theme = settings.themes.court %}
+{% set isHomepage = item.urlRel == '/' %}
+{% set canonicalBase = isHomepage ? base_url : item.urlAbs %}
+{% set validCurrentPage = currentpage and currentpage matches '/^[1-9][0-9]*$/' %}
+{% set themeCurrentPage = validCurrentPage ? currentpage : 1 %}
+{% set canonicalPage = themeCurrentPage %}
+{% set pageOutOfRange = currentpage and not validCurrentPage %}
+{% set canonicalPages = 0 %}
+{% if isHomepage and theme.blog %}
+  {% set canonicalList = getPageList(navigation, theme.blogfolder, base_url) %}
+  {% set canonicalPageSize = theme.blogpagesize|default(9) %}
+  {% set canonicalPageSize = canonicalPageSize > 0 ? canonicalPageSize : 9 %}
+  {% set canonicalPages = (canonicalList.folderContent|default([])|length / canonicalPageSize)|round(0, 'ceil') %}
+{% elseif item.elementType == 'folder' and item.contains == 'posts' %}
+  {% set canonicalPageSize = theme.blogpagesize|default(9) %}
+  {% set canonicalPageSize = canonicalPageSize > 0 ? canonicalPageSize : 9 %}
+  {% set canonicalPages = (item.folderContent|length / canonicalPageSize)|round(0, 'ceil') %}
+{% endif %}
+{% set canonicalLastPage = canonicalPages > 0 ? canonicalPages : 1 %}
+{% if currentpage and canonicalPage > canonicalLastPage %}
+  {% set canonicalPage = canonicalLastPage %}
+  {% set pageOutOfRange = true %}
+{% endif %}
+{% set canonicalSuffix = canonicalPage > 1 ? '/p/' ~ canonicalPage : (isHomepage ? '/' : '') %}
+<!DOCTYPE html>
+<html lang="{{ settings.langattr | default('en') }}">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="description" content="{{ metatabs.meta.description|e('html_attr') }}" />
+  <meta name="author" content="{{ metatabs.meta.author|default(settings.author)|e('html_attr') }}" />
+  <meta name="generator" content="TYPEMILL" />
+  <link rel="canonical" href="{{ canonicalBase }}{{ canonicalSuffix }}" />
+  {% if pageOutOfRange %}<meta name="robots" content="noindex,follow" />{% endif %}
+
+  {{ assets.renderMeta() }}
+
+  {% block stylesheets %}
+  <link rel="stylesheet" href="{{ base_url }}/themes/court/css/court.css" />
+  <style>
+    {% if theme.courtColor %}
+    :root {
+      --ct-court: {{ theme.courtColor }};
+      --ct-court-deep: color-mix(in srgb, black 18%, {{ theme.courtColor }});
+    }
+    {% endif %}
+    {% if theme.accentColor %}
+    :root {
+      --ct-accent: {{ theme.accentColor }};
+      --ct-accent-hover: color-mix(in srgb, black 12%, {{ theme.accentColor }});
+    }
+    {% endif %}
+    {% if theme.maxwidth %}
+    :root { --ct-container: {{ theme.maxwidth }}; }
+    {% endif %}
+    {% if theme.customcss %}
+    {{ theme.customcss }}
+    {% endif %}
+  </style>
+  {% endblock %}
+</head>
+<body>
+
+  <a href="#main-content" class="ct-skip">{{ theme.skipText|default(translate('Skip to content'))|e }}</a>
+
+  {% if is_loggedin() %}
+    <div class="ct-admin"><a href="{{ base_url }}/tm/account">&#9881; Admin</a></div>
+  {% endif %}
+
+  {% include 'partials/topnav.twig' %}
+
+  <main id="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include 'partials/footer.twig' %}
+
+  {% block javascripts %}
+  {{ assets.renderCSS() }}
+  {{ assets.renderJS() }}
+  <script>
+    (function () {
+      var nav = document.querySelector('[data-nav]');
+      if (!nav) return;
+
+      var toggle = nav.querySelector('[data-nav-toggle]');
+      var items = Array.prototype.slice.call(nav.querySelectorAll('[data-nav-item]'));
+      var hoverCapable = window.matchMedia('(hover: hover)');
+      var wide = window.matchMedia('(min-width: 834px)');
+      var closeTimer = null;
+      var restoringFocus = false;
+      var outside = [
+        document.querySelector('main'),
+        document.querySelector('.ct-footer'),
+        document.querySelector('.ct-admin')
+      ].filter(Boolean);
+      var previousOverflow = '';
+      var previousInert = [];
+
+      function pointerMenus() {
+        return wide.matches && hoverCapable.matches;
+      }
+
+      function setItemOpen(item, open) {
+        item.classList.toggle('is-open', open);
+        var link = item.querySelector('[data-nav-parent]');
+        if (link) link.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+
+      function closeAll(except) {
+        items.forEach(function (item) {
+          if (item !== except) setItemOpen(item, false);
+        });
+      }
+
+      function cancelClose() {
+        if (closeTimer) {
+          clearTimeout(closeTimer);
+          closeTimer = null;
+        }
+      }
+
+      function scheduleClose() {
+        cancelClose();
+        closeTimer = setTimeout(function () {
+          closeAll();
+        }, 220);
+      }
+
+      function drawerFocusables() {
+        return Array.prototype.slice.call(nav.querySelectorAll(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )).filter(function (element) {
+          return element.getClientRects().length > 0;
+        });
+      }
+
+      function setOutsideInert(inert) {
+        if (inert) {
+          previousInert = outside.map(function (element) {
+            return { element: element, inert: element.inert };
+          });
+          previousInert.forEach(function (entry) { entry.element.inert = true; });
+          return;
+        }
+
+        previousInert.forEach(function (entry) { entry.element.inert = entry.inert; });
+        previousInert = [];
+      }
+
+      function setDrawer(open, restoreFocus) {
+        var wasOpen = nav.classList.contains('ct-nav--open');
+        restoreFocus = restoreFocus !== false;
+
+        nav.classList.toggle('ct-nav--open', open);
+        if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open && !wasOpen) {
+          previousOverflow = document.body.style.overflow;
+          document.body.style.overflow = 'hidden';
+          setOutsideInert(true);
+        } else if (!open && wasOpen) {
+          document.body.style.overflow = previousOverflow;
+          setOutsideInert(false);
+        }
+        if (!open) closeAll();
+
+        if (open && !wasOpen) {
+          var first = nav.querySelector('.ct-nav__link');
+          if (first) first.focus();
+        } else if (!open && wasOpen && restoreFocus && toggle && nav.contains(document.activeElement)) {
+          toggle.focus();
+        }
+      }
+
+      if (toggle) {
+        toggle.addEventListener('click', function () {
+          setDrawer(!nav.classList.contains('ct-nav--open'));
+        });
+      }
+
+      items.forEach(function (item) {
+        var link = item.querySelector('[data-nav-parent]');
+        if (!link) return;
+
+        item.addEventListener('mouseenter', function () {
+          if (!pointerMenus()) return;
+          cancelClose();
+          closeAll(item);
+          setItemOpen(item, true);
+        });
+
+        link.addEventListener('click', function (e) {
+          var drawerOpen = nav.classList.contains('ct-nav--open');
+          var touchLike = e.pointerType === 'touch' || !hoverCapable.matches;
+
+          if (!drawerOpen && !touchLike) {
+            return;
+          }
+
+          if (item.classList.contains('is-open')) {
+            return;
+          }
+
+          e.preventDefault();
+          closeAll(item);
+          setItemOpen(item, true);
+        });
+
+        link.addEventListener('focus', function () {
+          if (restoringFocus || !pointerMenus()) return;
+          cancelClose();
+          closeAll(item);
+          setItemOpen(item, true);
+        });
+
+        item.addEventListener('focusout', function (e) {
+          if (!wide.matches) return;
+          if (!item.contains(e.relatedTarget)) setItemOpen(item, false);
+        });
+      });
+
+      nav.addEventListener('mouseleave', function () {
+        if (pointerMenus()) scheduleClose();
+      });
+      nav.addEventListener('mouseenter', cancelClose);
+
+      document.addEventListener('click', function (e) {
+        if (!nav.contains(e.target)) closeAll();
+      });
+
+      document.addEventListener('keydown', function (e) {
+        var drawerOpen = nav.classList.contains('ct-nav--open');
+
+        if (e.key === 'Tab' && drawerOpen) {
+          var focusables = drawerFocusables();
+          var first = focusables[0];
+          var last = focusables[focusables.length - 1];
+
+          if (first && last && e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (first && last && !e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+          return;
+        }
+
+        if (e.key !== 'Escape') return;
+
+        var open = items.filter(function (item) {
+          return item.classList.contains('is-open');
+        })[0];
+
+        closeAll();
+        setDrawer(false);
+
+        var target = drawerOpen ? toggle : (open ? open.querySelector('[data-nav-parent]') : null);
+        if (target) {
+          restoringFocus = true;
+          target.focus();
+          setTimeout(function () { restoringFocus = false; }, 0);
+        }
+      });
+
+      var onChange = function () {
+        if (wide.matches) {
+          var activeBefore = document.activeElement;
+          setDrawer(false, false);
+          closeAll();
+          if (activeBefore && nav.contains(activeBefore) && activeBefore.getClientRects().length === 0) {
+            var desktopTarget = nav.querySelector('.ct-nav__link') || nav.querySelector('.ct-nav__brand');
+            if (desktopTarget) desktopTarget.focus();
+          }
+        }
+      };
+      wide.addEventListener ? wide.addEventListener('change', onChange) : wide.addListener(onChange);
+    })();
+
+    (function () {
+      var ALLOWED = /^(none|transparent|currentcolor|inherit|black|white|#000|#000000|#fff|#ffffff|rgb\(\s*0\s*,\s*0\s*,\s*0\s*\)|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))$/i;
+      var COLOR_RE = /(?:fill|stroke|stop-color|color)\s*[=:]\s*["']?\s*([^"'\s;,><\/]+)/gi;
+
+      function isMonochrome(text) {
+        var match;
+        COLOR_RE.lastIndex = 0;
+        while ((match = COLOR_RE.exec(text)) !== null) {
+          if (!ALLOWED.test(match[1].trim())) return false;
+        }
+        return true;
+      }
+
+      var cache = new Map();
+
+      function check(img) {
+        var src = img.getAttribute('src');
+        if (!src || !/\.svg(\?|$)/i.test(src)) return;
+
+        var probe = document.createElement('a');
+        probe.href = src;
+        if (probe.hostname && probe.hostname !== location.hostname) return;
+
+        var override = img.getAttribute('data-svg-invert');
+        if (override === 'true' || override === 'bw') {
+          img.classList.add('svg-bw-invert');
+          return;
+        }
+        if (override === 'false' || override === 'color') return;
+
+        if (cache.has(src)) {
+          if (cache.get(src)) img.classList.add('svg-bw-invert');
+          return;
+        }
+
+        fetch(src, { credentials: 'same-origin' })
+          .then(function (r) { return r.ok ? r.text() : Promise.reject(); })
+          .then(function (text) {
+            var invertable = isMonochrome(text);
+            cache.set(src, invertable);
+            if (invertable) img.classList.add('svg-bw-invert');
+          })
+          .catch(function () { cache.set(src, false); });
+      }
+
+      function run() {
+        Array.prototype.forEach.call(document.querySelectorAll('img'), check);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', run);
+      } else {
+        run();
+      }
+    })();
+  </script>
+  {% endblock %}
+
+</body>
+</html>

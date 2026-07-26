@@ -1,0 +1,54 @@
+{#
+  Post grid. `postitems` is the list of navigation elements to render; page.twig
+  passes a folder's contents, blog.twig passes a paginated slice.
+
+  Navigation elements only carry structural data, so the meta of each post is
+  loaded with getPageMeta().
+#}
+{% set theme = settings.themes.court %}
+{# An explicitly empty slice must stay empty; falling back to all children here
+   makes an out-of-range page render every post. #}
+{% set postitems = postitems is defined ? postitems : item.folderContent|default([]) %}
+
+{% if postitems|length > 0 %}
+  <ul class="ct-posts">
+    {% for element in postitems %}
+      {% set post = getPageMeta(settings, element) %}
+      {% set orderDate = element.order is defined and element.order matches '/^\\d{8}$/'
+          ? element.order[0:4] ~ '-' ~ element.order[4:2] ~ '-' ~ element.order[6:2] : '' %}
+      {% set date = post.meta.manualdate|default(post.meta.modified|default(orderDate)) %}
+
+      <li class="ct-post">
+
+        {% if (theme.blogimage ?? true) and post.meta.heroimage %}
+          <a class="ct-post__media" href="{{ element.urlRel }}" tabindex="-1" aria-hidden="true">
+            <img src="{{ assets.image(post.meta.heroimage).resize(820, 462).src() }}"
+                 alt="{{ post.meta.heroimagealt|default('')|e('html_attr') }}"
+                 loading="lazy" decoding="async" />
+          </a>
+        {% endif %}
+
+        <div class="ct-post__body">
+          {% if date %}
+            <p class="ct-post__date">
+              <time datetime="{{ date }}">{{ date|date(theme.dateFormat|default('d.m.Y')) }}</time>
+            </p>
+          {% endif %}
+
+          <h2 class="ct-post__title">
+            <a href="{{ element.urlRel }}">{{ post.meta.title|default(element.name)|e }}</a>
+          </h2>
+
+          {% if post.meta.description %}
+            <p class="ct-post__excerpt">{{ post.meta.description|e }}</p>
+          {% endif %}
+
+          <div class="ct-link" aria-hidden="true">
+            {{ theme.readMore|default(translate('Read more'))|e }}
+          </div>
+        </div>
+
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}

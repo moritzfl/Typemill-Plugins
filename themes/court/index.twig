@@ -1,0 +1,19 @@
+{% extends 'layout.twig' %}
+
+{% block title %}{{ metatabs.meta.title|e }} | {{ settings.title|e }}{% endblock %}
+
+{% block content %}
+
+  {# Core strips /p/N before resolving the item, but `home` is false on those
+     URLs. The resolved root item is the reliable signal for every blog page. #}
+  {% set homepage = item.urlRel == '/' %}
+
+  {% if homepage and settings.themes.court.blog %}
+    {% include 'blog.twig' %}
+  {% elseif homepage %}
+    {% include 'home.twig' %}
+  {% else %}
+    {% include 'page.twig' %}
+  {% endif %}
+
+{% endblock %}

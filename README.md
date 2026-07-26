@@ -6,6 +6,17 @@ Custom themes and plugins for [Typemill](https://typemill.net), a flat-file CMS.
 
 ## Themes
 
+### `court` — Court
+
+A sports-club theme for small Verein sites: navy court-band hero with CSS court lines, shuttle-lime
+buttons, schedule tables that stay tables, compact top bar and news cards with a side stripe. Defaults
+match a crest like SUS Sehnde’s navy; court and accent colours are overridable. Ships two readymades
+(sports club, news homepage). Plain CSS, no build step.
+
+→ See [`themes/court/README.md`](themes/court/README.md) for full documentation.
+
+---
+
 ### `rueckenwind` — Rückenwind
 
 A clean theme built with Tailwind CSS. Features a sticky top bar, collapsible sidebar navigation, automatic dark mode

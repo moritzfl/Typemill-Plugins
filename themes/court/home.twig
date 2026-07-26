@@ -1,0 +1,94 @@
+{% set theme = settings.themes.court %}
+{% set heroTitle = theme.heroTitle|default('') ?: title %}
+{% set heroImage = metatabs.meta.heroimage|default('') %}
+
+<section class="ct-hero{{ heroImage ? ' ct-hero--with-media' : '' }}">
+  <div class="ct-hero__lines" aria-hidden="true"></div>
+  <div class="ct-container ct-hero__grid">
+    <div class="ct-hero__copy">
+      {% if theme.heroEyebrow %}
+        <p class="ct-hero__eyebrow">{{ theme.heroEyebrow|e }}</p>
+      {% endif %}
+
+      <h1 class="ct-hero__title">{{ heroTitle|e }}</h1>
+
+      {% if theme.heroSubtitle %}
+        <p class="ct-hero__subtitle">{{ theme.heroSubtitle|e }}</p>
+      {% elseif metatabs.meta.description %}
+        <p class="ct-hero__subtitle">{{ metatabs.meta.description|e }}</p>
+      {% endif %}
+
+      {% if (theme.heroBtnLabel and theme.heroBtnLink) or (theme.heroLinkLabel and theme.heroLinkTarget) %}
+        <div class="ct-hero__actions">
+          {% if theme.heroBtnLabel and theme.heroBtnLink %}
+            {% set heroBtnHref = theme.heroBtnLink starts with '/' ? base_url ~ theme.heroBtnLink : theme.heroBtnLink %}
+            <a class="ct-btn" href="{{ heroBtnHref|e('html_attr') }}">{{ theme.heroBtnLabel|e }}</a>
+          {% endif %}
+          {% if theme.heroLinkLabel and theme.heroLinkTarget %}
+            {% set heroLinkHref = theme.heroLinkTarget starts with '/' ? base_url ~ theme.heroLinkTarget : theme.heroLinkTarget %}
+            <a class="ct-btn ct-btn--ghost" href="{{ heroLinkHref|e('html_attr') }}">{{ theme.heroLinkLabel|e }}</a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    {% if heroImage %}
+      {# Club crests often ship as SVG on a white artboard. The plaque keeps
+         that artboard from floating as a hard white box on the navy band. #}
+      <div class="ct-hero__media">
+        <img src="{{ base_url }}/{{ heroImage }}"
+             alt="{{ metatabs.meta.heroimagealt|default(heroTitle)|e('html_attr') }}"
+             data-svg-invert="false" />
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{% if content|trim %}
+  <section class="ct-section">
+    <div class="ct-container">
+      <div class="ct-article">
+        <div class="ct-prose">{{ content }}</div>
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+{% if (theme.showTiles ?? true) and navigation|length > 0 %}
+  <section class="ct-section ct-section--alt">
+    <div class="ct-container">
+      <h2 class="ct-section__title{{ theme.tilesTitle ? '' : ' ct-sr-only' }}">
+        {{ (theme.tilesTitle|default('') ?: translate('Sections'))|e }}
+      </h2>
+      {% if theme.tilesLead %}
+        <p class="ct-section__lead">{{ theme.tilesLead|e }}</p>
+      {% endif %}
+
+      <ul class="ct-tiles">
+        {% for element in navigation %}
+          {% set meta = getPageMeta(settings, element).meta|default({}) %}
+          {% set summary = meta.description|default('') ?: (
+              element.elementType == 'folder' and element.folderContent|length > 0
+                ? element.folderContent|length ~ ' ' ~ (
+                    element.contains == 'posts'
+                      ? theme.tilesPostsLabel|default(translate('posts'))
+                      : theme.tilesCountLabel|default(translate('pages'))
+                  )
+                : '') %}
+
+          <li class="ct-tile">
+            <h3 class="ct-tile__title">
+              <a class="ct-tile__link" href="{{ element.urlRel }}">{{ element.name|e }}</a>
+            </h3>
+            {% if summary %}
+              <p class="ct-tile__text">{{ summary|e }}</p>
+            {% endif %}
+            <div class="ct-tile__action" aria-hidden="true">
+              <span class="ct-link">{{ theme.tilesLinkLabel|default(translate('Open'))|e }}</span>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+{% endif %}

@@ -1,0 +1,99 @@
+{% set theme = settings.themes.court %}
+{% set published = metatabs.meta.manualdate ? metatabs.meta.manualdate : metatabs.meta.modified %}
+{% set heroImage = metatabs.meta.heroimage|default('') %}
+
+<article class="ct-section ct-section--tight">
+  <div class="ct-container">
+
+    {% if (theme.breadcrumb ?? true) and not home %}
+      {% include 'partials/breadcrumb.twig' %}
+    {% endif %}
+
+    <div class="ct-article">
+
+      <header class="ct-article__header">
+        <h1 class="ct-article__title">{{ title|e }}</h1>
+
+        {% if theme.showDescription|default(false) and metatabs.meta.description %}
+          <p class="ct-article__lead">{{ metatabs.meta.description|e }}</p>
+        {% endif %}
+
+        {% set showDate = 'top' in theme.datePosition|default([]) %}
+        {% set showAuthor = 'top' in theme.authorPosition|default([]) %}
+        {% if showDate or showAuthor %}
+          <div class="ct-article__meta">
+            {% if showAuthor %}
+              <span>{{ theme.authorIntro|default('')|e }} {{ metatabs.meta.author|default(settings.author)|e }}</span>
+            {% endif %}
+            {% if showDate %}
+              <time datetime="{{ published }}">
+                {{ theme.dateIntro|default('')|e }} {{ published|date(theme.dateFormat|default('d.m.Y')) }}
+              </time>
+            {% endif %}
+          </div>
+        {% endif %}
+      </header>
+
+      {% if heroImage %}
+        <div class="ct-article__hero">
+          <img src="{{ base_url }}/{{ heroImage }}"
+               alt="{{ metatabs.meta.heroimagealt|default(title)|e('html_attr') }}" />
+        </div>
+      {% endif %}
+
+      <div class="ct-prose">
+        {{ content }}
+      </div>
+
+    </div>
+
+    {% if item.elementType == 'folder' and item.contains == 'posts' %}
+      {% set pagesize = theme.blogpagesize|default(9) %}
+      {% set pagesize = pagesize > 0 ? pagesize : 9 %}
+      {% set pages = (item.folderContent|length / pagesize)|round(0, 'ceil') %}
+      {% set folderpage = themeCurrentPage %}
+      {% set folderpage = pages > 0 and folderpage > pages ? pages : folderpage %}
+      {% set offset = (folderpage - 1) * pagesize %}
+
+      <div class="ct-article-posts">
+        {% include 'partials/posts.twig' with {
+          postitems: item.folderContent|slice(offset, pagesize)
+        } %}
+
+        {% include 'partials/pagination.twig' with {
+          page: folderpage,
+          pages: pages,
+          pagerbase: item.urlRel
+        } %}
+      </div>
+    {% elseif item.elementType == 'folder' and item.folderContent|length > 0 %}
+      <div class="ct-article ct-index-block">
+        <ul class="ct-index">
+          {% for child in item.folderContent %}
+            <li>
+              <a href="{{ child.urlRel }}"{% if child.active %} aria-current="page"{% endif %}>{{ child.name|e }}</a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    {% if item.elementType != 'folder' and (item.prevItem or item.nextItem) %}
+      <nav class="ct-pager" aria-label="{{ theme.pagerLabel|default(translate('Page'))|e('html_attr') }}">
+        {% if item.prevItem %}
+          <a class="ct-pager__item" href="{{ item.prevItem.urlRel }}">
+            <span class="ct-pager__label">{{ theme.previous|default(translate('Previous'))|e }}</span>
+            <span class="ct-pager__title">{{ item.prevItem.name|e }}</span>
+          </a>
+        {% endif %}
+        {% if item.nextItem %}
+          <a class="ct-pager__item ct-pager__item--next" href="{{ item.nextItem.urlRel }}">
+            <span class="ct-pager__label">{{ theme.next|default(translate('Next'))|e }}</span>
+            <span class="ct-pager__title">{{ item.nextItem.name|e }}</span>
+          </a>
+        {% endif %}
+      </nav>
+    {% endif %}
+
+  </div>
+</article>

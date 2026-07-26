@@ -1,0 +1,31 @@
+{% set theme = settings.themes.court %}
+
+<footer class="ct-footer">
+  <div class="ct-container">
+
+    {% if theme.footercolumns is not empty %}
+      <div class="ct-footer__cols">
+        {% for column, key in theme.footercolumns %}
+          {% if theme[key] %}
+            <div>{{ markdown(theme[key]) }}</div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="ct-footer__base">
+      {% if theme.copyrightline %}
+        {{ markdown(theme.copyrightlinetext) }}
+      {% else %}
+        {% set nowYear = "now"|date("Y") %}
+        {% set copyrightYears = (settings.year is empty or settings.year == nowYear) ? nowYear : settings.year ~ ' – ' ~ nowYear %}
+        <p>
+          {{ settings.copyright|e }} {{ translate('by') }} {{ settings.author|e }}, {{ copyrightYears }}.
+          {{ translate('All Rights Reserved') }}.
+          {{ translate('Built with') }} <a href="https://typemill.net">Typemill</a>.
+        </p>
+      {% endif %}
+    </div>
+
+  </div>
+</footer>
