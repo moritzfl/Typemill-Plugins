@@ -42,7 +42,7 @@
           {% endif %}
 
           <div>
-            <a class="lc-link" href="{{ element.urlRel }}">{{ translate('Read more') }}</a>
+            <a class="lc-link" href="{{ element.urlRel }}">{{ theme.readMore|default(translate('Read more'))|e }}</a>
           </div>
         </div>
 

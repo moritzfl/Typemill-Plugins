@@ -38,7 +38,8 @@
     } %}
 
     {% if pages > 1 %}
-      <nav class="md-pager" aria-label="Pagination" style="justify-content:center;gap:10px">
+      <nav class="md-pager" style="justify-content:center;gap:10px"
+           aria-label="{{ translate('Pagination')|e('html_attr') }}">
         {% for i in 1..pages %}
           {% if i == currentpage %}
             <span class="md-btn" aria-current="page">{{ i }}</span>

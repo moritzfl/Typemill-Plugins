@@ -1,4 +1,4 @@
-<nav class="lc-breadcrumb" aria-label="Breadcrumb">
+<nav class="lc-breadcrumb" aria-label="{{ translate('Breadcrumb')|e('html_attr') }}">
   <a href="{{ base_url }}">{{ settings.themes.lucid.homeLabel|default(translate('Home'))|e }}</a>
   {% for crumb in breadcrumb %}
     <span class="lc-breadcrumb__sep" aria-hidden="true">/</span>

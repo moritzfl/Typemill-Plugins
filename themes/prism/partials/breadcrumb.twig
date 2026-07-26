@@ -1,4 +1,4 @@
-<nav class="pr-breadcrumb" aria-label="Breadcrumb">
+<nav class="pr-breadcrumb" aria-label="{{ translate('Breadcrumb')|e('html_attr') }}">
   <a href="{{ base_url }}">{{ settings.themes.prism.homeLabel|default(translate('Home'))|e }}</a>
   {% for crumb in breadcrumb %}
     <span aria-hidden="true">/</span>

@@ -9,8 +9,10 @@ settings:
   homeTitle: ''
   homeIntro: ''
   showSections: true
-  sectionsTitle: 'Sections'
-  contentsTitle: 'In this section'
+  # Left empty on purpose: the templates fall back on the theme's own
+  # translation, so a German site reads German. A value here would win over it.
+  sectionsTitle: ''
+  contentsTitle: ''
   readerControls: true
   defaultTextSize: 'm'
   defaultSpacing: 'comfortable'
@@ -22,15 +24,15 @@ settings:
   blogfolder: '/blog'
   blogintro: true
   blogpagesize: 10
-  postsTitle: 'Posts'
+  postsTitle: ''
   breadcrumb: true
   listDates: true
   dateFormat: 'M j, Y'
-  homeLabel: 'Home'
-  previous: 'Previous'
-  next: 'Next'
-  readerLabel: 'Reading'
-  menuLabel: 'Menu'
+  homeLabel: ''
+  previous: ''
+  next: ''
+  readerLabel: ''
+  menuLabel: ''
 
 readymades:
 
@@ -39,7 +41,6 @@ readymades:
     description: 'The theme as designed: reader controls on, sections listed on the homepage, breadcrumbs, and the sans-serif reading face. The starting point for a public body or anywhere an accessibility statement is expected.'
     settings:
       showSections: true
-      sectionsTitle: 'Sections'
       readerControls: true
       defaultTextSize: 'm'
       defaultSpacing: 'comfortable'
@@ -81,7 +82,6 @@ readymades:
       blogfolder: '/blog'
       blogintro: true
       blogpagesize: 10
-      postsTitle: 'Posts'
       showSections: false
       readerControls: true
       defaultTextSize: 'm'

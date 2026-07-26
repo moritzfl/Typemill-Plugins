@@ -12,11 +12,13 @@ settings:
   mastheadBtnLink: ''
   showSections: true
   sectionsLabel: ''
-  sectionCountLabel: 'stories'
+  # Left empty on purpose: the templates fall back on the theme's own
+  # translation, so a German site reads German. A value here would win over it.
+  sectionCountLabel: ''
   showByline: true
   showAvatar: true
   showReadingTime: true
-  readingTimeLabel: 'min read'
+  readingTimeLabel: ''
   blog: false
   blogfolder: '/blog'
   blogimage: true
@@ -29,9 +31,9 @@ settings:
   sansbody: false
   accentColor: ''
   customcss: ''
-  homeLabel: 'Home'
-  previous: 'Previous'
-  next: 'Next'
+  homeLabel: ''
+  previous: ''
+  next: ''
   dateFormat: 'M j, Y'
 
 readymades:
@@ -46,11 +48,9 @@ readymades:
       mastheadBtnLink: '/'
       showSections: true
       sectionsLabel: 'Sections'
-      sectionCountLabel: 'stories'
       showByline: true
       showAvatar: true
       showReadingTime: true
-      readingTimeLabel: 'min read'
       breadcrumb: true
       showDescription: false
       sansbody: false

@@ -46,7 +46,8 @@
       } %}
 
       {% if pages > 1 %}
-        <nav class="pr-hero__actions" style="margin-top:40px" aria-label="Pagination">
+        <nav class="pr-hero__actions" style="margin-top:40px"
+             aria-label="{{ translate('Pagination')|e('html_attr') }}">
           {% for i in 1..pages %}
             {% if i == currentpage %}
               <span class="pr-btn" aria-current="page">{{ i }}</span>

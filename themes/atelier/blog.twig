@@ -46,7 +46,8 @@
       } %}
 
       {% if pages > 1 %}
-        <nav class="at-pager" style="justify-content:center;gap:18px;border:0" aria-label="Pagination">
+        <nav class="at-pager" style="justify-content:center;gap:18px;border:0"
+             aria-label="{{ translate('Pagination')|e('html_attr') }}">
           {% for i in 1..pages %}
             {% if i == currentpage %}
               <span class="at-label" style="color:var(--at-text)">{{ i }}</span>

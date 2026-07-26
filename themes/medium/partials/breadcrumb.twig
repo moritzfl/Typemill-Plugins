@@ -1,4 +1,4 @@
-<nav class="md-breadcrumb" aria-label="Breadcrumb">
+<nav class="md-breadcrumb" aria-label="{{ translate('Breadcrumb')|e('html_attr') }}">
   <a href="{{ base_url }}">{{ settings.themes.medium.homeLabel|default(translate('Home'))|e }}</a>
   {% for crumb in breadcrumb %}
     <span aria-hidden="true">/</span>

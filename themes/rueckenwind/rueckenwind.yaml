@@ -18,16 +18,18 @@ settings:
   accentColorDark: ''
   customcss: ''
   gitLink: ''
-  editText: 'Edit'
-  printText: 'Print'
+  # Left empty on purpose: the templates fall back on the theme's own
+  # translation, so a German site reads German. A value here would win over it.
+  editText: ''
+  printText: ''
   chapnum: false
   navposition: 'side'
   fullwidth: false
   footer1: ''
   footer2: ''
   footer3: ''
-  next: 'Next'
-  previous: 'Previous'
+  next: ''
+  previous: ''
 
 readymades:
 
@@ -50,8 +52,6 @@ readymades:
       authorPosition:
           - top
       authorIntro: 'By'
-      previous: 'Previous'
-      next: 'Next'
       footercolumns:
           - footer1
           - footer2
@@ -110,11 +110,9 @@ readymades:
       fullwidth: false
       blog: false
       gitLink: 'https://github.com/user/repo/blob/main/content'
-      editText: 'Edit this page'
       gitPosition:
           - top
           - bottom
-      printText: 'Print'
       printPosition:
           - bottom
       datePosition:
@@ -122,8 +120,6 @@ readymades:
       dateIntro: 'Updated'
       dateFormat: d.m.Y
       authorPosition: []
-      previous: 'Previous'
-      next: 'Next'
       footercolumns:
           - footer1
           - footer2

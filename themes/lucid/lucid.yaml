@@ -28,10 +28,12 @@ settings:
   accentColor: ''
   maxwidth: ''
   customcss: ''
-  homeLabel: 'Home'
-  readMore: 'Read more'
-  previous: 'Previous'
-  next: 'Next'
+  # Left empty on purpose: the templates fall back on the theme's own
+  # translation, so a German site reads German. A value here would win over it.
+  homeLabel: ''
+  readMore: ''
+  previous: ''
+  next: ''
   dateFormat: 'd.m.Y'
 
 readymades:
@@ -85,8 +87,6 @@ readymades:
       authorPosition:
           - top
       authorIntro: 'By'
-      previous: 'Previous'
-      next: 'Next'
       dateFormat: d.m.Y
 
   journal:

@@ -1,4 +1,4 @@
-<nav class="at-breadcrumb" aria-label="Breadcrumb">
+<nav class="at-breadcrumb" aria-label="{{ translate('Breadcrumb')|e('html_attr') }}">
   <a href="{{ base_url }}">{{ settings.themes.atelier.homeLabel|default(translate('Home'))|e }}</a>
   {% for crumb in breadcrumb %}
     <span aria-hidden="true">/</span>

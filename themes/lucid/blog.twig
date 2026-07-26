@@ -42,7 +42,8 @@
       } %}
 
       {% if pages > 1 %}
-        <nav class="lc-hero__actions" style="margin-top:44px" aria-label="Pagination">
+        <nav class="lc-hero__actions" style="margin-top:44px"
+             aria-label="{{ translate('Pagination')|e('html_attr') }}">
           {% for i in 1..pages %}
             {% if i == currentpage %}
               <span class="lc-btn" aria-current="page">{{ i }}</span>

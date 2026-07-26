@@ -35,9 +35,11 @@ settings:
   gradient: ''
   maxwidth: ''
   customcss: ''
-  homeLabel: 'Home'
-  previous: 'Previous'
-  next: 'Next'
+  # Left empty on purpose: the templates fall back on the theme's own
+  # translation, so a German site reads German. A value here would win over it.
+  homeLabel: ''
+  previous: ''
+  next: ''
   dateFormat: 'd.m.Y'
 
 readymades:
