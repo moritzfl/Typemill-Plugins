@@ -21,16 +21,28 @@
   {% endif %}
 
   {% set pagelist = getPageList(navigation, theme.blogfolder, base_url) %}
+  {# Twig only substitutes a default for an empty value, and zero is not empty,
+     so a page size of zero would reach the division below. #}
   {% set pagesize = theme.blogpagesize|default(12) %}
-  {% set pages = (pagelist.folderContent|length / pagesize)|round(0, 'ceil') %}
+  {% set pagesize = pagesize > 0 ? pagesize : 12 %}
+
+  {# The wall only shows entries that carry a picture, so those are what a page
+     is counted and cut from. Paginating the whole folder first left pages half
+     empty, or empty altogether, whenever a stretch of entries had no image. #}
+  {% set entries = pagelist.folderContent|filter(element => getPageMeta(settings, element).meta.heroimage) %}
+
+  {% set pages = (entries|length / pagesize)|round(0, 'ceil') %}
   {% set currentpage = currentpage ? currentpage : 1 %}
   {% set offset = (currentpage - 1) * pagesize %}
+  {# The homepage is '/', and '/' ~ '/p/2' is '//p/2' - which a browser reads as
+     a host, not as a path, and follows off the site. #}
+  {% set pagerbase = item.urlRel == '/' ? '' : item.urlRel %}
 
   <section class="at-section">
     {% if pagelist.contains == 'posts' %}
 
       {% include 'partials/gallery.twig' with {
-        entries: pagelist.folderContent|slice(offset, pagesize)
+        entries: entries|slice(offset, pagesize)
       } %}
 
       {% if pages > 1 %}
@@ -39,7 +51,7 @@
             {% if i == currentpage %}
               <span class="at-label" style="color:var(--at-text)">{{ i }}</span>
             {% else %}
-              <a class="at-label" href="{{ item.urlRel }}/p/{{ i }}">{{ i }}</a>
+              <a class="at-label" href="{{ pagerbase }}/p/{{ i }}">{{ i }}</a>
             {% endif %}
           {% endfor %}
         </nav>

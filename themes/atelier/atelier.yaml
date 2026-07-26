@@ -228,6 +228,7 @@ forms:
           type: number
           label: 'Pictures per page'
           placeholder: '12'
+          min: 1
           css: 'lg:w-half'
 
     fieldsetMeta:

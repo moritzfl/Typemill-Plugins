@@ -225,6 +225,7 @@ forms:
           type: number
           label: 'Posts per page'
           placeholder: '10'
+          min: 1
           css: 'lg:w-half'
 
     fieldsetLabels:
