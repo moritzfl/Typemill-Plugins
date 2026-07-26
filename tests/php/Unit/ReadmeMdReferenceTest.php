@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Plugins\githubreadme\Models\RepositoryReference;
+use Plugins\readmemd\Models\RepositoryReference;
 
 /**
  * Reading the repository an author typed into the page.
@@ -12,7 +12,7 @@ use Plugins\githubreadme\Models\RepositoryReference;
  * plausibly written in are accepted and everything else is refused. Refusing is
  * the important half: a guess would send a request to a host nobody named.
  */
-class GithubReadmeReferenceTest extends TestCase
+class ReadmeMdReferenceTest extends TestCase
 {
     public function testTheFormsAnAuthorPlausiblyWrites(): void
     {

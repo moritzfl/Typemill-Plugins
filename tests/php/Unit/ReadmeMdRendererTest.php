@@ -3,8 +3,8 @@
 namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Plugins\githubreadme\Models\ReadmeRenderer;
-use Plugins\githubreadme\Models\RepositoryReference;
+use Plugins\readmemd\Models\ReadmeRenderer;
+use Plugins\readmemd\Models\RepositoryReference;
 
 /**
  * Making somebody else's readme fit on this site.
@@ -18,7 +18,7 @@ use Plugins\githubreadme\Models\RepositoryReference;
  * converter that returns the markup unchanged stands in for it, and every test
  * states the HTML it means to talk about.
  */
-class GithubReadmeRendererTest extends TestCase
+class ReadmeMdRendererTest extends TestCase
 {
     private function renderer(): ReadmeRenderer
     {

@@ -3,8 +3,8 @@
 namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Plugins\githubreadme\Models\RepositoryLink;
-use Plugins\githubreadme\Models\RepositoryReference;
+use Plugins\readmemd\Models\RepositoryLink;
+use Plugins\readmemd\Models\RepositoryReference;
 
 /**
  * The link back to the repository.
@@ -14,13 +14,13 @@ use Plugins\githubreadme\Models\RepositoryReference;
  * own language files rather than through Typemill's translator - that one loads
  * plugin files for the admin only and would hand back the key on a public page.
  */
-class GithubReadmeLinkTest extends TestCase
+class ReadmeMdLinkTest extends TestCase
 {
     private function plugin(): string
     {
-        return is_dir('/var/www/html/plugins/githubreadme')
-            ? '/var/www/html/plugins/githubreadme'
-            : dirname(__DIR__, 3) . '/plugins/githubreadme';
+        return is_dir('/var/www/html/plugins/readmemd')
+            ? '/var/www/html/plugins/readmemd'
+            : dirname(__DIR__, 3) . '/plugins/readmemd';
     }
 
     private function link(): RepositoryLink
@@ -61,7 +61,7 @@ class GithubReadmeLinkTest extends TestCase
     /** Even with no language files at all, the link still says something. */
     public function testWithoutAnyLanguageFileTheLinkIsStillLabelled(): void
     {
-        $empty = new RepositoryLink(sys_get_temp_dir() . '/githubreadme-no-languages');
+        $empty = new RepositoryLink(sys_get_temp_dir() . '/readmemd-no-languages');
 
         $this->assertSame('View on GitHub', $empty->label('de'));
     }

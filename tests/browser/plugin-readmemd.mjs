@@ -29,10 +29,10 @@ const PASSWORD = process.env.TM_PASSWORD || 'Test1234!'
 const SETTINGS_FILE = join(TM_ROOT, 'settings', 'settings.yaml')
 const NAV_CACHE = join(TM_ROOT, 'data', 'navigation')
 const CONTENT_DIR = join(TM_ROOT, 'content')
-const PLUGIN_CACHE = join(TM_ROOT, 'data', 'githubreadme')
+const PLUGIN_CACHE = join(TM_ROOT, 'data', 'readmemd')
 
-const SLUG = '96-github-readme-fixture'
-const PAGE_URL = '/github-readme-fixture'
+const SLUG = '96-readme-md-fixture'
+const PAGE_URL = '/readme-md-fixture'
 
 // A small, stable, public repository, and the sentence its readme opens with.
 const REPOSITORY = 'typemill/typemill'
@@ -90,22 +90,29 @@ function cacheKey(repository, branch = '', path = '') {
     return createHash('sha1').update([owner, name, branch, path].join('\n')).digest('hex')
 }
 
-function writePage(meta) {
+/**
+ * @param meta   the plugin's fields for the page
+ * @param tab    the meta block they are written under. `github` is what pages
+ *               saved before the plugin was renamed still carry.
+ */
+function writePage(meta, tab = 'readme') {
     const lines = Object.entries(meta).map(([key, value]) => `        ${key}: ${value}`)
 
     writeFileSync(join(CONTENT_DIR, `${SLUG}.md`), `# Fixture\n\n${OWN_TEXT}\n`)
     writeFileSync(
         join(CONTENT_DIR, `${SLUG}.yaml`),
-        `meta:\n    title: 'GitHub readme fixture'\n    hide: true\n    noindex: true\ngithub:\n${lines.join('\n')}\n`
+        `meta:\n    title: 'Readme fixture'\n    hide: true\n    noindex: true\n${tab}:\n${lines.join('\n')}\n`
     )
     clearNavigationCache()
 }
 
 function removePage() {
-    for (const ext of ['md', 'yaml', 'txt']) {
-        const file = join(CONTENT_DIR, `${SLUG}.${ext}`)
-        if (existsSync(file)) {
-            unlinkSync(file)
+    for (const slug of [SLUG, '96-github-readme-fixture']) {
+        for (const ext of ['md', 'yaml', 'txt']) {
+            const file = join(CONTENT_DIR, `${slug}.${ext}`)
+            if (existsSync(file)) {
+                unlinkSync(file)
+            }
         }
     }
     clearNavigationCache()
@@ -116,8 +123,8 @@ function configure(pluginSettings) {
     let content = readFileSync(SETTINGS_FILE, 'utf8')
 
     const lines = Object.entries(pluginSettings).map(([key, value]) => `        ${key}: ${value}`)
-    const block = ['    githubreadme:', '        active: true', ...lines].join('\n') + '\n'
-    const existing = /^ {4}githubreadme:\n(?:(?: {5,}.*)?\n)*/m
+    const block = ['    readmemd:', '        active: true', ...lines].join('\n') + '\n'
+    const existing = /^ {4}readmemd:\n(?:(?: {5,}.*)?\n)*/m
 
     if (existing.test(content)) {
         content = content.replace(existing, block)
@@ -151,6 +158,9 @@ function seedStoredCopy(markdown, { checkedSecondsAgo = 0, failure = null } = {}
 
 function clearStoredCopies() {
     rmSync(PLUGIN_CACHE, { recursive: true, force: true })
+    // Pre-rename suite left copies under the former folder name; they would be
+    // inherited and make "nothing stored" look filled.
+    rmSync(join(TM_ROOT, 'data', 'githubreadme'), { recursive: true, force: true })
 }
 
 async function read(page, url = PAGE_URL) {
@@ -163,16 +173,16 @@ async function read(page, url = PAGE_URL) {
         // Why a stored copy is being served is left in the page source: on a
         // public page the plugin has neither a session to identify an editor nor
         // its translations, so it says nothing a reader would see.
-        diagnostic: /<!-- github-readme: (.+?) -->/.exec(source)?.[1] ?? null,
+        diagnostic: /<!-- readme-md: (.+?) -->/.exec(source)?.[1] ?? null,
         ...(await page.evaluate(() => {
-            const readme = document.querySelector('.github-readme')
+            const readme = document.querySelector('.readme-md')
             return {
                 origin: readme ? readme.getAttribute('data-origin') : null,
                 repository: readme ? readme.getAttribute('data-repository') : null,
                 stale: readme ? readme.getAttribute('data-stale') : null,
                 readmeText: readme ? (readme.textContent || '').replace(/\s+/g, ' ').trim() : null,
                 bodyText: (document.body.textContent || '').replace(/\s+/g, ' ').trim(),
-                visibleNote: document.querySelector('.github-readme__note') !== null,
+                visibleNote: document.querySelector('.readme-md__note') !== null,
             }
         })),
     }
@@ -218,6 +228,51 @@ async function assertStoredCopyCarriesThePage(page) {
     assert(
         stale.diagnostic !== null && stale.diagnostic.includes(REPOSITORY),
         'GitHub unreachable: the reason was not left in the page source'
+    )
+}
+
+/**
+ * A page written before the plugin was renamed keeps working.
+ *
+ * The plugin used to be named after GitHub, and Typemill stores a page's fields
+ * under the name of the tab they were entered on. Renaming the plugin must not be
+ * what empties a page: the old block is still read.
+ *
+ * Once the new tab is present, even empty, it wins: otherwise clearing the
+ * repository in the editor could never turn the readme off, because Typemill only
+ * rewrites the tab that was just saved.
+ */
+async function assertPageFromTheFormerTab(page) {
+    configure({ api_base: UNREACHABLE_API, fresh_minutes: 60, timeout_seconds: 2 })
+    writePage({ repository: REPOSITORY, position: 'replace', droptitle: 'true' }, 'github')
+
+    clearStoredCopies()
+    seedStoredCopy(`# Stored readme\n\n${STORED_TEXT}\n`, { checkedSecondsAgo: 0 })
+
+    const shown = await read(page)
+    assert(shown.status === 200, `the former tab: the page answered with HTTP ${shown.status}`)
+    assert(
+        shown.readmeText !== null && shown.readmeText.includes(STORED_TEXT),
+        'the former tab: a page saved before the rename lost its readme'
+    )
+    assert(
+        shown.repository === REPOSITORY,
+        `the former tab: expected the repository to be named, got "${shown.repository}"`
+    )
+
+    // Both tabs present, new one empty: the author cleared the field.
+    writeFileSync(
+        join(CONTENT_DIR, `${SLUG}.yaml`),
+        `meta:\n    title: 'Readme fixture'\n    hide: true\n    noindex: true\n` +
+            `readme:\n        repository: ''\n` +
+            `github:\n        repository: ${REPOSITORY}\n        position: replace\n`
+    )
+    clearNavigationCache()
+
+    const cleared = await read(page)
+    assert(
+        cleared.readmeText === null,
+        'the former tab: clearing the repository in the new tab left the readme on'
     )
 }
 
@@ -289,7 +344,7 @@ async function assertReadmeKeepsItsShape(page) {
     assert(result.status === 200, `shape: the page answered with HTTP ${result.status}`)
 
     const shape = await page.evaluate(() => {
-        const readme = document.querySelector('.github-readme')
+        const readme = document.querySelector('.readme-md')
         const layout = readme.querySelector('table[align="center"]')
         const cell = layout ? layout.querySelector('td') : null
         const badges = Array.from(readme.querySelectorAll('img')).filter((img) =>
@@ -362,9 +417,9 @@ async function readLink(page) {
     await page.goto(`${BASE_URL}${PAGE_URL}`, { waitUntil: 'domcontentloaded' })
 
     return page.evaluate(() => {
-        const link = document.querySelector('.github-readme__source-link')
-        const paragraph = document.querySelector('.github-readme__source')
-        const readme = document.querySelector('.github-readme')
+        const link = document.querySelector('.readme-md__source-link')
+        const paragraph = document.querySelector('.readme-md__source')
+        const readme = document.querySelector('.readme-md')
 
         let beforeReadme = null
         if (paragraph && readme) {
@@ -464,7 +519,7 @@ async function login(page) {
  *
  * The settings form is declared in the plugin's yaml, and a field type Typemill
  * cannot draw breaks the screen that renders it. Whether the page's meta tab
- * arrives is asserted precisely in tests/api/githubreadme.test.js, against the
+ * arrives is asserted precisely in tests/api/readmemd.test.js, against the
  * endpoint the editor draws from; here it is only about the screens loading.
  *
  * Failed requests are read from the responses rather than from console text: a
@@ -472,7 +527,7 @@ async function login(page) {
  * filtering it by name is not possible.
  */
 /**
- * The refresh button in the page's github tab.
+ * The refresh button in the page's readme tab.
  *
  * The readme is stored and only checked now and then, which is what keeps a page
  * working when GitHub does not answer - and also what stops a change on GitHub
@@ -495,7 +550,7 @@ async function assertRefreshButton(page) {
     // Open the tab this plugin adds.
     const opened = await page.evaluate(() => {
         const tab = Array.from(document.querySelectorAll('a, button, li, span'))
-            .find((node) => (node.textContent || '').trim().toLowerCase() === 'github')
+            .find((node) => (node.textContent || '').trim().toLowerCase() === 'readme')
 
         if (!tab) {
             return false
@@ -504,15 +559,13 @@ async function assertRefreshButton(page) {
         tab.click()
         return true
     })
-    assert(opened, 'refresh: no github tab was offered in the editor')
+    assert(opened, 'refresh: no readme tab was offered in the editor')
 
-    await page.waitForSelector('[data-githubreadme-note], button', { timeout: 10000 }).catch(() => {})
+    await page.waitForSelector('[data-readmemd-note], button', { timeout: 10000 }).catch(() => {})
     await new Promise((resolve) => setTimeout(resolve, 500))
 
     const tab = await page.evaluate(() => {
-        const button = Array.from(document.querySelectorAll('button')).find((b) =>
-            /readme/i.test(b.textContent || '')
-        )
+        const button = document.querySelector('[data-readmemd-refresh]')
 
         return {
             hasButton: Boolean(button),
@@ -525,7 +578,7 @@ async function assertRefreshButton(page) {
         }
     })
 
-    assert(tab.hasButton, 'refresh: the button is not in the github tab')
+    assert(tab.hasButton, 'refresh: the button is not in the readme tab')
 
     /*
      * The button must not sit against the text beside it. Worth measuring rather
@@ -533,9 +586,7 @@ async function assertRefreshButton(page) {
      * no gap-* utilities, so a class-based flex gap silently does nothing.
      */
     const spacing = await page.evaluate(() => {
-        const button = Array.from(document.querySelectorAll('button')).find((b) =>
-            /readme/i.test(b.textContent || '')
-        )
+        const button = document.querySelector('[data-readmemd-refresh]')
         const help = button.parentElement.querySelector('span')
 
         if (!help) {
@@ -575,14 +626,12 @@ async function assertRefreshButton(page) {
     // Press it. GitHub is unreachable, so this must report the failure and say
     // the page is still complete - and the stored copy must be untouched.
     const said = await page.evaluate(async () => {
-        const button = Array.from(document.querySelectorAll('button')).find((b) =>
-            /readme/i.test(b.textContent || '')
-        )
+        const button = document.querySelector('[data-readmemd-refresh]')
         button.click()
 
         const deadline = Date.now() + 15000
         while (Date.now() < deadline) {
-            const note = document.querySelector('[data-githubreadme-note]')
+            const note = document.querySelector('[data-readmemd-note]')
             if (note && (note.textContent || '').trim() !== '') {
                 return (note.textContent || '').trim()
             }
@@ -613,22 +662,20 @@ async function assertRefreshButton(page) {
     await page.goto(`${BASE_URL}/tm/content/visual${PAGE_URL}`, { waitUntil: 'networkidle2' })
     await page.evaluate(() => {
         const tab = Array.from(document.querySelectorAll('a, button, li, span'))
-            .find((node) => (node.textContent || '').trim().toLowerCase() === 'github')
+            .find((node) => (node.textContent || '').trim().toLowerCase() === 'readme')
         if (tab) tab.click()
     })
     await new Promise((resolve) => setTimeout(resolve, 500))
 
     const fetched = await page.evaluate(async () => {
-        const button = Array.from(document.querySelectorAll('button')).find((b) =>
-            /readme/i.test(b.textContent || '')
-        )
+        const button = document.querySelector('[data-readmemd-refresh]')
         if (!button) return null
 
         button.click()
 
         const deadline = Date.now() + 20000
         while (Date.now() < deadline) {
-            const note = document.querySelector('[data-githubreadme-note]')
+            const note = document.querySelector('[data-readmemd-note]')
             if (note && (note.textContent || '').trim() !== '') {
                 return (note.textContent || '').trim()
             }
@@ -672,7 +719,7 @@ async function assertAdminAccepts(page) {
         await page.goto(`${BASE_URL}/tm/plugins`, { waitUntil: 'networkidle2' })
 
         const plugins = await page.evaluate(() => document.body.textContent || '')
-        assert(plugins.includes('GitHub Readme'), 'the plugin does not appear on the plugins screen')
+        assert(plugins.includes('Readme MD'), 'the plugin does not appear on the plugins screen')
 
         await page.goto(`${BASE_URL}/tm/content/visual${PAGE_URL}`, { waitUntil: 'networkidle2' })
         // The editor loads its meta over the API after the document.
@@ -712,7 +759,7 @@ async function assertLiveFetch(page) {
 
     // Relative links and pictures in the readme have to point back at GitHub.
     const rewritten = await page.evaluate(() => {
-        const readme = document.querySelector('.github-readme')
+        const readme = document.querySelector('.readme-md')
         const links = Array.from(readme.querySelectorAll('a[href]')).map((a) => a.getAttribute('href'))
         const images = Array.from(readme.querySelectorAll('img[src]')).map((i) => i.getAttribute('src'))
         return {
@@ -756,32 +803,35 @@ async function main() {
         const page = await browser.newPage()
 
         await assertStoredCopyCarriesThePage(page)
-        console.log('ok: github readme (a stored copy carries the page when GitHub cannot be reached)')
+        console.log('ok: readme md (a stored copy carries the page when GitHub cannot be reached)')
+
+        await assertPageFromTheFormerTab(page)
+        console.log('ok: readme md (a page saved under the former tab still works)')
 
         await assertPlacement(page)
-        console.log('ok: github readme (replace, append and prepend)')
+        console.log('ok: readme md (replace, append and prepend)')
 
         await assertReadmeKeepsItsShape(page)
-        console.log('ok: github readme (centred tables, badges in a row, aligned columns)')
+        console.log('ok: readme md (centred tables, badges in a row, aligned columns)')
 
         await assertRepositoryLink(page)
-        console.log('ok: github readme (the link back to the repository)')
+        console.log('ok: readme md (the link back to the repository)')
 
         await assertNothingStored(page)
-        console.log('ok: github readme (nothing stored: the page keeps its own content)')
+        console.log('ok: readme md (nothing stored: the page keeps its own content)')
 
         await assertPageWithoutRepository(page)
-        console.log('ok: github readme (a page naming no repository is untouched)')
+        console.log('ok: readme md (a page naming no repository is untouched)')
 
         const proven = await assertLiveFetch(page)
-        console.log(`ok: github readme (live fetch${proven ? '' : ', skipped'})`)
+        console.log(`ok: readme md (live fetch${proven ? '' : ', skipped'})`)
 
         // Last, because these sign in and the pages above are read as a visitor.
         await assertAdminAccepts(page)
-        console.log('ok: github readme (the plugins screen and the page meta tab)')
+        console.log('ok: readme md (the plugins screen and the page meta tab)')
 
         await assertRefreshButton(page)
-        console.log('ok: github readme (the refresh button in the github tab)')
+        console.log('ok: readme md (the refresh button in the readme tab)')
     } finally {
         await browser.close()
         writeFileSync(SETTINGS_FILE, originalSettings)

@@ -15,7 +15,7 @@ const PASSWORD = process.env.TM_PASSWORD
 
 const configured = USERNAME && PASSWORD
 
-describe('GitHub readme meta fields', () => {
+describe('Readme MD meta fields', () => {
     let session
 
     beforeAll(async () => {
@@ -31,14 +31,11 @@ describe('GitHub readme meta fields', () => {
         const body = await response.json()
         const tabs = body.definitions ?? body.metadefinitions ?? body
 
-        // The plugin is only active in a prepared instance; without it there is
-        // nothing to assert and nothing broken either.
-        if (!tabs || typeof tabs !== 'object' || !tabs.github) {
-            console.log('note: the githubreadme plugin is not active, so its fields were not checked')
-            return
-        }
+        // setup-test-docker activates the plugin; a missing tab is the rename
+        // failure this test is here for, not a reason to skip.
+        expect(tabs && typeof tabs === 'object' ? tabs.readme : undefined).toBeDefined()
 
-        const fields = tabs.github.fields ?? {}
+        const fields = tabs.readme.fields ?? {}
 
         expect(Object.keys(fields)).toEqual(
             expect.arrayContaining(['repository', 'branch', 'path', 'position', 'droptitle'])
@@ -59,7 +56,7 @@ describe('GitHub readme meta fields', () => {
 
     it.skipIf(!configured)('refuses a refresh for something that is not a repository', async () => {
         for (const repository of ['', 'not a repo', 'https://gitlab.com/a/b', 'moritzfl']) {
-            const response = await apiPost(session, `${BASE_URL}/api/v1/githubreadme/refresh`, { repository })
+            const response = await apiPost(session, `${BASE_URL}/api/v1/readmemd/refresh`, { repository })
 
             expect(response.status, `expected rejection for ${JSON.stringify(repository)}`).toBe(422)
         }
@@ -72,7 +69,7 @@ describe('GitHub readme meta fields', () => {
         ]
 
         for (const body of hostile) {
-            const response = await apiPost(session, `${BASE_URL}/api/v1/githubreadme/refresh`, body)
+            const response = await apiPost(session, `${BASE_URL}/api/v1/readmemd/refresh`, body)
 
             expect(response.status, `expected rejection for ${JSON.stringify(body)}`).toBe(422)
         }
@@ -83,7 +80,7 @@ describe('GitHub readme meta fields', () => {
         // with a 302 to the login form, and following it would land on a page
         // that answers 200 and read as success.
         for (const headers of [{}, { 'X-Session-Auth': 'true' }]) {
-            const response = await fetch(`${BASE_URL}/api/v1/githubreadme/refresh`, {
+            const response = await fetch(`${BASE_URL}/api/v1/readmemd/refresh`, {
                 method: 'POST',
                 redirect: 'manual',
                 headers: { 'Content-Type': 'application/json', ...headers },
@@ -98,7 +95,7 @@ describe('GitHub readme meta fields', () => {
     })
 
     it.skipIf(!configured)('fetches a readme when asked to', async () => {
-        const response = await apiPost(session, `${BASE_URL}/api/v1/githubreadme/refresh`, {
+        const response = await apiPost(session, `${BASE_URL}/api/v1/readmemd/refresh`, {
             repository: 'typemill/typemill',
         })
         expect(response.status).toBe(200)

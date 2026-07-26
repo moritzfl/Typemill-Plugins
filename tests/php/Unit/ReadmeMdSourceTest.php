@@ -4,10 +4,10 @@ namespace Tests\Unit;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Plugins\githubreadme\Models\GitHubClient;
-use Plugins\githubreadme\Models\ReadmeCache;
-use Plugins\githubreadme\Models\ReadmeSource;
-use Plugins\githubreadme\Models\RepositoryReference;
+use Plugins\readmemd\Models\GitHubClient;
+use Plugins\readmemd\Models\ReadmeCache;
+use Plugins\readmemd\Models\ReadmeSource;
+use Plugins\readmemd\Models\RepositoryReference;
 
 /**
  * What the page gets when GitHub does not cooperate.
@@ -20,7 +20,7 @@ use Plugins\githubreadme\Models\RepositoryReference;
  * GitHub is never actually called: the client is replaced by one that answers
  * from a script, and counts how often it was asked.
  */
-class GithubReadmeSourceTest extends TestCase
+class ReadmeMdSourceTest extends TestCase
 {
     private string $directory;
     private RepositoryReference $reference;
@@ -28,7 +28,7 @@ class GithubReadmeSourceTest extends TestCase
     protected function setUp(): void
     {
         $base = realpath(sys_get_temp_dir()) ?: sys_get_temp_dir();
-        $this->directory = $base . '/githubreadme-' . bin2hex(random_bytes(6));
+        $this->directory = $base . '/readmemd-' . bin2hex(random_bytes(6));
         mkdir($this->directory, 0777, true);
 
         $this->reference = RepositoryReference::parse('moritzfl/Typemill-Plugins');
@@ -40,6 +40,7 @@ class GithubReadmeSourceTest extends TestCase
             @unlink($file);
         }
         @rmdir($this->directory);
+        $this->removeFormerFolder();
     }
 
     private function cache(): ReadmeCache
@@ -338,6 +339,99 @@ class GithubReadmeSourceTest extends TestCase
 
         foreach (['../escape', 'not-a-sha', '', str_repeat('g', 40)] as $key) {
             $this->assertFalse($cache->store($key, 'owner/name', '# No', null));
+            $this->assertNull($cache->read($key));
+        }
+    }
+
+    /** A folder that a previous name of the plugin wrote its copies to. */
+    private function formerFolder(): string
+    {
+        $former = $this->directory . '-former';
+
+        if (!is_dir($former)) {
+            mkdir($former, 0777, true);
+        }
+
+        return $former;
+    }
+
+    private function removeFormerFolder(): void
+    {
+        foreach ((array) glob($this->directory . '-former/*') as $file) {
+            @unlink($file);
+        }
+        @rmdir($this->directory . '-former');
+    }
+
+    /**
+     * The plugin was renamed, and the pages it fills must not notice.
+     *
+     * A stored copy is what carries a page when GitHub cannot be reached, so the
+     * folder the former name wrote to is still read. GitHub is unreachable here
+     * on purpose: without that copy the page would be empty.
+     */
+    public function testACopyStoredUnderTheFormerNameStillCarriesThePage(): void
+    {
+        $former = $this->formerFolder();
+
+        (new ReadmeCache($former))->store(
+            $this->reference->cacheKey(),
+            $this->reference->slug(),
+            '# Stored before the rename',
+            null
+        );
+
+        // Old enough that GitHub is asked, so the answer is the failure and the
+        // inherited copy is all that is left to serve.
+        $file = $former . '/' . $this->reference->cacheKey() . '.json';
+        $entry = json_decode((string) file_get_contents($file), true);
+        $entry['fetched_at'] -= 7200;
+        $entry['checked_at'] -= 7200;
+        file_put_contents($file, json_encode($entry));
+
+        $cache = new ReadmeCache($this->directory, $former);
+
+        // Prove the take-over itself, before any fetch writes a failure entry.
+        $this->assertSame(
+            '# Stored before the rename',
+            $cache->read($this->reference->cacheKey())['markdown']
+        );
+        $this->assertFileExists($this->directory . '/' . $this->reference->cacheKey() . '.json');
+
+        $client = $this->client([['status' => 0, 'error' => 'GitHub could not be reached.']]);
+        $result = (new ReadmeSource($cache, $client, 60))->markdownFor($this->reference);
+
+        $this->assertSame('# Stored before the rename', $result['markdown']);
+        $this->assertSame('cache', $result['origin']);
+    }
+
+    /** A copy held here is the newer one, and the older one is not looked at. */
+    public function testTheFormerFolderIsNotConsultedWhenACopyIsHeld(): void
+    {
+        $former = $this->formerFolder();
+
+        (new ReadmeCache($former))->store($this->reference->cacheKey(), $this->reference->slug(), '# Old', null);
+        $this->cache()->store($this->reference->cacheKey(), $this->reference->slug(), '# Current', null);
+
+        $cache = new ReadmeCache($this->directory, $former);
+
+        $this->assertSame('# Current', $cache->read($this->reference->cacheKey())['markdown']);
+    }
+
+    /**
+     * A made-up key must not reach into the former folder either.
+     *
+     * The key builds a file name on both sides, so it is checked before either
+     * folder is touched.
+     */
+    public function testAMadeUpKeyCannotReachIntoTheFormerFolder(): void
+    {
+        $former = $this->formerFolder();
+        file_put_contents($former . '/secrets.json', '{"markdown": "# Not yours"}');
+
+        $cache = new ReadmeCache($this->directory, $former);
+
+        foreach (['../' . basename($former) . '/secrets', 'secrets', '', str_repeat('g', 40)] as $key) {
             $this->assertNull($cache->read($key));
         }
     }
