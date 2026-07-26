@@ -81,6 +81,16 @@ Grouped in **System → Themes → Lucid**:
 - **Colors** — accent colour and Custom CSS
 - **Footer** — up to three Markdown columns and a custom copyright line
 
+## The menu on a narrow screen
+
+The bar becomes a full-height drawer. The button's two bars fold into a cross, the rows arrive one
+after another rather than all at once, and a section opens by animating its own height, so the
+easing does not stall part way as a guessed maximum would. A chevron marks the rows that expand and
+turns when they do; on the wide bar there is no chevron, because the panel opens on hover and a row
+of arrows would only be noise.
+
+`prefers-reduced-motion` switches all of it off, the stagger included.
+
 ## Readymades
 
 The theme ships three presets. **System → Themes → Configure → Readymades**, then *load* one and

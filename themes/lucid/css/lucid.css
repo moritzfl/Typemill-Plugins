@@ -334,6 +334,53 @@ a:hover {
     }
 }
 
+/* Two bars that fold into a cross. A second icon swapped in would jump; these
+   turn. */
+.lc-burger {
+    position: relative;
+    display: block;
+    width: 18px;
+    height: 12px;
+}
+
+.lc-burger span {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1.5px;
+    border-radius: 2px;
+    background: currentColor;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lc-burger span:nth-child(1) { top: 3px; }
+.lc-burger span:nth-child(2) { top: 8px; }
+
+.lc-nav--open .lc-burger span:nth-child(1) {
+    top: 5px;
+    transform: rotate(45deg);
+}
+
+.lc-nav--open .lc-burger span:nth-child(2) {
+    top: 5px;
+    transform: rotate(-45deg);
+}
+
+/* Hidden on the bar; the drawer turns it on. */
+.lc-nav__caret {
+    display: none;
+}
+
+@keyframes lc-drawer-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes lc-row-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: none; }
+}
+
 .lc-nav__toggle {
     display: none;
     background: none;
@@ -361,6 +408,14 @@ a:hover {
         display: inline-flex;
     }
 
+    /* The chevron only earns its place here: on the bar the panel opens on
+       hover, and a row of arrows would be noise. */
+    .lc-nav__caret {
+        display: inline-block;
+        flex: none;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
     /* An element with a backdrop-filter becomes the containing block for its
        position:fixed descendants, which would size the drawer to the 44px bar
        instead of the viewport. The open bar is opaque anyway, so drop it. */
@@ -381,13 +436,39 @@ a:hover {
         background: var(--lc-bg);
         overflow-y: auto;
         font-size: 17px;
+        animation: lc-drawer-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
     }
 
-    .lc-nav--open .lc-nav__link {
-        /* Block, or the padding and divider only span the text width. */
+    /* Without this the row stays a flex row from the bar, and the section's
+       panel sits beside its own link instead of under it. */
+    .lc-nav--open .lc-nav__item {
         display: block;
-        padding: 14px 0;
+        width: 100%;
+        animation: lc-row-in 0.34s cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+
+    /* The rows arrive one after another rather than all at once. */
+    .lc-nav--open .lc-nav__item:nth-child(1) { animation-delay: 0.03s; }
+    .lc-nav--open .lc-nav__item:nth-child(2) { animation-delay: 0.06s; }
+    .lc-nav--open .lc-nav__item:nth-child(3) { animation-delay: 0.09s; }
+    .lc-nav--open .lc-nav__item:nth-child(4) { animation-delay: 0.12s; }
+    .lc-nav--open .lc-nav__item:nth-child(5) { animation-delay: 0.15s; }
+    .lc-nav--open .lc-nav__item:nth-child(6) { animation-delay: 0.18s; }
+    .lc-nav--open .lc-nav__item:nth-child(n + 7) { animation-delay: 0.21s; }
+
+    .lc-nav--open .lc-nav__link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+        min-height: 48px;
+        padding: 13px 0;
         border-bottom: 1px solid var(--lc-border-subtle);
+    }
+
+    .lc-nav--open .lc-nav__item.is-open > .lc-nav__link .lc-nav__caret {
+        transform: rotate(180deg);
     }
 
     /* In the drawer the same panel becomes an accordion rather than an overlay. */
@@ -402,20 +483,27 @@ a:hover {
         -webkit-backdrop-filter: none;
         border-bottom: 0;
         box-shadow: none;
-        max-height: 0;
+        display: grid;
+        /* Animating the row rather than a max-height guess: the panel opens to
+           exactly its own height, so the easing does not stall on the way. */
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .lc-nav--open .lc-mega > * {
         overflow: hidden;
-        transition: max-height 0.28s ease;
     }
 
     .lc-nav--open .lc-nav__item.is-open .lc-mega {
-        transform: none;
-        max-height: 70vh;
-        overflow-y: auto;
+        grid-template-rows: 1fr;
     }
 
     .lc-nav--open .lc-mega__inner {
-        padding: 4px 0 8px 14px;
+        padding: 0 0 6px 14px;
         max-width: none;
+        /* The panel centres itself on the bar; in the grid that turns into a
+           shrink-wrapped column floating in the middle of the row. */
+        margin-inline: 0;
     }
 
     .lc-nav--open .lc-mega__eyebrow {
@@ -440,30 +528,6 @@ a:hover {
         color: var(--lc-text-secondary);
     }
 
-    /* Chevron marks the rows that expand, and turns when open. */
-    .lc-nav--open .lc-nav__link[data-nav-parent] {
-        position: relative;
-    }
-
-    .lc-nav--open .lc-nav__link[data-nav-parent]::after {
-        content: "";
-        position: absolute;
-        right: 4px;
-        top: 50%;
-        width: 7px;
-        height: 7px;
-        margin-top: -5px;
-        border-right: 1.5px solid currentColor;
-        border-bottom: 1.5px solid currentColor;
-        transform: rotate(45deg);
-        opacity: 0.4;
-        transition: transform 0.2s ease;
-    }
-
-    .lc-nav--open .lc-nav__item.is-open > .lc-nav__link[data-nav-parent]::after {
-        transform: rotate(-135deg);
-        margin-top: -2px;
-    }
 }
 
 /* ── Sections ─────────────────────────────────────────────────────── */
@@ -1114,6 +1178,9 @@ a:hover {
     *::after {
         transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
+        /* Without this the staggered rows would still arrive late, one after
+           another, having merely stopped moving on the way. */
+        animation-delay: 0.01ms !important;
     }
 }
 
