@@ -25,6 +25,21 @@ Name the repository on the page and leave the page empty:
 An address that carries a branch or a file works too — `github.com/owner/name/blob/main/docs/usage.md` —
 and the two fields win over it when both are given.
 
+## Fetching it now
+
+The **github** tab has a **Fetch the readme now** button. The stored copy is only checked now and then
+— that is what keeps the page working when GitHub is unreachable — so a change you have just pushed
+would otherwise wait for the freshness window to pass. The button ignores both that window and the
+quiet minutes after a failure, and asks for the file unconditionally.
+
+It reports what happened, and it cannot make things worse: a refresh that fails leaves the stored copy
+exactly as it was, so a page that was complete stays complete. The button sends what the tab currently
+holds, so you can check a repository you have typed but not saved yet.
+
+Typemill's editor draws a meta tab with the Vue component named after it, and falls back to its own
+generic form otherwise. The plugin registers `tab-github`, which renders that same generic form inside
+itself — so the fields are still drawn, validated and saved by Typemill, with only the button added.
+
 ## The link back to GitHub
 
 A readme seldom links to its own repository — on github.com it is already there — so the plugin adds
@@ -116,14 +131,22 @@ scrolling off, so a wide table scrolls in its column instead of pushing the page
 | Link text | empty | Empty follows the site language |
 | Raw HTML | on | Keep the HTML a readme contains, sanitised |
 
+## API
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `POST` | `/api/v1/githubreadme/refresh` | Fetch a readme now for `repository`, with optional `branch` and `path`. What the button in the editor calls. |
+
+Restricted to `content` / `update` — whoever may change what a page says may refetch what fills it.
+
 ## Limits
 
 - The readme is rendered on the **frontend** only. The editor shows the page's own content, because
   that is what the page contains; what a visitor sees is the readme.
 - Headings from the readme are not in Typemill's own content structure, so a theme's table of contents
   does not list them.
-- There is no "refresh now" button. Shorten the freshness window, or delete the file in
-  `data/githubreadme/`.
+- A refresh is per page, from the editor. There is no "refresh everything" button; shorten the
+  freshness window if a whole site needs to follow GitHub more closely.
 - Why a stored copy is being served is written into the page source as an HTML comment and to the
   server log, not onto the page. On a public page a plugin can neither tell who is looking — Typemill
   starts a session only under `/tm`, `/api` and `/setup` — nor use its own translations, which are

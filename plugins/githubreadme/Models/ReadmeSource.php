@@ -89,6 +89,44 @@ class ReadmeSource
         return $this->answer(null, 'none', null, true, $failure, true, $reference);
     }
 
+    /**
+     * Fetch now, whatever the stored copy says.
+     *
+     * For the button in the editor: somebody has changed the readme and wants to
+     * see it, so neither the freshness window nor the quiet minutes after a
+     * failure apply, and the request is unconditional - being told "not modified"
+     * is not an answer when the point is to be given the file.
+     *
+     * A refresh that fails takes nothing away. The stored copy stays exactly as
+     * it was, because a page that was filled must not empty because somebody
+     * pressed a button at the wrong moment.
+     *
+     * @return array{markdown: ?string, origin: string, age: ?int, stale: bool, failure: ?string, attempted: bool, slug: string}
+     */
+    public function refresh(RepositoryReference $reference): array
+    {
+        $key = $reference->cacheKey();
+        $entry = $this->cache->read($key);
+        $cached = ($entry !== null && $entry['markdown'] !== '') ? $entry : null;
+
+        $response = $this->client->fetchFile($reference, null);
+
+        if ($response['status'] === 200 && $response['markdown'] !== null) {
+            $this->cache->store($key, $reference->slug(), $response['markdown'], $response['etag']);
+
+            return $this->answer($response['markdown'], 'network', 0, false, null, true, $reference);
+        }
+
+        $failure = $response['error'] ?? 'GitHub could not be reached.';
+        $this->cache->rememberFailure($key, $reference->slug(), $failure, $entry);
+
+        if ($cached !== null) {
+            return $this->answer($cached['markdown'], 'cache', $this->cache->age($cached), true, $failure, true, $reference);
+        }
+
+        return $this->answer(null, 'none', null, true, $failure, true, $reference);
+    }
+
     private function isStale(array $entry): bool
     {
         $age = $this->cache->age($entry);

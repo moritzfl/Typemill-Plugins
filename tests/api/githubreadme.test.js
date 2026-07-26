@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest'
-import { createSession, apiGet } from './helpers/auth.js'
+import { createSession, apiGet, apiPost } from './helpers/auth.js'
 
 /**
  * The page's own GitHub fields.
@@ -55,5 +55,66 @@ describe('GitHub readme meta fields', () => {
         expect(Object.keys(fields.position.options ?? {})).toEqual(
             expect.arrayContaining(['replace', 'append', 'prepend'])
         )
+    })
+
+    it.skipIf(!configured)('refuses a refresh for something that is not a repository', async () => {
+        for (const repository of ['', 'not a repo', 'https://gitlab.com/a/b', 'moritzfl']) {
+            const response = await apiPost(session, `${BASE_URL}/api/v1/githubreadme/refresh`, { repository })
+
+            expect(response.status, `expected rejection for ${JSON.stringify(repository)}`).toBe(422)
+        }
+    })
+
+    it.skipIf(!configured)('refuses a branch or file that would change the request', async () => {
+        const hostile = [
+            { repository: 'typemill/typemill', branch: '../../etc' },
+            { repository: 'typemill/typemill', path: '../../../etc/passwd' },
+        ]
+
+        for (const body of hostile) {
+            const response = await apiPost(session, `${BASE_URL}/api/v1/githubreadme/refresh`, body)
+
+            expect(response.status, `expected rejection for ${JSON.stringify(body)}`).toBe(422)
+        }
+    })
+
+    it.skipIf(!configured)('cannot be used without a session', async () => {
+        // Redirects are not followed: Typemill turns an unauthenticated POST away
+        // with a 302 to the login form, and following it would land on a page
+        // that answers 200 and read as success.
+        for (const headers of [{}, { 'X-Session-Auth': 'true' }]) {
+            const response = await fetch(`${BASE_URL}/api/v1/githubreadme/refresh`, {
+                method: 'POST',
+                redirect: 'manual',
+                headers: { 'Content-Type': 'application/json', ...headers },
+                body: JSON.stringify({ repository: 'typemill/typemill' }),
+            })
+
+            expect(
+                response.status >= 300,
+                `an unauthenticated POST answered ${response.status}`
+            ).toBe(true)
+        }
+    })
+
+    it.skipIf(!configured)('fetches a readme when asked to', async () => {
+        const response = await apiPost(session, `${BASE_URL}/api/v1/githubreadme/refresh`, {
+            repository: 'typemill/typemill',
+        })
+        expect(response.status).toBe(200)
+
+        const body = await response.json()
+        expect(body.repository).toBe('typemill/typemill')
+
+        if (!body.ok) {
+            // Needs GitHub to answer this machine right now; a spent hourly
+            // allowance is not a broken route.
+            console.log(`note: GitHub did not serve the readme just now (${body.failure}); the fetch was not proven`)
+            expect(typeof body.failure).toBe('string')
+            return
+        }
+
+        expect(body.bytes).toBeGreaterThan(200)
+        expect(body.origin).toBe('network')
     })
 })

@@ -265,6 +265,72 @@ class GithubReadmeSourceTest extends TestCase
         $this->assertSame('# Whole', $result['markdown']);
     }
 
+    /**
+     * The button in the editor: fetch now, whatever the stored copy says.
+     *
+     * Neither the freshness window nor the quiet minutes after a failure may
+     * stand in the way, and the request must not be conditional - being told
+     * "not modified" is no use when the point is to be given the file.
+     */
+    public function testARefreshFetchesEvenWhenTheStoredCopyIsFresh(): void
+    {
+        $this->cache()->store($this->reference->cacheKey(), $this->reference->slug(), '# Old', 'W/"abc"');
+
+        $client = $this->client([['status' => 200, 'markdown' => '# New']]);
+        $result = (new ReadmeSource($this->cache(), $client, 60))->refresh($this->reference);
+
+        $this->assertSame('# New', $result['markdown']);
+        $this->assertSame('network', $result['origin']);
+        $this->assertSame(1, $client->calls);
+        $this->assertSame('# New', $this->cache()->read($this->reference->cacheKey())['markdown']);
+    }
+
+    public function testARefreshIgnoresTheQuietMinutesAfterAFailure(): void
+    {
+        $this->cache()->store($this->reference->cacheKey(), $this->reference->slug(), '# Old', null);
+        $this->cache()->rememberFailure(
+            $this->reference->cacheKey(),
+            $this->reference->slug(),
+            'rate limit',
+            $this->cache()->read($this->reference->cacheKey())
+        );
+
+        $client = $this->client([['status' => 200, 'markdown' => '# New']]);
+        $result = (new ReadmeSource($this->cache(), $client, 60))->refresh($this->reference);
+
+        $this->assertSame('network', $result['origin']);
+        $this->assertSame(1, $client->calls, 'the backoff must not block a refresh that was asked for');
+        $this->assertNull($result['failure']);
+    }
+
+    /**
+     * A refresh that fails takes nothing away: the page was filled before the
+     * button was pressed and has to stay filled after it.
+     */
+    public function testAFailedRefreshLeavesTheStoredCopyAlone(): void
+    {
+        $this->cache()->store($this->reference->cacheKey(), $this->reference->slug(), '# Stored', 'W/"abc"');
+
+        $client = $this->client([['status' => 403, 'error' => 'rate limit', 'rate_limited' => true]]);
+        $result = (new ReadmeSource($this->cache(), $client, 60))->refresh($this->reference);
+
+        $this->assertSame('# Stored', $result['markdown']);
+        $this->assertSame('cache', $result['origin']);
+        $this->assertNotNull($result['failure']);
+        $this->assertSame('# Stored', $this->cache()->read($this->reference->cacheKey())['markdown']);
+    }
+
+    /** With nothing stored, a failed refresh says so rather than inventing one. */
+    public function testAFailedRefreshWithNothingStoredReportsIt(): void
+    {
+        $client = $this->client([['status' => 0, 'error' => 'GitHub could not be reached.']]);
+        $result = (new ReadmeSource($this->cache(), $client, 60))->refresh($this->reference);
+
+        $this->assertNull($result['markdown']);
+        $this->assertSame('none', $result['origin']);
+        $this->assertNotNull($result['failure']);
+    }
+
     /** The key builds a file name, so a made-up one must not reach the disk. */
     public function testOnlyRealKeysReachTheDisk(): void
     {

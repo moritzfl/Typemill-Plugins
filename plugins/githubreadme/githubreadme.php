@@ -8,6 +8,8 @@ use Plugins\githubreadme\Models\ReadmeRenderer;
 use Plugins\githubreadme\Models\ReadmeSource;
 use Plugins\githubreadme\Models\RepositoryLink;
 use Plugins\githubreadme\Models\RepositoryReference;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
 use Typemill\Models\StorageWrapper;
 use Typemill\Plugin;
 
@@ -62,7 +64,80 @@ class githubreadme extends Plugin
             // The meta carries the repository, and arrives before the HTML.
             'onMetaLoaded' => ['onMetaLoaded', 0],
             'onHtmlLoaded' => ['onHtmlLoaded', 0],
+            // Puts the refresh button into the page's github tab.
+            'onTwigLoaded' => ['onTwigLoaded', 0],
         ];
+    }
+
+    /**
+     * The button that fetches the readme again straight away.
+     *
+     * Typemill's editor renders a meta tab with the Vue component named after it
+     * when one is registered, and falls back to its own generic form otherwise.
+     * So a component named tab-github takes over this tab - and it renders that
+     * same generic form inside itself, so the fields keep being drawn and saved
+     * by the core, with only the button added.
+     */
+    public function onTwigLoaded($event)
+    {
+        if ($this->editorroute) {
+            $this->addInlineJS(file_get_contents(__DIR__ . '/js/editor-githubreadme.js'));
+        }
+    }
+
+    public static function addNewRoutes()
+    {
+        return [
+            [
+                'httpMethod' => 'post',
+                'route' => '/api/v1/githubreadme/refresh',
+                'name' => 'githubreadme.refresh',
+                'class' => 'Plugins\githubreadme\githubreadme:refreshReadme',
+                // Whoever may change a page's content may refetch what fills it.
+                'resource' => 'content',
+                'privilege' => 'update',
+            ],
+        ];
+    }
+
+    /**
+     * Fetch the readme now for the repository the tab is showing.
+     *
+     * The values come from the form rather than from the saved page, so the
+     * button reports on what the author is looking at - including a repository
+     * they have just typed and not saved yet.
+     */
+    public function refreshReadme(Request $request, Response $response, $args)
+    {
+        $params = (array) $request->getParsedBody();
+
+        $reference = RepositoryReference::parse(
+            trim((string) ($params['repository'] ?? '')),
+            trim((string) ($params['branch'] ?? '')),
+            trim((string) ($params['path'] ?? ''))
+        );
+
+        if ($reference === null) {
+            return $this->jsonResponse($response, ['ok' => false, 'reason' => 'invalid'], 422);
+        }
+
+        $result = $this->source($this->getPluginSettings())->refresh($reference);
+
+        return $this->jsonResponse($response, [
+            'ok' => $result['origin'] === 'network',
+            'origin' => $result['origin'],
+            'repository' => $result['slug'],
+            'bytes' => $result['markdown'] === null ? 0 : strlen($result['markdown']),
+            'kept' => $result['origin'] === 'cache',
+            'failure' => $result['failure'],
+        ]);
+    }
+
+    private function jsonResponse(Response $response, array $payload, int $status = 200): Response
+    {
+        $response->getBody()->write((string) json_encode($payload));
+
+        return $response->withHeader('Content-Type', 'application/json')->withStatus($status);
     }
 
     public function onMetaLoaded($event)

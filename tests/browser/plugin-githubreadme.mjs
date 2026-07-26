@@ -435,6 +435,13 @@ async function assertPageWithoutRepository(page) {
 
 async function login(page) {
     await page.goto(`${BASE_URL}/tm/login`, { waitUntil: 'networkidle2' })
+
+    // Already signed in: Typemill sends the login page on to the editor, and
+    // there is no form to fill in.
+    if (!page.url().includes('/tm/login')) {
+        return
+    }
+
     await page.type('input[name="username"]', USERNAME, { delay: 10 })
     await page.type('input[name="password"]', PASSWORD, { delay: 10 })
 
@@ -463,6 +470,149 @@ async function login(page) {
  * console message for a failed resource does not say which resource it was, so
  * filtering it by name is not possible.
  */
+/**
+ * The refresh button in the page's github tab.
+ *
+ * The readme is stored and only checked now and then, which is what keeps a page
+ * working when GitHub does not answer - and also what stops a change on GitHub
+ * from showing at once. The button is the way to ask for it now.
+ *
+ * Typemill's editor draws a meta tab with the Vue component named after it, so
+ * this proves two things at once: that the component took the tab over, and that
+ * the core's own fields are still drawn inside it.
+ */
+async function assertRefreshButton(page) {
+    // Unreachable, so the answer is the failure - and the stored copy has to
+    // survive being refreshed at the wrong moment.
+    configure({ api_base: UNREACHABLE_API, fresh_minutes: 60, timeout_seconds: 2 })
+    writePage({ repository: REPOSITORY, position: 'replace', droptitle: 'true' })
+    seedStoredCopy(`# Stored readme\n\n${STORED_TEXT}\n`, { checkedSecondsAgo: 0 })
+
+    await login(page)
+    await page.goto(`${BASE_URL}/tm/content/visual${PAGE_URL}`, { waitUntil: 'networkidle2' })
+
+    // Open the tab this plugin adds.
+    const opened = await page.evaluate(() => {
+        const tab = Array.from(document.querySelectorAll('a, button, li, span'))
+            .find((node) => (node.textContent || '').trim().toLowerCase() === 'github')
+
+        if (!tab) {
+            return false
+        }
+
+        tab.click()
+        return true
+    })
+    assert(opened, 'refresh: no github tab was offered in the editor')
+
+    await page.waitForSelector('[data-githubreadme-note], button', { timeout: 10000 }).catch(() => {})
+    await new Promise((resolve) => setTimeout(resolve, 500))
+
+    const tab = await page.evaluate(() => {
+        const button = Array.from(document.querySelectorAll('button')).find((b) =>
+            /readme/i.test(b.textContent || '')
+        )
+
+        return {
+            hasButton: Boolean(button),
+            // The core's own fields have to still be there: the component wraps
+            // the generic form rather than replacing it.
+            hasRepositoryField: Boolean(
+                document.querySelector('input[name="repository"], input#repository, [id*="repository"]')
+            ),
+            fieldCount: document.querySelectorAll('input, select, textarea').length,
+        }
+    })
+
+    assert(tab.hasButton, 'refresh: the button is not in the github tab')
+    assert(
+        tab.hasRepositoryField || tab.fieldCount > 3,
+        `refresh: the tab lost the fields it is supposed to keep (found ${tab.fieldCount} inputs)`
+    )
+
+    // Press it. GitHub is unreachable, so this must report the failure and say
+    // the page is still complete - and the stored copy must be untouched.
+    const said = await page.evaluate(async () => {
+        const button = Array.from(document.querySelectorAll('button')).find((b) =>
+            /readme/i.test(b.textContent || '')
+        )
+        button.click()
+
+        const deadline = Date.now() + 15000
+        while (Date.now() < deadline) {
+            const note = document.querySelector('[data-githubreadme-note]')
+            if (note && (note.textContent || '').trim() !== '') {
+                return (note.textContent || '').trim()
+            }
+            await new Promise((r) => setTimeout(r, 200))
+        }
+
+        return null
+    })
+
+    assert(said !== null, 'refresh: pressing the button said nothing at all')
+    assert(
+        /stored copy is unchanged|nicht geantwortet/i.test(said),
+        `refresh: expected to be told the stored copy survived, got "${said}"`
+    )
+
+    const stored = readFileSync(join(PLUGIN_CACHE, `${cacheKey(REPOSITORY)}.json`), 'utf8')
+    assert(
+        stored.includes(STORED_TEXT),
+        'refresh: a failed refresh threw away the copy that was keeping the page filled'
+    )
+
+    // Now the point of the button: a stored copy that is still well inside its
+    // freshness window would not be checked for another hour, and pressing the
+    // button has to fetch anyway.
+    configure({ api_base: 'https://api.github.com', fresh_minutes: 600, timeout_seconds: 10 })
+    seedStoredCopy(`# Stored readme\n\n${STORED_TEXT}\n`, { checkedSecondsAgo: 0 })
+
+    await page.goto(`${BASE_URL}/tm/content/visual${PAGE_URL}`, { waitUntil: 'networkidle2' })
+    await page.evaluate(() => {
+        const tab = Array.from(document.querySelectorAll('a, button, li, span'))
+            .find((node) => (node.textContent || '').trim().toLowerCase() === 'github')
+        if (tab) tab.click()
+    })
+    await new Promise((resolve) => setTimeout(resolve, 500))
+
+    const fetched = await page.evaluate(async () => {
+        const button = Array.from(document.querySelectorAll('button')).find((b) =>
+            /readme/i.test(b.textContent || '')
+        )
+        if (!button) return null
+
+        button.click()
+
+        const deadline = Date.now() + 20000
+        while (Date.now() < deadline) {
+            const note = document.querySelector('[data-githubreadme-note]')
+            if (note && (note.textContent || '').trim() !== '') {
+                return (note.textContent || '').trim()
+            }
+            await new Promise((r) => setTimeout(r, 200))
+        }
+
+        return null
+    })
+
+    if (fetched === null || !/Fetched|Geladen/i.test(fetched)) {
+        console.log(`note: GitHub did not serve the readme just now ("${fetched}"); the forced fetch was not proven`)
+        return
+    }
+
+    // The page must now show what was fetched, not the copy that was fresh.
+    const shown = await read(page)
+    assert(
+        shown.readmeText !== null && !shown.readmeText.includes(STORED_TEXT),
+        'refresh: the page still shows the old copy after a successful refresh'
+    )
+    assert(
+        shown.origin === 'fresh',
+        `refresh: expected the page to serve the newly stored copy, got origin "${shown.origin}"`
+    )
+}
+
 async function assertAdminAccepts(page) {
     const failed = []
     const onResponse = (response) => {
@@ -584,9 +734,12 @@ async function main() {
         const proven = await assertLiveFetch(page)
         console.log(`ok: github readme (live fetch${proven ? '' : ', skipped'})`)
 
-        // Last, because it signs in and the pages above are read as a visitor.
+        // Last, because these sign in and the pages above are read as a visitor.
         await assertAdminAccepts(page)
         console.log('ok: github readme (the plugins screen and the page meta tab)')
+
+        await assertRefreshButton(page)
+        console.log('ok: github readme (the refresh button in the github tab)')
     } finally {
         await browser.close()
         writeFileSync(SETTINGS_FILE, originalSettings)
