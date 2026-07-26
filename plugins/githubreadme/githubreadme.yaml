@@ -1,0 +1,90 @@
+name: GitHub Readme
+version: 1.0.0
+description: "Fill a page with a repository's readme from GitHub, so the text is written once and lives with the code. The readme is kept on disk, so a page stays filled when GitHub is unreachable, rate-limits the site, or the repository goes away."
+author: Moritz
+homepage: https://github.com/moritzfl/Typemill-Plugins
+license: GPL-2.0
+
+settings:
+  fresh_minutes: 60
+  timeout_seconds: 5
+  allow_html: true
+  token: ''
+  api_base: 'https://api.github.com'
+
+forms:
+  fields:
+
+    fieldsetFetching:
+      type: fieldset
+      legend: Fetching
+      fields:
+        fresh_minutes:
+          type: number
+          label: Check GitHub at most every
+          description: "Minutes a stored readme counts as current. Within that time no request is made at all; after it the request is conditional, so an unchanged readme costs nothing from the hourly allowance."
+          min: 1
+          css: 'lg:w-half'
+        timeout_seconds:
+          type: number
+          label: Give up after
+          description: "Seconds to wait for GitHub. The request happens while a visitor waits for the page, so this is deliberately short - on a timeout the stored copy is served instead."
+          min: 1
+          max: 30
+          css: 'lg:w-half'
+
+    fieldsetAccess:
+      type: fieldset
+      legend: Access
+      fields:
+        token:
+          type: text
+          label: GitHub token
+          description: "Only needed for private repositories, or to raise the hourly allowance beyond the 60 requests GitHub grants an unauthenticated server. A fine-grained token with read access to contents is enough."
+        api_base:
+          type: text
+          label: API address
+          placeholder: 'https://api.github.com'
+          description: 'Change this only for GitHub Enterprise.'
+
+    fieldsetRendering:
+      type: fieldset
+      legend: Rendering
+      fields:
+        allow_html:
+          type: checkbox
+          label: Raw HTML
+          checkboxlabel: Keep the HTML a readme contains
+          description: "Readmes write their badges and centred logos as HTML, so this is on by default. Scripts, styles, frames, forms, event handlers and inline data are removed either way; switching this off additionally drops everything Markdown did not produce itself."
+
+metatabs:
+  github:
+    fields:
+      repository:
+        type: text
+        label: Repository
+        placeholder: 'owner/name'
+        description: "Either owner/name, or the address from the browser - https://github.com/owner/name. Leave this empty and the page behaves as any other."
+      branch:
+        type: text
+        label: Branch
+        description: "Leave empty to follow the repository's default branch."
+        css: w-half
+      path:
+        type: text
+        label: File
+        placeholder: 'README.md'
+        description: "Leave empty to let GitHub pick the readme, whatever it is called. Or name another file, such as docs/usage.md."
+        css: w-half
+      position:
+        type: select
+        label: This page's own content
+        options:
+          replace: 'Is replaced by the readme'
+          append: 'Comes before the readme'
+          prepend: 'Comes after the readme'
+      droptitle:
+        type: checkbox
+        label: Opening heading
+        checkboxlabel: "Drop the readme's first heading"
+        description: 'The page already has a title, and a readme usually opens with the project name.'
