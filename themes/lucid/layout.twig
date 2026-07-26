@@ -30,7 +30,7 @@
 </head>
 <body>
 
-  <a href="#main-content" class="lc-skip">{{ theme.skipText|default('Skip to content') }}</a>
+  <a href="#main-content" class="lc-skip">{{ theme.skipText|default('Skip to content')|e }}</a>
 
   {% if is_loggedin() %}
     <div class="lc-admin"><a href="{{ base_url }}/tm/account">&#9881; Admin</a></div>

@@ -7,7 +7,7 @@
 {% if heroImage and (theme.pageHero ?? true) %}
   <section class="at-hero">
     <div class="at-hero__media">
-      <img src="{{ base_url }}/{{ heroImage|e('html_attr') }}"
+      <img src="{{ base_url }}/{{ heroImage|e }}"
            alt="{{ metatabs.meta.heroimagealt|default(title)|e('html_attr') }}" />
     </div>
     <div class="at-hero__inner">

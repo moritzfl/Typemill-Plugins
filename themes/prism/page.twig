@@ -62,13 +62,13 @@
       <nav class="pr-pager" aria-label="{{ theme.pagerLabel|default('Page')|e('html_attr') }}">
         {% if item.prevItem %}
           <a class="pr-pager__item" href="{{ item.prevItem.urlRel }}">
-            <span class="pr-pager__label">{{ theme.previous|default('Previous') }}</span>
+            <span class="pr-pager__label">{{ theme.previous|default('Previous')|e }}</span>
             <span class="pr-pager__title">{{ item.prevItem.name|e }}</span>
           </a>
         {% endif %}
         {% if item.nextItem %}
           <a class="pr-pager__item pr-pager__item--next" href="{{ item.nextItem.urlRel }}">
-            <span class="pr-pager__label">{{ theme.next|default('Next') }}</span>
+            <span class="pr-pager__label">{{ theme.next|default('Next')|e }}</span>
             <span class="pr-pager__title">{{ item.nextItem.name|e }}</span>
           </a>
         {% endif %}

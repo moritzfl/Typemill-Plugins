@@ -30,7 +30,7 @@
             masonry wall, and the grid is cropped in CSS anyway so the ratio
             stays a setting rather than being baked into a file.
           #}
-          <img src="{{ base_url }}/{{ meta.heroimage|e('html_attr') }}"
+          <img src="{{ base_url }}/{{ meta.heroimage|e }}"
                alt="{{ meta.heroimagealt|default(meta.title|default(element.name))|e('html_attr') }}"
                loading="lazy" decoding="async" />
         </a>

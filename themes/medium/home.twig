@@ -13,7 +13,7 @@
 
     {% if theme.mastheadBtnLabel and theme.mastheadBtnLink %}
       <div class="md-masthead__actions">
-        <a class="md-btn" href="{{ theme.mastheadBtnLink }}">{{ theme.mastheadBtnLabel|e }}</a>
+        <a class="md-btn" href="{{ theme.mastheadBtnLink|e }}">{{ theme.mastheadBtnLabel|e }}</a>
       </div>
     {% endif %}
   </div>

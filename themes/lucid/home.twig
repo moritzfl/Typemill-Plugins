@@ -21,9 +21,9 @@
 
     {% if theme.heroBtnLabel and theme.heroBtnLink %}
       <div class="lc-hero__actions">
-        <a class="lc-btn" href="{{ theme.heroBtnLink }}">{{ theme.heroBtnLabel|e }}</a>
+        <a class="lc-btn" href="{{ theme.heroBtnLink|e }}">{{ theme.heroBtnLabel|e }}</a>
         {% if theme.heroLinkLabel and theme.heroLinkTarget %}
-          <a class="lc-link" href="{{ theme.heroLinkTarget }}">{{ theme.heroLinkLabel|e }}</a>
+          <a class="lc-link" href="{{ theme.heroLinkTarget|e }}">{{ theme.heroLinkLabel|e }}</a>
         {% endif %}
       </div>
     {% endif %}
