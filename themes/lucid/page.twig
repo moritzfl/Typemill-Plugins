@@ -79,16 +79,16 @@
     {% endif %}
 
     {% if item.prevItem or item.nextItem %}
-      <nav class="lc-pager" aria-label="{{ theme.pagerLabel|default('Page')|e('html_attr') }}">
+      <nav class="lc-pager" aria-label="{{ theme.pagerLabel|default(translate('Page'))|e('html_attr') }}">
         {% if item.prevItem %}
           <a class="lc-pager__item" href="{{ item.prevItem.urlRel }}">
-            <span class="lc-pager__label">{{ theme.previous|default('Previous')|e }}</span>
+            <span class="lc-pager__label">{{ theme.previous|default(translate('Previous'))|e }}</span>
             <span class="lc-pager__title">{{ item.prevItem.name|e }}</span>
           </a>
         {% endif %}
         {% if item.nextItem %}
           <a class="lc-pager__item lc-pager__item--next" href="{{ item.nextItem.urlRel }}">
-            <span class="lc-pager__label">{{ theme.next|default('Next')|e }}</span>
+            <span class="lc-pager__label">{{ theme.next|default(translate('Next'))|e }}</span>
             <span class="lc-pager__title">{{ item.nextItem.name|e }}</span>
           </a>
         {% endif %}

@@ -20,7 +20,7 @@
 <div class="lg-reader" data-reader
      data-reader-default-text-size="{{ theme.defaultTextSize|default('m')|e('html_attr') }}"
      data-reader-default-spacing="{{ theme.defaultSpacing|default('comfortable')|e('html_attr') }}"
-     data-reader-reset-message="{{ theme.readerResetMessage|default('Reader settings reset')|e('html_attr') }}">
+     data-reader-reset-message="{{ theme.readerResetMessage|default(translate('Reader settings reset'))|e('html_attr') }}">
 
   <button type="button" class="lg-reader__button" data-reader-toggle
           aria-expanded="false" aria-controls="lg-reader-panel">
@@ -29,42 +29,42 @@
       <path stroke-linecap="round" stroke-linejoin="round"
             d="M4 7V5h16v2M9 19h6M12 5v14" />
     </svg>
-    {{ theme.readerLabel|default('Reading')|e }}
+    {{ theme.readerLabel|default(translate('Reading'))|e }}
   </button>
 
   <div class="lg-reader__panel" id="lg-reader-panel" data-reader-panel hidden>
 
     <div class="lg-reader__group">
       <fieldset class="lg-reader__fieldset">
-        <legend class="lg-reader__legend">{{ theme.textSizeLabel|default('Text size')|e }}</legend>
+        <legend class="lg-reader__legend">{{ theme.textSizeLabel|default(translate('Text size'))|e }}</legend>
         {#
           Named rather than four letter As at different sizes: an unlabelled
           glyph gives a screen reader nothing to read out, and "A, A, A, A" is
           no help to speech input either.
         #}
         <div class="lg-reader__options" data-reader-group="text-size"
-             data-reader-label="{{ theme.textSizeLabel|default('Text size')|e('html_attr') }}">
-          <button type="button" class="lg-reader__option" data-reader-value="s" aria-pressed="false">{{ theme.textSizeSmallLabel|default('Small')|e }}</button>
-          <button type="button" class="lg-reader__option" data-reader-value="m" aria-pressed="false">{{ theme.textSizeMediumLabel|default('Medium')|e }}</button>
-          <button type="button" class="lg-reader__option" data-reader-value="l" aria-pressed="false">{{ theme.textSizeLargeLabel|default('Large')|e }}</button>
-          <button type="button" class="lg-reader__option" data-reader-value="xl" aria-pressed="false">{{ theme.textSizeXLargeLabel|default('Extra large')|e }}</button>
+             data-reader-label="{{ theme.textSizeLabel|default(translate('Text size'))|e('html_attr') }}">
+          <button type="button" class="lg-reader__option" data-reader-value="s" aria-pressed="false">{{ theme.textSizeSmallLabel|default(translate('Small'))|e }}</button>
+          <button type="button" class="lg-reader__option" data-reader-value="m" aria-pressed="false">{{ theme.textSizeMediumLabel|default(translate('Medium'))|e }}</button>
+          <button type="button" class="lg-reader__option" data-reader-value="l" aria-pressed="false">{{ theme.textSizeLargeLabel|default(translate('Large'))|e }}</button>
+          <button type="button" class="lg-reader__option" data-reader-value="xl" aria-pressed="false">{{ theme.textSizeXLargeLabel|default(translate('Extra large'))|e }}</button>
         </div>
       </fieldset>
     </div>
 
     <div class="lg-reader__group">
       <fieldset class="lg-reader__fieldset">
-        <legend class="lg-reader__legend">{{ theme.spacingLabel|default('Spacing')|e }}</legend>
+        <legend class="lg-reader__legend">{{ theme.spacingLabel|default(translate('Spacing'))|e }}</legend>
         <div class="lg-reader__options" data-reader-group="spacing"
-             data-reader-label="{{ theme.spacingLabel|default('Spacing')|e('html_attr') }}">
+             data-reader-label="{{ theme.spacingLabel|default(translate('Spacing'))|e('html_attr') }}">
           <button type="button" class="lg-reader__option" data-reader-value="compact" aria-pressed="false">
-            {{ theme.spacingCompactLabel|default('Compact')|e }}
+            {{ theme.spacingCompactLabel|default(translate('Compact'))|e }}
           </button>
           <button type="button" class="lg-reader__option" data-reader-value="comfortable" aria-pressed="false">
-            {{ theme.spacingComfortableLabel|default('Comfortable')|e }}
+            {{ theme.spacingComfortableLabel|default(translate('Comfortable'))|e }}
           </button>
           <button type="button" class="lg-reader__option" data-reader-value="spacious" aria-pressed="false">
-            {{ theme.spacingSpaciousLabel|default('Spacious')|e }}
+            {{ theme.spacingSpaciousLabel|default(translate('Spacious'))|e }}
           </button>
         </div>
       </fieldset>
@@ -72,27 +72,27 @@
 
     <div class="lg-reader__group">
       <fieldset class="lg-reader__fieldset">
-        <legend class="lg-reader__legend">{{ theme.contrastLabel|default('Contrast')|e }}</legend>
+        <legend class="lg-reader__legend">{{ theme.contrastLabel|default(translate('Contrast'))|e }}</legend>
         <div class="lg-reader__options" data-reader-group="contrast"
-             data-reader-label="{{ theme.contrastLabel|default('Contrast')|e('html_attr') }}">
+             data-reader-label="{{ theme.contrastLabel|default(translate('Contrast'))|e('html_attr') }}">
           <button type="button" class="lg-reader__option" data-reader-value="auto" aria-pressed="false">
-            {{ theme.contrastAutoLabel|default('System')|e }}
+            {{ theme.contrastAutoLabel|default(translate('System'))|e }}
           </button>
           <button type="button" class="lg-reader__option" data-reader-value="light" aria-pressed="false">
-            {{ theme.contrastLightLabel|default('Light')|e }}
+            {{ theme.contrastLightLabel|default(translate('Light'))|e }}
           </button>
           <button type="button" class="lg-reader__option" data-reader-value="dark" aria-pressed="false">
-            {{ theme.contrastDarkLabel|default('Dark')|e }}
+            {{ theme.contrastDarkLabel|default(translate('Dark'))|e }}
           </button>
           <button type="button" class="lg-reader__option" data-reader-value="high" aria-pressed="false">
-            {{ theme.contrastHighLabel|default('Maximum')|e }}
+            {{ theme.contrastHighLabel|default(translate('Maximum'))|e }}
           </button>
         </div>
       </fieldset>
     </div>
 
     <button type="button" class="lg-reader__reset" data-reader-reset>
-      {{ theme.readerResetLabel|default('Reset to defaults')|e }}
+      {{ theme.readerResetLabel|default(translate('Reset to defaults'))|e }}
     </button>
 
     {# Changes are announced, because the buttons stay put while the page changes. #}

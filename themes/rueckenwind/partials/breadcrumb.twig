@@ -39,13 +39,13 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
         </svg>
-        <span class="text-xs">{{ settings.themes.rueckenwind.previous|default('Prev') }}</span>
+        <span class="text-xs">{{ settings.themes.rueckenwind.previous|default(translate('Prev')) }}</span>
       </a>
     {% endif %}
     {% if item.nextItem %}
       <a href="{{ item.nextItem.urlRel }}" title="{{ item.nextItem.name|e('html_attr') }}"
          class="flex items-center gap-1 rounded-full border border-gray-200/80 bg-white/80 px-3 py-1.5 shadow-sm shadow-gray-950/5 transition-colors hover:text-primary-500 dark:border-gray-800/80 dark:bg-gray-900/70 dark:hover:text-primary-300">
-        <span class="text-xs">{{ settings.themes.rueckenwind.next|default('Next') }}</span>
+        <span class="text-xs">{{ settings.themes.rueckenwind.next|default(translate('Next')) }}</span>
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
         </svg>

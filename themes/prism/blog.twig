@@ -53,7 +53,7 @@
 
     {% else %}
       <p class="pr-section__lead">
-        {{ theme.blogEmptyText|default('The configured folder does not contain posts. Check the blog folder in the theme settings.')|e }}
+        {{ theme.blogEmptyText|default(translate('The configured folder does not contain posts. Check the blog folder in the theme settings.'))|e }}
       </p>
     {% endif %}
 

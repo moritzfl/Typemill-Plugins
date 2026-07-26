@@ -17,7 +17,7 @@
   {% if (theme.showSections ?? true) and navigation|length > 0 %}
     <section class="lg-section lg-measure" aria-labelledby="lg-sections-title">
       <h2 class="lg-section__title" id="lg-sections-title">
-        {{ theme.sectionsTitle|default('Sections')|e }}
+        {{ theme.sectionsTitle|default(translate('Sections'))|e }}
       </h2>
       {% include 'partials/pagelist.twig' with { entries: navigation } %}
     </section>

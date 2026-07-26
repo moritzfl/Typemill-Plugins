@@ -1,14 +1,14 @@
 {% extends 'layout.twig' %}
 
-{% block title %}{{ settings.themes.legible.notFoundTitle|default('Page not found')|e }} | {{ settings.title|e }}{% endblock %}
+{% block title %}{{ settings.themes.legible.notFoundTitle|default(translate('Page not found'))|e }} | {{ settings.title|e }}{% endblock %}
 
 {% block content %}
   <div class="lg-container">
     <article class="lg-article lg-measure">
-      <h1 class="lg-article__title">{{ settings.themes.legible.notFoundTitle|default('Page not found')|e }}</h1>
+      <h1 class="lg-article__title">{{ settings.themes.legible.notFoundTitle|default(translate('Page not found'))|e }}</h1>
       <div class="lg-prose">
-        <p>{{ settings.themes.legible.notFoundText|default('The page you were looking for is not here. It may have been moved or removed.')|e }}</p>
-        <p><a href="{{ base_url }}">{{ settings.themes.legible.homeLabel|default('Home')|e }}</a></p>
+        <p>{{ settings.themes.legible.notFoundText|default(translate('The page you were looking for is not here. It may have been moved or removed.'))|e }}</p>
+        <p><a href="{{ base_url }}">{{ settings.themes.legible.homeLabel|default(translate('Home'))|e }}</a></p>
       </div>
     </article>
   </div>

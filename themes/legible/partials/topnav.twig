@@ -20,7 +20,7 @@
     </a>
 
     <nav class="lg-nav" id="main-navigation" data-nav
-         aria-label="{{ theme.navLabel|default('Main')|e('html_attr') }}">
+         aria-label="{{ theme.navLabel|default(translate('Main'))|e('html_attr') }}">
 
       <ul class="lg-nav__list">
         {% for element in navigation %}
@@ -79,7 +79,7 @@
              stroke-width="2.4" aria-hidden="true">
           <path stroke-linecap="round" d="M3 7h18M3 12h18M3 17h18" />
         </svg>
-        {{ theme.menuLabel|default('Menu')|e }}
+        {{ theme.menuLabel|default(translate('Menu'))|e }}
       </button>
     </div>
 

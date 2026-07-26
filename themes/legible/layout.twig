@@ -69,8 +69,8 @@
 <body>
 
   <div class="lg-skips">
-    <a href="#main-content">{{ theme.skipContentText|default('Skip to content')|e }}</a>
-    <a href="#main-navigation">{{ theme.skipNavText|default('Skip to navigation')|e }}</a>
+    <a href="#main-content">{{ theme.skipContentText|default(translate('Skip to content'))|e }}</a>
+    <a href="#main-navigation">{{ theme.skipNavText|default(translate('Skip to navigation'))|e }}</a>
   </div>
 
   {% if is_loggedin() %}

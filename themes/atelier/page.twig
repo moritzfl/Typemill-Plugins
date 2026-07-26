@@ -55,16 +55,16 @@
   {% endif %}
 
   {% if item.prevItem or item.nextItem %}
-    <nav class="at-pager" aria-label="{{ theme.pagerLabel|default('Page')|e('html_attr') }}">
+    <nav class="at-pager" aria-label="{{ theme.pagerLabel|default(translate('Page'))|e('html_attr') }}">
       {% if item.prevItem %}
         <a class="at-pager__item" href="{{ item.prevItem.urlRel }}">
-          <span class="at-pager__label">{{ theme.previous|default('Previous')|e }}</span>
+          <span class="at-pager__label">{{ theme.previous|default(translate('Previous'))|e }}</span>
           <span class="at-pager__title">{{ item.prevItem.name|e }}</span>
         </a>
       {% endif %}
       {% if item.nextItem %}
         <a class="at-pager__item at-pager__item--next" href="{{ item.nextItem.urlRel }}">
-          <span class="at-pager__label">{{ theme.next|default('Next')|e }}</span>
+          <span class="at-pager__label">{{ theme.next|default(translate('Next'))|e }}</span>
           <span class="at-pager__title">{{ item.nextItem.name|e }}</span>
         </a>
       {% endif %}

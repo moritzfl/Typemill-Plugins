@@ -18,7 +18,7 @@
 
   <section class="lg-section lg-measure" aria-labelledby="lg-posts-title">
     <h2 class="lg-section__title" id="lg-posts-title">
-      {{ theme.postsTitle|default('Posts')|e }}
+      {{ theme.postsTitle|default(translate('Posts'))|e }}
     </h2>
 
     {% if pagelist.contains == 'posts' %}
@@ -28,7 +28,7 @@
       } %}
 
       {% if pages > 1 %}
-        <nav aria-label="{{ theme.paginationLabel|default('Pagination')|e('html_attr') }}">
+        <nav aria-label="{{ theme.paginationLabel|default(translate('Pagination'))|e('html_attr') }}">
           <ul class="lg-pagination">
             {% for i in 1..pages %}
               <li>
@@ -44,7 +44,7 @@
       {% endif %}
 
     {% else %}
-      <p>{{ theme.blogEmptyText|default('The configured folder does not contain posts. Check the folder in the theme settings.')|e }}</p>
+      <p>{{ theme.blogEmptyText|default(translate('The configured folder does not contain posts. Check the folder in the theme settings.'))|e }}</p>
     {% endif %}
   </section>
 

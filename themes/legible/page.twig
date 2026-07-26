@@ -32,23 +32,23 @@
   {% if isFolder %}
     <section class="lg-section lg-measure" aria-labelledby="lg-contents-title">
       <h2 class="lg-section__title" id="lg-contents-title">
-        {{ theme.contentsTitle|default('In this section')|e }}
+        {{ theme.contentsTitle|default(translate('In this section'))|e }}
       </h2>
       {% include 'partials/pagelist.twig' with { entries: item.folderContent } %}
     </section>
   {% endif %}
 
   {% if item.prevItem or item.nextItem %}
-    <nav class="lg-pager lg-measure" aria-label="{{ theme.pagerLabel|default('Previous and next page')|e('html_attr') }}">
+    <nav class="lg-pager lg-measure" aria-label="{{ theme.pagerLabel|default(translate('Previous and next page'))|e('html_attr') }}">
       {% if item.prevItem %}
         <a class="lg-pager__item" href="{{ item.prevItem.urlRel }}">
-          <span class="lg-pager__label">{{ theme.previous|default('Previous')|e }}</span>
+          <span class="lg-pager__label">{{ theme.previous|default(translate('Previous'))|e }}</span>
           <span class="lg-pager__title">{{ item.prevItem.name|e }}</span>
         </a>
       {% endif %}
       {% if item.nextItem %}
         <a class="lg-pager__item lg-pager__item--next" href="{{ item.nextItem.urlRel }}">
-          <span class="lg-pager__label">{{ theme.next|default('Next')|e }}</span>
+          <span class="lg-pager__label">{{ theme.next|default(translate('Next'))|e }}</span>
           <span class="lg-pager__title">{{ item.nextItem.name|e }}</span>
         </a>
       {% endif %}

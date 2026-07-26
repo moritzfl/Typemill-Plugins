@@ -39,7 +39,7 @@
           <div class="md-post__body">
             {% if element.elementType == 'folder' and element.folderContent|length > 0 %}
               <p class="md-post__meta">
-                <span>{{ element.folderContent|length }} {{ theme.sectionCountLabel|default('stories')|e }}</span>
+                <span>{{ element.folderContent|length }} {{ theme.sectionCountLabel|default(translate('stories'))|e }}</span>
               </p>
             {% endif %}
             <h2 class="md-post__title"><a href="{{ element.urlRel }}">{{ element.name|e }}</a></h2>

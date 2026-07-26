@@ -36,7 +36,7 @@
 </head>
 <body data-surface="{{ theme.surface|default('white')|e('html_attr') }}">
 
-  <a href="#main-content" class="at-skip">{{ theme.skipText|default('Skip to content')|e }}</a>
+  <a href="#main-content" class="at-skip">{{ theme.skipText|default(translate('Skip to content'))|e }}</a>
 
   {% if is_loggedin() %}
     <div class="at-admin"><a href="{{ base_url }}/tm/account">&#9881; Admin</a></div>
@@ -52,17 +52,17 @@
 
   {# The lightbox markup is inert until a picture is opened. #}
   <div class="at-lightbox" data-lightbox role="dialog" aria-modal="true"
-       aria-label="{{ theme.lightboxLabel|default('Image viewer')|e('html_attr') }}" hidden>
+       aria-label="{{ theme.lightboxLabel|default(translate('Image viewer'))|e('html_attr') }}" hidden>
     <button type="button" class="at-lightbox__btn at-lightbox__btn--close" data-lightbox-close
-            aria-label="{{ theme.closeLabel|default('Close')|e('html_attr') }}">&times;</button>
+            aria-label="{{ theme.closeLabel|default(translate('Close'))|e('html_attr') }}">&times;</button>
     <button type="button" class="at-lightbox__btn at-lightbox__btn--prev" data-lightbox-prev
-            aria-label="{{ theme.previous|default('Previous')|e('html_attr') }}">&#8249;</button>
+            aria-label="{{ theme.previous|default(translate('Previous'))|e('html_attr') }}">&#8249;</button>
     <figure class="at-lightbox__figure">
       <img alt="" data-lightbox-image />
       <figcaption class="at-lightbox__caption" data-lightbox-caption></figcaption>
     </figure>
     <button type="button" class="at-lightbox__btn at-lightbox__btn--next" data-lightbox-next
-            aria-label="{{ theme.next|default('Next')|e('html_attr') }}">&#8250;</button>
+            aria-label="{{ theme.next|default(translate('Next'))|e('html_attr') }}">&#8250;</button>
     <p class="at-lightbox__count" data-lightbox-count></p>
   </div>
 

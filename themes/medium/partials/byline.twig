@@ -25,7 +25,7 @@
         <span><time datetime="{{ published }}">{{ published|date(theme.dateFormat|default('M j, Y')) }}</time></span>
       {% endif %}
       {% if (theme.showReadingTime ?? true) %}
-        <span>{{ minutes }} {{ theme.readingTimeLabel|default('min read')|e }}</span>
+        <span>{{ minutes }} {{ theme.readingTimeLabel|default(translate('min read'))|e }}</span>
       {% endif %}
     </div>
   </div>

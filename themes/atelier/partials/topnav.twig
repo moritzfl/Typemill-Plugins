@@ -16,7 +16,7 @@
       {% endif %}
     </a>
 
-    <nav aria-label="{{ settings.themes.atelier.navLabel|default('Main')|e('html_attr') }}">
+    <nav aria-label="{{ settings.themes.atelier.navLabel|default(translate('Main'))|e('html_attr') }}">
       <ul class="at-nav__links">
         {% for element in navigation %}
           {% set children = element.elementType == 'folder' ? element.folderContent : [] %}
@@ -60,7 +60,7 @@
             class="at-nav__toggle"
             data-nav-toggle
             aria-expanded="false"
-            aria-label="{{ settings.themes.atelier.menuLabel|default('Menu')|e('html_attr') }}">
+            aria-label="{{ settings.themes.atelier.menuLabel|default(translate('Menu'))|e('html_attr') }}">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
         <path stroke-linecap="round" d="M3 7h18M3 12h18M3 17h18" />
       </svg>
