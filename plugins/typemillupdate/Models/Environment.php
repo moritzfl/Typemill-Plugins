@@ -156,7 +156,6 @@ class Environment
         $checks[] = $this->checkSystemLayout();
         $checks[] = $this->checkLegacyVendor();
         $checks[] = $this->checkRootWritable();
-        $checks[] = $this->checkSystemWritable();
         $checks[] = $this->checkUsableSpace();
         $checks[] = $this->checkOpcache();
 
@@ -164,12 +163,13 @@ class Environment
     }
 
     /**
-     * Bytes an update has to be able to write, measured from the core itself.
+     * Bytes an update has to be able to write, estimated from the core itself.
      *
-     * While it runs, an update holds a backup of the current core, the
-     * unpacked new one, and the archive it came from. The backup is a copy
-     * whenever the filesystem refuses to rename the core aside, so it is
-     * always counted. Three times the core covers all three with room over.
+     * An update writes the archive it downloads and the core it unpacks from
+     * it. The backup of the current core is a rename, so it costs nothing.
+     * Twice the current core covers both with room over, and is only an
+     * estimate: once the archive has been read, requiredForCore() gives the
+     * real figure and the probe is repeated.
      *
      * Sizes are rounded up to whole blocks, because a core is largely small
      * files: this one is 6.3 MB of content that occupies 9 MB on disk.
@@ -199,7 +199,21 @@ class Environment
             return self::MIN_PROBE_BYTES;
         }
 
-        return max(self::MIN_PROBE_BYTES, $onDisk * 3);
+        return max(self::MIN_PROBE_BYTES, $onDisk * 2);
+    }
+
+    /**
+     * Bytes needed to unpack a core of a known uncompressed size.
+     *
+     * Used once the archive has been inspected, because the estimate above is
+     * measured from the version being replaced and a release may be
+     * substantially larger than the one it supersedes. The archive itself is
+     * already on disk by then, so only the unpacked core is counted, plus a
+     * tenth for the slack that small files leave in their last block.
+     */
+    public static function requiredForCore(int $uncompressedBytes): int
+    {
+        return (int) ceil($uncompressedBytes * 1.1);
     }
 
     public static function isBlocked(array $checks): bool
@@ -294,30 +308,6 @@ class Environment
     }
 
     /**
-     * Whether the core can be replaced in place.
-     *
-     * The installer prefers renaming `system` aside, which is atomic. Some
-     * filesystems refuse to rename a directory at all - notably Docker's
-     * overlayfs, which returns EXDEV for directories that still live in the
-     * image's lower layer. There the installer copies instead, which needs
-     * `system` itself to be writable. This is reported rather than enforced,
-     * because either route alone is enough.
-     */
-    private function checkSystemWritable(): array
-    {
-        $system = $this->systemPath();
-        $writable = is_dir($system) && is_writable($system);
-
-        return $writable
-            ? $this->check('system_writable', true, false,
-                'Write access to the system directory is available.',
-                'system_writable_ok')
-            : $this->check('system_writable', true, false,
-                'The system directory is not writable. The update then depends on being able to rename it, which not every filesystem allows.',
-                'system_writable_readonly');
-    }
-
-    /**
      * Prove the space is really available to this account.
      *
      * disk_free_space() asks the filesystem, and a shared host gives every
@@ -332,41 +322,18 @@ class Environment
     private function checkUsableSpace(): array
     {
         $needed = $this->requiredBytes();
-        $path = $this->root . DIRECTORY_SEPARATOR . '.tm-update-space-' . bin2hex(random_bytes(6));
-        $handle = @fopen($path, 'wb');
+        $probe = $this->probeSpace($needed);
 
-        if ($handle === false) {
+        // How far the probe got is not reported: that figure is free space by
+        // another name, and free space is the number that cannot be trusted
+        // here. The answer is whether an update fits, and what it would take.
+        if ($probe['reason'] === 'nofile') {
             return $this->check('usable_space', false, true,
                 'A test file could not be created in ' . $this->root . '.',
                 'usable_space_nofile', ['root' => $this->root]);
         }
 
-        $chunk = str_repeat("\0", 1048576);
-        $written = 0;
-        $failed = false;
-
-        while ($written < $needed) {
-            $bytes = @fwrite($handle, $chunk);
-            if ($bytes === false || $bytes < strlen($chunk)) {
-                $failed = true;
-                break;
-            }
-            $written += $bytes;
-        }
-
-        // A quota can surface on flush rather than on write, when the buffer
-        // is handed to the filesystem.
-        if (!$failed && !@fflush($handle)) {
-            $failed = true;
-        }
-
-        @fclose($handle);
-        @unlink($path);
-
-        // How far the probe got is not reported: that figure is free space by
-        // another name, and free space is the number that cannot be trusted
-        // here. The answer is whether an update fits, and what it would take.
-        if ($failed) {
+        if (!$probe['ok']) {
             return $this->check('usable_space', false, true,
                 'Not enough space for an update; it needs ' . self::formatBytes($needed)
                     . '. On shared hosting this is usually the account quota.',
@@ -375,6 +342,52 @@ class Environment
 
         return $this->check('usable_space', true, true,
             'There is enough space for an update.', 'usable_space_ok');
+    }
+
+    /**
+     * Claim the bytes for real and release them again.
+     *
+     * @return array{ok: bool, reason: ?string} `reason` is 'nofile' when the
+     *         probe could not be created at all and 'short' when it ran out.
+     */
+    public function probeSpace(int $needed): array
+    {
+        $path = $this->root . DIRECTORY_SEPARATOR . '.tm-update-space-' . bin2hex(random_bytes(6));
+        $handle = @fopen($path, 'wb');
+
+        if ($handle === false) {
+            return ['ok' => false, 'reason' => 'nofile'];
+        }
+
+        $chunk = str_repeat("\0", 1048576);
+        $written = 0;
+        $failed = false;
+
+        while ($written < $needed) {
+            $length = (int) min(strlen($chunk), $needed - $written);
+            $bytes = @fwrite($handle, $chunk, $length);
+            if ($bytes === false || $bytes < $length) {
+                $failed = true;
+                break;
+            }
+            $written += $bytes;
+        }
+
+        // A quota can surface on flush rather than on write, when the buffer is
+        // handed to the filesystem, and on some filesystems only once the data
+        // is really allocated - which is what fsync waits for.
+        if (!$failed && !@fflush($handle)) {
+            $failed = true;
+        }
+
+        if (!$failed && function_exists('fsync') && !@fsync($handle)) {
+            $failed = true;
+        }
+
+        @fclose($handle);
+        @unlink($path);
+
+        return ['ok' => !$failed, 'reason' => $failed ? 'short' : null];
     }
 
     /**

@@ -280,6 +280,22 @@ class typemillupdate extends Plugin
             ], 409);
         }
 
+        // The preflight estimate is measured from the version being replaced.
+        // Now that the archive has been read, the real figure is known, so the
+        // space is claimed for real before anything is unpacked.
+        $needed = Environment::requiredForCore((int) ($meta['system_bytes'] ?? 0));
+        if ($needed > 0 && !$environment->probeSpace($needed)['ok']) {
+            $installer->cleanup();
+
+            return $this->jsonResponse($response, [
+                'message' => 'Typemill ' . $meta['version'] . ' needs ' . Environment::formatBytes($needed)
+                    . ' to unpack, and that much could not be written. On shared hosting this is usually the account quota.',
+                'message_key' => 'typemillupdate.msg_not_enough_space',
+                'message_params' => ['version' => $meta['version'], 'needed' => Environment::formatBytes($needed)],
+                'log' => $log,
+            ], 507);
+        }
+
         $staged = $installer->stage($archive, (string) ($meta['prefix'] ?? ''));
         if (!$staged['ok']) {
             $installer->cleanup();
@@ -304,10 +320,13 @@ class typemillupdate extends Plugin
                 $this->emitAndExit(['ok' => false, 'message' => $swap['error'], 'log' => $log], 500);
             }
 
-            return $this->jsonResponse($response, ['message' => $swap['error'], 'log' => $log], 500);
+            return $this->jsonResponse($response, [
+                'message' => $swap['error'],
+                'message_key' => $swap['error_key'] ?? null,
+                'log' => $log,
+            ], 500);
         }
-        $log[] = 'Replaced system/ with Typemill ' . $meta['version']
-            . ($swap['method'] === 'copy' ? ' (in-place copy; this filesystem does not allow directory renames).' : ' (atomic rename).');
+        $log[] = 'Replaced system/ with Typemill ' . $meta['version'] . '.';
 
         if ($installer->clearTwigCache()) {
             $log[] = 'Cleared the compiled Twig cache.';
@@ -347,7 +366,6 @@ class typemillupdate extends Plugin
             'previous' => $installed,
             'installed' => $meta['version'],
             'backup' => basename((string) $swap['backup']),
-            'method' => $swap['method'],
             'log' => $log,
         ], 200);
     }
@@ -463,7 +481,10 @@ class typemillupdate extends Plugin
                 $this->emitAndExit(['ok' => false, 'message' => $result['error']], 500);
             }
 
-            return $this->jsonResponse($response, ['message' => $result['error']], 500);
+            return $this->jsonResponse($response, [
+                'message' => $result['error'],
+                'message_key' => $result['error_key'] ?? null,
+            ], 500);
         }
 
         $installer->clearTwigCache();
@@ -473,7 +494,6 @@ class typemillupdate extends Plugin
             'message' => 'Restored the previous core.',
             'previous' => $previous,
             'installed' => $environment->installedVersion(),
-            'method' => $result['method'],
         ], 200);
     }
 

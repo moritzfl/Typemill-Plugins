@@ -13,6 +13,13 @@ use ZipArchive;
  * each rename is atomic. The backup is the rollback - it is a rename, not a
  * copy, so it costs nothing and always exists before the live tree moves.
  *
+ * Renaming is the only route. A filesystem that refuses to rename the core -
+ * Docker's overlayfs returns EXDEV for directories still in the image's lower
+ * layer - stops the update before anything is touched, rather than falling back
+ * to copying over the live tree. Copying cannot be undone as one step, so a
+ * failure part way through leaves a half-replaced core; refusing leaves a
+ * working site and a manual update to do.
+ *
  * Every operation that could leave the site without a working core validates
  * that the tree it is about to install actually looks like a core, and reports
  * through a `touched` flag whether the live installation was modified.
@@ -55,14 +62,15 @@ class Installer
     }
 
     /**
-     * A directory is only treated as a core if it carries the two things the
-     * site cannot boot without. Everything that installs or restores a tree
-     * checks this first, so an empty or truncated directory can never be moved
-     * over the live core.
+     * A directory is only treated as a core if it carries the things the site
+     * cannot boot without. Everything that installs or restores a tree checks
+     * this first, so an empty or truncated directory can never be moved over
+     * the live core.
      */
     public static function looksLikeCore(string $path): bool
     {
-        return is_dir($path . DIRECTORY_SEPARATOR . 'typemill')
+        return is_file($path . DIRECTORY_SEPARATOR . 'autoload.php')
+            && is_dir($path . DIRECTORY_SEPARATOR . 'typemill')
             && is_file($path . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
     }
 
@@ -153,11 +161,14 @@ class Installer
     /**
      * Put the staged core in place, keeping the old one as a backup.
      *
-     * Renaming is tried first because it is atomic and free. A failed rename
-     * changes nothing, so falling back to copying afterwards is safe. The
-     * fallback exists because some filesystems refuse to rename directories at
-     * all: Docker's overlayfs returns EXDEV for any directory still living in
-     * the image's lower layer, and network mounts such as CIFS behave similarly.
+     * Two renames, both inside the project root: the live core moves into the
+     * backup, the staged core moves into its place. There is a sub-millisecond
+     * window between them in which `system` does not exist, and a request
+     * landing exactly there fails. That cannot be closed from PHP alone; it can
+     * only be kept short.
+     *
+     * A filesystem that will not rename the core stops the update here, with
+     * nothing changed.
      *
      * The returned `touched` flag says whether the live core was modified. When
      * it is true the caller must not rely on the framework any more, because a
@@ -169,34 +180,11 @@ class Installer
             return ['ok' => false, 'touched' => false, 'error' => 'The core to install is incomplete.'];
         }
 
-        $result = $this->installByRename($stagedSystem);
-
-        if ($result['ok'] || empty($result['retryable'])) {
-            return $result;
-        }
-
-        $copy = $this->installByCopy($stagedSystem);
-        if (!$copy['ok'] && isset($result['error'])) {
-            $copy['error'] .= ' (renaming was not possible either: ' . $result['error'] . ')';
-        }
-
-        return $copy;
-    }
-
-    /**
-     * Atomic route.
-     *
-     * There is a sub-millisecond window between the two renames in which
-     * `system` does not exist. A request landing exactly there fails. That
-     * cannot be closed from PHP alone; it can only be kept short.
-     */
-    private function installByRename(string $stagedSystem): array
-    {
         $system = $this->environment->systemPath();
         $backup = $this->backupPath();
 
         if (!@mkdir($backup, 0755, true) && !is_dir($backup)) {
-            return ['ok' => false, 'touched' => false, 'retryable' => false, 'error' => 'Could not create the backup directory.'];
+            return ['ok' => false, 'touched' => false, 'error' => 'Could not create the backup directory.'];
         }
 
         $backupSystem = $backup . DIRECTORY_SEPARATOR . 'system';
@@ -208,13 +196,11 @@ class Installer
             $reason = error_get_last()['message'] ?? '';
             @rmdir($backup);
 
-            // Nothing has been touched, so the caller may still try copying.
             return [
                 'ok' => false,
                 'touched' => false,
-                'retryable' => true,
-                'error' => 'the system directory could not be renamed'
-                    . ($reason !== '' ? ': ' . self::lastErrorDetail($reason) : ''),
+                'error' => self::renameRefusedMessage($reason),
+                'error_key' => 'typemillupdate.err_rename_unsupported',
             ];
         }
 
@@ -226,7 +212,6 @@ class Installer
             return [
                 'ok' => false,
                 'touched' => !$restored,
-                'retryable' => false,
                 'error' => $restored
                     ? 'Could not move the new core into place. The previous core was restored.'
                     : 'Could not move the new core into place, and restoring the previous core failed. The previous core is at ' . $backupSystem . '.',
@@ -236,60 +221,14 @@ class Installer
         clearstatcache(true);
         $this->resetOpcache();
 
-        return ['ok' => true, 'touched' => true, 'error' => null, 'backup' => $backup, 'method' => 'rename'];
-    }
-
-    /**
-     * Copy route, for filesystems that will not rename directories.
-     *
-     * This is not atomic. To avoid ever leaving `system` empty, the new files
-     * are written over the old ones and only then are leftovers from the
-     * previous version removed. A verified full copy of the old core is taken
-     * first, so a failure part way through can still be undone.
-     */
-    private function installByCopy(string $stagedSystem): array
-    {
-        $system = $this->environment->systemPath();
-        $backup = $this->backupPath();
-        $backupSystem = $backup . DIRECTORY_SEPARATOR . 'system';
-
-        if (!@mkdir($backup, 0755, true) && !is_dir($backup)) {
-            return ['ok' => false, 'touched' => false, 'error' => 'Could not create the backup directory.'];
-        }
-
-        // The backup is the only way back, so it is verified before the live
-        // core is written to.
-        if (!$this->copyTree($system, $backupSystem) || !self::looksLikeCore($backupSystem)) {
-            $this->removeDirectory($backup);
-
-            return ['ok' => false, 'touched' => false, 'error' => 'Could not copy the current core to a backup, so nothing was changed.'];
-        }
-
-        $this->resetOpcache();
-
-        if (!$this->mergeTree($stagedSystem, $system)) {
-            $restored = $this->mergeTree($backupSystem, $system);
-
-            return [
-                'ok' => false,
-                'touched' => true,
-                'error' => $restored
-                    ? 'Could not copy the new core into place. The previous core was restored.'
-                    : 'Could not copy the new core into place, and restoring the previous core failed. The previous core is at ' . $backupSystem . '.',
-            ];
-        }
-
-        clearstatcache(true);
-        $this->resetOpcache();
-
-        return ['ok' => true, 'touched' => true, 'error' => null, 'backup' => $backup, 'method' => 'copy'];
+        return ['ok' => true, 'touched' => true, 'error' => null, 'backup' => $backup];
     }
 
     /**
      * Put a stored core back in place.
      *
-     * Mirrors install(): rename if the filesystem allows it, otherwise copy the
-     * backup over the current core and remove whatever the newer version added.
+     * Mirrors install(): renames only, so a filesystem that will not rename the
+     * core leaves the site exactly as it was.
      */
     public function rollback(string $backupDirectory): array
     {
@@ -309,150 +248,49 @@ class Installer
         $parked = $this->environment->workPath() . DIRECTORY_SEPARATOR
             . 'backup-' . date('Ymd-His') . '-' . bin2hex(random_bytes(3));
 
+        if (!@mkdir($parked, 0755, true) && !is_dir($parked)) {
+            return ['ok' => false, 'touched' => false, 'error' => 'Could not create a directory for the core being replaced.'];
+        }
+
+        $parkedSystem = $parked . DIRECTORY_SEPARATOR . 'system';
+
         $this->resetOpcache();
 
-        if (@mkdir($parked, 0755, true) || is_dir($parked)) {
-            $parkedSystem = $parked . DIRECTORY_SEPARATOR . 'system';
+        error_clear_last();
+        if (!@rename($system, $parkedSystem)) {
+            $reason = error_get_last()['message'] ?? '';
+            @rmdir($parked);
 
-            if (@rename($system, $parkedSystem)) {
-                if (@rename($backupSystem, $system)) {
-                    clearstatcache(true);
-                    $this->resetOpcache();
-
-                    return ['ok' => true, 'touched' => true, 'error' => null, 'method' => 'rename'];
-                }
-
-                // Could not complete the swap - undo the first move.
-                if (!@rename($parkedSystem, $system)) {
-                    return [
-                        'ok' => false,
-                        'touched' => true,
-                        'error' => 'Could not restore the backup, and the current core could not be put back. It is at ' . $parkedSystem . '.',
-                    ];
-                }
-            }
-
-            // Only discard the parked directory when it does not hold the only
-            // copy of a core.
-            if (!is_dir($parkedSystem)) {
-                $this->removeDirectory($parked);
-            }
+            return [
+                'ok' => false,
+                'touched' => false,
+                'error' => self::renameRefusedMessage($reason),
+                'error_key' => 'typemillupdate.err_rename_unsupported',
+            ];
         }
 
-        if (!$this->mergeTree($backupSystem, $system)) {
-            return ['ok' => false, 'touched' => true, 'error' => 'Could not restore the backup. It is still at ' . $backupSystem . '.'];
+        if (!@rename($backupSystem, $system)) {
+            if (!@rename($parkedSystem, $system)) {
+                return [
+                    'ok' => false,
+                    'touched' => true,
+                    'error' => 'Could not restore the backup, and the current core could not be put back. It is at ' . $parkedSystem . '.',
+                ];
+            }
+
+            @rmdir($parked);
+
+            return ['ok' => false, 'touched' => false, 'error' => 'Could not restore the backup. The current core was put back.'];
         }
+
+        // The restored backup directory is empty now; rmdir only succeeds if
+        // that is really the case.
+        @rmdir($backupDirectory);
 
         clearstatcache(true);
         $this->resetOpcache();
 
-        return ['ok' => true, 'touched' => true, 'error' => null, 'method' => 'copy'];
-    }
-
-    /**
-     * Recursive copy.
-     *
-     * Fails rather than skipping when it meets a symlink: the core ships none,
-     * so one that is present was put there deliberately and silently dropping
-     * it would produce a backup that cannot restore the installation.
-     */
-    private function copyTree(string $source, string $destination): bool
-    {
-        if (is_link($source) || !is_dir($source)) {
-            return false;
-        }
-
-        $entries = @scandir($source);
-        if ($entries === false) {
-            return false;
-        }
-
-        if (!is_dir($destination) && !@mkdir($destination, 0755, true) && !is_dir($destination)) {
-            return false;
-        }
-
-        foreach ($entries as $entry) {
-            if ($entry === '.' || $entry === '..') {
-                continue;
-            }
-
-            $from = $source . DIRECTORY_SEPARATOR . $entry;
-            $to = $destination . DIRECTORY_SEPARATOR . $entry;
-
-            if (is_link($from)) {
-                return false;
-            }
-
-            if (is_dir($from)) {
-                if (!$this->copyTree($from, $to)) {
-                    return false;
-                }
-                continue;
-            }
-
-            if (!@copy($from, $to)) {
-                return false;
-            }
-
-            $mode = @fileperms($from);
-            if ($mode !== false) {
-                @chmod($to, $mode & 0777);
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Copy a core over another one, then drop whatever the source no longer
-     * has. The source is checked first: pruning against an empty or partial
-     * tree would delete the destination instead of updating it.
-     */
-    private function mergeTree(string $source, string $destination): bool
-    {
-        if (!self::looksLikeCore($source)) {
-            return false;
-        }
-
-        if (!$this->copyTree($source, $destination)) {
-            return false;
-        }
-
-        return $this->pruneExtras($source, $destination);
-    }
-
-    private function pruneExtras(string $source, string $destination): bool
-    {
-        $entries = @scandir($destination);
-        if ($entries === false) {
-            return false;
-        }
-
-        $ok = true;
-
-        foreach ($entries as $entry) {
-            if ($entry === '.' || $entry === '..') {
-                continue;
-            }
-
-            $counterpart = $source . DIRECTORY_SEPARATOR . $entry;
-            $current = $destination . DIRECTORY_SEPARATOR . $entry;
-
-            if (!file_exists($counterpart)) {
-                if (is_dir($current) && !is_link($current)) {
-                    $ok = $this->removeDirectory($current) && $ok;
-                } else {
-                    $ok = @unlink($current) && $ok;
-                }
-                continue;
-            }
-
-            if (is_dir($current) && is_dir($counterpart) && !is_link($current)) {
-                $ok = $this->pruneExtras($counterpart, $current) && $ok;
-            }
-        }
-
-        return $ok;
+        return ['ok' => true, 'touched' => true, 'error' => null];
     }
 
     /**
@@ -680,6 +518,17 @@ class Installer
         }
 
         return @rmdir($real) && $ok;
+    }
+
+    /**
+     * The one failure an ordinary installation can run into that is not a
+     * mistake by the admin, so it says what happened and what it means.
+     */
+    private static function renameRefusedMessage(string $reason): string
+    {
+        return 'This filesystem does not allow the system directory to be renamed, '
+            . 'so the update was stopped before anything was changed. Update manually instead'
+            . ($reason !== '' ? ': ' . self::lastErrorDetail($reason) : '.');
     }
 
     private static function lastErrorDetail(string $message): string

@@ -9,11 +9,11 @@ use Plugins\typemillupdate\Models\Installer;
 /**
  * Installing and rolling back a core.
  *
- * The installer has two routes. Renaming is preferred because it is atomic, but
- * some filesystems refuse to rename directories at all - Docker's overlayfs
- * returns EXDEV for anything still in the image's lower layer - so there is a
- * copy fallback. Both are covered here; the copy route is reached through
- * reflection because in a temporary directory renaming always succeeds.
+ * The installer only ever renames. A filesystem that refuses to rename the core
+ * - Docker's overlayfs returns EXDEV for anything still in the image's lower
+ * layer - stops the update instead of copying over the live tree, so the tests
+ * here are about the swap doing what it says and about every refusal leaving
+ * the installation untouched.
  */
 class TypemillUpdateInstallTest extends TestCase
 {
@@ -46,37 +46,6 @@ class TypemillUpdateInstallTest extends TestCase
         $this->assertBackupHoldsPreviousCore($result['backup']);
     }
 
-    /**
-     * The copy route overwrites in place, so files that the new version no
-     * longer ships have to be pruned explicitly. Missing that would leave stale
-     * core files behind.
-     */
-    public function testCopyInstallRemovesFilesTheNewVersionDropped(): void
-    {
-        $installer = $this->prepare();
-
-        $method = new \ReflectionMethod($installer, 'installByCopy');
-        $result = $method->invoke($installer, $this->stagedSystem($installer));
-
-        $this->assertTrue($result['ok'], $result['error'] ?? '');
-        $this->assertSame('copy', $result['method']);
-        $this->assertNewCoreIsInstalled();
-        $this->assertBackupHoldsPreviousCore($result['backup']);
-    }
-
-    public function testCopyInstallNeverLeavesTheCoreMissing(): void
-    {
-        $installer = $this->prepare();
-
-        $method = new \ReflectionMethod($installer, 'installByCopy');
-        $method->invoke($installer, $this->stagedSystem($installer));
-
-        // The copy route writes over the live tree rather than moving it away,
-        // so the core exists throughout.
-        $this->assertDirectoryExists($this->root . '/system');
-        $this->assertFileExists($this->root . '/system/vendor/autoload.php');
-    }
-
     public function testRollbackRestoresThePreviousCore(): void
     {
         $installer = $this->prepare();
@@ -105,15 +74,11 @@ class TypemillUpdateInstallTest extends TestCase
         $this->assertTrue($rollback['ok'], $rollback['error'] ?? '');
         $this->assertSame('2.24.1', $this->installedVersion());
 
-        // Only the rename route can preserve it; the copy route overwrites the
-        // newer core in place.
-        if ($rollback['method'] === 'rename') {
-            $this->assertContains(
-                '2.25.0',
-                array_column($installer->listBackups(), 'version'),
-                'the core rolled back from should remain restorable'
-            );
-        }
+        $this->assertContains(
+            '2.25.0',
+            array_column($installer->listBackups(), 'version'),
+            'the core rolled back from should remain restorable'
+        );
     }
 
     public function testBackupsAreListedNewestFirstWithTheirVersion(): void
@@ -173,54 +138,50 @@ class TypemillUpdateInstallTest extends TestCase
     }
 
     /**
-     * Merging prunes whatever the source does not have, so an empty source
-     * would erase the destination instead of updating it.
+     * A core the site cannot boot from must never be moved into place, however
+     * complete the rest of the tree looks.
      */
-    public function testMergingRefusesASourceThatIsNotACore(): void
+    public function testInstallRefusesACoreWithoutTheEntryPoint(): void
     {
         $installer = $this->prepare();
-        $method = new \ReflectionMethod($installer, 'mergeTree');
 
-        $emptySource = $this->root . '/empty-source';
-        mkdir($emptySource, 0777, true);
+        $staged = $this->stagedSystem($installer);
+        unlink($staged . '/autoload.php');
 
-        $this->assertFalse($method->invoke($installer, $emptySource, $this->root . '/system'));
+        $result = $installer->install($staged);
 
-        $this->assertFileExists($this->root . '/system/vendor/autoload.php');
-        $this->assertFileExists($this->root . '/system/typemill/settings/defaults.yaml');
+        $this->assertFalse($result['ok']);
+        $this->assertFalse($result['touched']);
         $this->assertSame('2.24.1', $this->installedVersion());
     }
 
-    public function testCopyingReportsFailureForAMissingSource(): void
+    public function testRollbackRefusesABackupWithoutTheEntryPoint(): void
     {
         $installer = $this->prepare();
-        $method = new \ReflectionMethod($installer, 'copyTree');
 
-        $this->assertFalse($method->invoke($installer, $this->root . '/does-not-exist', $this->root . '/copy-target'));
+        $backup = $this->root . '/.tm-update/backup-noentry';
+        $this->writeAbsolute($backup . '/system/typemill/settings/defaults.yaml', "version: '2.20.0'\n");
+        $this->writeAbsolute($backup . '/system/vendor/autoload.php', '<?php');
+
+        $result = $installer->rollback($backup);
+
+        $this->assertFalse($result['ok']);
+        $this->assertFalse($result['touched']);
+        $this->assertSame('2.24.1', $this->installedVersion());
     }
 
     /**
-     * scandir() returning false must not read as "an empty directory, copied
-     * successfully" - that would produce an empty backup reported as taken.
+     * The copy fallback is gone on purpose: a half-copied core cannot be undone
+     * in one step. Nothing may write into the live tree file by file.
      */
-    public function testCopyingReportsFailureWhenTheSourceCannotBeRead(): void
+    public function testTheInstallerOnlyEverRenames(): void
     {
-        if (function_exists('posix_geteuid') && posix_geteuid() === 0) {
-            $this->markTestSkipped('Running as root, where permission bits do not restrict access.');
+        foreach (['installByCopy', 'copyTree', 'mergeTree', 'pruneExtras'] as $gone) {
+            $this->assertFalse(
+                method_exists(Installer::class, $gone),
+                $gone . '() would write into the live core file by file'
+            );
         }
-
-        $installer = $this->prepare();
-
-        $unreadable = $this->root . '/unreadable';
-        mkdir($unreadable . '/typemill', 0777, true);
-        chmod($unreadable, 0000);
-
-        $method = new \ReflectionMethod($installer, 'copyTree');
-        $result = $method->invoke($installer, $unreadable, $this->root . '/copy-target');
-
-        chmod($unreadable, 0777);
-
-        $this->assertFalse($result);
     }
 
     public function testIncompleteBackupsAreNotOffered(): void

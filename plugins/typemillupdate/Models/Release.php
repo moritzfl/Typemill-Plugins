@@ -25,8 +25,16 @@ class Release
     /** Cap on the transfer itself. The published release is around 2.5 MB. */
     public const MAX_DOWNLOAD_BYTES = 134217728; // 128 MB
 
-    /** An archive without these is not a usable Typemill release. */
+    /**
+     * An archive without these is not a usable Typemill release.
+     *
+     * These three are what the site boots from: the entry point of the core,
+     * the file the version is read from, and the Composer autoloader. Nothing
+     * further is demanded, because the layout inside the core is Typemill's
+     * business and may change between releases.
+     */
     public const REQUIRED_ENTRIES = [
+        'system/autoload.php',
         'system/typemill/settings/defaults.yaml',
         'system/vendor/autoload.php',
     ];

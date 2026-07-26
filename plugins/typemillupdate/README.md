@@ -30,14 +30,18 @@ This matches Typemill's [documented manual procedure](https://docs.typemill.net/
 2. **Download** — fetches the release archive from `typemill.net`. The GitHub tag is deliberately
    not used: it excludes `system/vendor` and would need Composer on the server.
 3. **Verify** — rejects unsafe entry paths, caps entry count and uncompressed size, and insists on
+   the three files the site boots from: `system/autoload.php`,
    `system/typemill/settings/defaults.yaml` and `system/vendor/autoload.php`. The version and the
    minimum PHP version are read out of the archive, so an incompatible release is refused while the
-   site is still untouched.
+   site is still untouched. The space the unpacked core really needs is claimed and released once
+   the archive has been read, because the preflight figure is only an estimate from the version
+   being replaced.
 4. **Stage** — extracts **only** `system/**`. The published archive is a full fresh-install image
    that also contains demo content, media and settings; unpacking it wholesale would overwrite the
    site.
 5. **Swap** — renames the current `system` aside into a backup, then renames the staged core into
-   place. Both renames happen inside the project root, so each is atomic.
+   place. Both renames happen inside the project root, so each is atomic. If the filesystem refuses
+   to rename the core, the update stops there with nothing changed.
 6. **Self-test** — requests the site over HTTP. A 5xx triggers an automatic rollback. A connection
    failure is treated as inconclusive and does not roll back, since the server may simply be unable
    to reach itself.
@@ -106,6 +110,11 @@ backups once you no longer need them.
 - PHP must be able to create and rename entries in the project root. If the files belong to an FTP
   user and PHP runs as the web server user, the preflight check reports this and the update is
   refused. There is no FTP fallback.
+- The filesystem must allow `system` itself to be renamed. Docker's overlayfs returns `EXDEV` for
+  directories still in the image's lower layer, and some network mounts behave similarly. There is
+  no copy fallback: replacing a core file by file cannot be undone in one step, so a failure part
+  way through would leave a half-replaced core. The update stops instead, before anything is
+  touched, and the site keeps running on the version it has.
 - Installations older than Typemill 2.23 keep Composer packages in `<root>/vendor` rather than
   `system/vendor`. Those are refused, because replacing only `system` would leave the dependencies
   stale.
@@ -125,7 +134,3 @@ backups once you no longer need them.
 - There is a sub-millisecond window during the swap in which `system` does not exist, and a request
   landing exactly there fails. Typemill has no maintenance mode, and this cannot be closed from PHP
   alone.
-- On filesystems that refuse to rename directories — Docker's overlayfs returns `EXDEV` for
-  directories still in the image's lower layer — the plugin falls back to copying the new core over
-  the old one and then removing files the new version no longer ships. That route is not atomic, so
-  a full copy of the previous core is taken first.

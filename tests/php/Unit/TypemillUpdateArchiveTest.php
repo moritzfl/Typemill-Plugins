@@ -61,6 +61,42 @@ class TypemillUpdateArchiveTest extends TestCase
         $this->assertStringContainsString('system/vendor/autoload.php', $result['error']);
     }
 
+    /**
+     * The entry point is what the site boots from, so an archive without it is
+     * not installable however complete the rest looks.
+     */
+    public function testArchiveWithoutTheCoreEntryPointIsRejected(): void
+    {
+        $entries = $this->releaseEntries();
+        unset($entries['system/autoload.php']);
+
+        $zipPath = $this->root . '/noentry.zip';
+        $this->makeZip($zipPath, $entries);
+
+        $result = (new Release(new Environment($this->root)))->inspectArchive($zipPath);
+
+        $this->assertFalse($result['ok']);
+        $this->assertStringContainsString('system/autoload.php', $result['error']);
+    }
+
+    /**
+     * A ZIP holding just the two files the old check asked for is not a core.
+     * Staging it and moving it over the live tree would take the site down.
+     */
+    public function testAlmostEmptyArchiveIsRejected(): void
+    {
+        $zipPath = $this->root . '/almost-empty.zip';
+        $this->makeZip($zipPath, [
+            'system/typemill/settings/defaults.yaml' => "version: '2.25.0'\n",
+            'system/vendor/autoload.php' => '<?php',
+        ]);
+
+        $environment = new Environment($this->root);
+
+        $this->assertFalse((new Release($environment))->inspectArchive($zipPath)['ok']);
+        $this->assertFalse((new Installer($environment))->stage($zipPath)['ok']);
+    }
+
     public function testArchiveWithoutDefaultsYamlIsRejected(): void
     {
         $entries = $this->releaseEntries();

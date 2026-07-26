@@ -43,8 +43,6 @@ TYPEMILLUPDATE_CHECK_VENDOR_LOCATION_LEGACY: This installation keeps Composer pa
 TYPEMILLUPDATE_CHECK_ROOT_WRITABLE_OK: PHP can create and rename entries in the project root.
 TYPEMILLUPDATE_CHECK_ROOT_WRITABLE_NOCREATE: PHP cannot create entries in {root}. This usually means the files belong to a different user than the web server.
 TYPEMILLUPDATE_CHECK_ROOT_WRITABLE_NORENAME: PHP cannot rename entries in {root}, which the update needs in order to swap the system directory.
-TYPEMILLUPDATE_CHECK_SYSTEM_WRITABLE_OK: Write access to the system directory is available.
-TYPEMILLUPDATE_CHECK_SYSTEM_WRITABLE_READONLY: The system directory is not writable. The update then depends on being able to rename it, which not every filesystem allows.
 TYPEMILLUPDATE_CHECK_OPCACHE_OFF: OPcache is not enabled.
 TYPEMILLUPDATE_CHECK_OPCACHE_RESET: OPcache is enabled and will be reset after the swap.
 TYPEMILLUPDATE_CHECK_OPCACHE_RESET_STALE: "OPcache runs with validate_timestamps off; it will be reset after the swap."
@@ -73,3 +71,5 @@ TYPEMILLUPDATE_MSG_UPLOAD_PHP_TOO_OLD: "That archive contains Typemill {version}
 TYPEMILLUPDATE_CHECK_USABLE_SPACE_OK: There is enough space for an update.
 TYPEMILLUPDATE_CHECK_USABLE_SPACE_SHORT: "Not enough space for an update; it needs {needed}. On shared hosting this is usually the account quota."
 TYPEMILLUPDATE_CHECK_USABLE_SPACE_NOFILE: A test file could not be created in {root}.
+TYPEMILLUPDATE_MSG_NOT_ENOUGH_SPACE: "Typemill {version} needs {needed} to unpack, and that much could not be written. On shared hosting this is usually the account quota."
+TYPEMILLUPDATE_ERR_RENAME_UNSUPPORTED: This filesystem does not allow the system directory to be renamed, so the update was stopped before anything was changed. Update manually instead.

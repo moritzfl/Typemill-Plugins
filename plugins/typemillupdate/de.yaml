@@ -43,8 +43,6 @@ TYPEMILLUPDATE_CHECK_VENDOR_LOCATION_LEGACY: Diese Installation hält die Compos
 TYPEMILLUPDATE_CHECK_ROOT_WRITABLE_OK: PHP kann im Projektverzeichnis Einträge anlegen und umbenennen.
 TYPEMILLUPDATE_CHECK_ROOT_WRITABLE_NOCREATE: PHP kann in {root} keine Einträge anlegen. Meist gehören die Dateien einem anderen Benutzer als dem Webserver.
 TYPEMILLUPDATE_CHECK_ROOT_WRITABLE_NORENAME: PHP kann in {root} keine Einträge umbenennen, was das Update braucht, um das system-Verzeichnis auszutauschen.
-TYPEMILLUPDATE_CHECK_SYSTEM_WRITABLE_OK: Schreibzugriff auf das system-Verzeichnis ist vorhanden.
-TYPEMILLUPDATE_CHECK_SYSTEM_WRITABLE_READONLY: Das system-Verzeichnis ist nicht beschreibbar. Das Update hängt dann davon ab, dass es umbenannt werden kann, was nicht jedes Dateisystem erlaubt.
 TYPEMILLUPDATE_CHECK_OPCACHE_OFF: OPcache ist nicht aktiv.
 TYPEMILLUPDATE_CHECK_OPCACHE_RESET: OPcache ist aktiv und wird nach dem Austausch zurückgesetzt.
 TYPEMILLUPDATE_CHECK_OPCACHE_RESET_STALE: "OPcache läuft mit abgeschaltetem validate_timestamps; er wird nach dem Austausch zurückgesetzt."
@@ -73,3 +71,5 @@ TYPEMILLUPDATE_MSG_UPLOAD_PHP_TOO_OLD: "Das Archiv enthält Typemill {version} u
 TYPEMILLUPDATE_CHECK_USABLE_SPACE_OK: Es ist genug Speicherplatz für ein Update vorhanden.
 TYPEMILLUPDATE_CHECK_USABLE_SPACE_SHORT: "Zu wenig Speicherplatz für ein Update; benötigt werden {needed}. Auf Shared Hosting liegt das meist am Speicherkontingent des Kontos."
 TYPEMILLUPDATE_CHECK_USABLE_SPACE_NOFILE: In {root} konnte keine Testdatei angelegt werden.
+TYPEMILLUPDATE_MSG_NOT_ENOUGH_SPACE: "Typemill {version} braucht {needed} zum Entpacken, und so viel konnte nicht geschrieben werden. Auf Shared Hosting liegt das meist am Speicherkontingent des Kontos."
+TYPEMILLUPDATE_ERR_RENAME_UNSUPPORTED: Dieses Dateisystem erlaubt es nicht, das system-Verzeichnis umzubenennen. Das Update wurde gestoppt, bevor etwas verändert wurde. Bitte manuell aktualisieren.
