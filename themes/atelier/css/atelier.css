@@ -15,7 +15,11 @@
 
     --at-text: #16161a;
     --at-text-secondary: #6f6f78;
-    --at-text-tertiary: #9a9aa2;
+    /* Tertiary carries 11px labels, dates and breadcrumbs. At that size the
+       grey it wants to be - #9a9aa2 - reads at 2.6:1 on the warm surface, so it
+       is as dark as the secondary tone and the step between them is left to
+       size and tracking instead. */
+    --at-text-tertiary: #6f6f78;
     --at-bg: #ffffff;
     --at-bg-alt: #f4f4f2;
     --at-border: #e4e4e0;
@@ -41,7 +45,9 @@
     :root {
         --at-text: #f2f2f0;
         --at-text-secondary: #a6a6ad;
-        --at-text-tertiary: #7c7c85;
+        /* Lifted for the same reason, and measured against the warm dark
+           surface below, which is the lightest of the three. */
+        --at-text-tertiary: #93939c;
         --at-bg: #0e0e10;
         --at-bg-alt: #17171a;
         --at-border: #26262b;
@@ -75,7 +81,7 @@ body[data-surface="warm"] {
 body[data-surface="dark"] {
     --at-text: #f2f2f0;
     --at-text-secondary: #a6a6ad;
-    --at-text-tertiary: #7c7c85;
+    --at-text-tertiary: #93939c;
     --at-bg: #0e0e10;
     --at-bg-alt: #17171a;
     --at-border: #26262b;
@@ -185,6 +191,27 @@ a {
     margin-bottom: calc(var(--at-nav-height) * -1);
     color: var(--at-on-dark);
     text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
+}
+
+/*
+ * The bar carries its own shade, because the picture underneath is the
+ * author's and may be anything. The hero's scrim alone left the links at
+ * 4.1:1 over a pale photograph - a shadow behind the letters makes them
+ * legible to the eye but does nothing for the measurement, or for a reader
+ * who needs the contrast. It fades out downwards so the picture is only
+ * darkened where the lettering is.
+ */
+.at-nav--overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.28));
+    pointer-events: none;
+}
+
+.at-nav--overlay.is-solid::before {
+    content: none;
 }
 
 .at-nav__inner {

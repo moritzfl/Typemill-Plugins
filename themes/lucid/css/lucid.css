@@ -18,7 +18,11 @@
 
     --lc-text: #1d1d1f;
     --lc-text-secondary: #6e6e73;
-    --lc-text-tertiary: #86868b;
+    /* Tertiary sets 12-14px dates, breadcrumbs, pager labels and footer text.
+       The lighter grey this palette wants - #86868b - reads at 3.3:1 on the
+       alternating surface, so at this size it goes as dark as the secondary
+       tone and the step between the two is left to size. */
+    --lc-text-tertiary: #6e6e73;
     --lc-bg: #ffffff;
     --lc-bg-alt: #f5f5f7;
     --lc-bg-elevated: #ffffff;

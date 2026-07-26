@@ -19,7 +19,9 @@
 
     --md-text: #242424;
     --md-text-secondary: #6b6b6b;
-    --md-text-tertiary: #8c8c8c;
+    /* Carries 13px metadata, captions and breadcrumbs, so it has to clear
+       4.5:1 on the tinted surface as well as on white; #8c8c8c reached 3.2:1. */
+    --md-text-tertiary: #737373;
     --md-bg: #ffffff;
     --md-bg-alt: #fafafa;
     --md-border: #e6e6e6;

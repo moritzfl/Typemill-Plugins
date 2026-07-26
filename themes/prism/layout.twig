@@ -211,6 +211,34 @@
       wide.addEventListener ? wide.addEventListener('change', onChange) : wide.addListener(onChange);
     })();
 
+    /* The floating bar is sticky, so it outlives the hero it floats on. Once
+       the hero has gone past, its white type would sit on the page itself, so
+       from that point the bar is painted as an ordinary solid one. */
+    (function () {
+      var nav = document.querySelector('.pr-nav--overlay');
+      var hero = document.querySelector('.pr-hero');
+      if (!nav || !hero) return;
+
+      var navHeight = nav.offsetHeight || 64;
+
+      function apply(solid) {
+        nav.classList.toggle('is-solid', solid);
+      }
+
+      if ('IntersectionObserver' in window) {
+        // The hero counts as gone once its lower edge slips behind the bar.
+        new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) { apply(!entry.isIntersecting); });
+        }, { rootMargin: (-navHeight) + 'px 0px 0px 0px', threshold: 0 }).observe(hero);
+      } else {
+        var onScroll = function () {
+          apply(hero.getBoundingClientRect().bottom <= navHeight);
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      }
+    })();
+
     (function () {
       // Only black, white and transparent count as monochrome.
       var ALLOWED = /^(none|transparent|currentcolor|inherit|black|white|#000|#000000|#fff|#ffffff|rgb\(\s*0\s*,\s*0\s*,\s*0\s*\)|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))$/i;

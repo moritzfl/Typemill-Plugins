@@ -31,8 +31,9 @@
     </div>
   </nav>
 
-  {# Prev / Next inline #}
-  <div class="hidden shrink-0 items-center gap-2 text-gray-400 dark:text-gray-500 sm:flex">
+  {# Prev / Next inline. Grey enough to stay quiet beside the breadcrumb, dark
+     enough to read: at 12px the lighter grey this used measured 2.6:1. #}
+  <div class="hidden shrink-0 items-center gap-2 text-gray-600 dark:text-gray-300 sm:flex">
     {% if item.prevItem %}
       <a href="{{ item.prevItem.urlRel }}" title="{{ item.prevItem.name|e('html_attr') }}"
          class="flex items-center gap-1 rounded-full border border-gray-200/80 bg-white/80 px-3 py-1.5 shadow-sm shadow-gray-950/5 transition-colors hover:text-primary-500 dark:border-gray-800/80 dark:bg-gray-900/70 dark:hover:text-primary-300">

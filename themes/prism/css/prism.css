@@ -43,6 +43,9 @@
     --pr-border: var(--pr-neutral-50);
     --pr-accent: var(--pr-brand-500);
     --pr-accent-hover: var(--pr-brand-600);
+    /* What a filled button writes on the accent. White clears 4.5:1 on the
+       light accent but not on the lighter one dark mode uses. */
+    --pr-on-accent: #ffffff;
     --pr-on-dark: #ffffff;
     --pr-on-dark-secondary: #adbdcc;
     --pr-code-bg: var(--pr-neutral-990);
@@ -80,6 +83,9 @@
         --pr-border: #1e3a54;
         --pr-accent: #8b86ff;
         --pr-accent-hover: #a29dff;
+        /* White on this indigo is 3.0:1, and 2.4:1 once it lightens on hover;
+           the deep navy of the page reads at 5.9:1 and 7.4:1. */
+        --pr-on-accent: #0a1929;
         --pr-shadow-sm: 0 2px 5px -1px rgba(0, 0, 0, 0.5);
         --pr-shadow-md: 0 13px 27px -5px rgba(0, 0, 0, 0.5);
         --pr-shadow-lg: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
@@ -211,6 +217,23 @@ a:hover {
 .pr-nav--overlay .pr-nav__brand,
 .pr-nav--overlay .pr-nav__link {
     color: var(--pr-on-dark);
+}
+
+/*
+ * The bar is sticky, so it outlives the hero it floats on. Once the hero has
+ * scrolled past, white type on no background sits on the page itself - white on
+ * white. From that point the bar becomes an ordinary solid one; the script sets
+ * the class when the hero's lower edge passes beneath it.
+ */
+.pr-nav--overlay.is-solid {
+    background: var(--pr-bg);
+    border-bottom-color: var(--pr-border);
+    color: var(--pr-text);
+}
+
+.pr-nav--overlay.is-solid .pr-nav__brand,
+.pr-nav--overlay.is-solid .pr-nav__link {
+    color: var(--pr-text);
 }
 
 .pr-nav__brand img {
@@ -483,7 +506,16 @@ a:hover {
 .pr-hero {
     position: relative;
     background: var(--pr-brand-900);
-    background-image: var(--pr-gradient);
+    /*
+     * The gradient runs from violet through pink to yellow, and white on that
+     * yellow is 1.5:1 - the hero's own words disappeared into its own
+     * background. A flat scrim over the whole gradient keeps the sweep of
+     * colour and puts a floor under it: the palest point now reads at 5:1.
+     * `--plain` clears background-image, so it drops the scrim with it.
+     */
+    background-image:
+        linear-gradient(rgba(6, 10, 40, 0.5), rgba(6, 10, 40, 0.5)),
+        var(--pr-gradient);
     color: var(--pr-on-dark);
     padding-block: calc(var(--pr-nav-height) + 88px) 150px;
     /* The diagonal lower edge is the signature of this layout. */
@@ -519,8 +551,9 @@ a:hover {
     letter-spacing: 0.08em;
     text-transform: uppercase;
     margin: 0 0 14px;
+    /* Solid: dimming white over the hero would give back the contrast the
+       scrim was added to win. */
     color: var(--pr-on-dark);
-    opacity: 0.85;
 }
 
 .pr-hero__title {
@@ -536,7 +569,6 @@ a:hover {
     line-height: 1.5;
     margin: 18px 0 0;
     color: var(--pr-on-dark);
-    opacity: 0.86;
     max-width: 620px;
 }
 
@@ -562,7 +594,7 @@ a:hover {
     justify-content: center;
     gap: 6px;
     background: var(--pr-accent);
-    color: #fff;
+    color: var(--pr-on-accent);
     font-size: 15px;
     font-weight: 600;
     letter-spacing: -0.01em;
@@ -576,7 +608,7 @@ a:hover {
 
 .pr-btn:hover {
     background: var(--pr-accent-hover);
-    color: #fff;
+    color: var(--pr-on-accent);
     transform: translateY(-1px);
 }
 
@@ -1109,6 +1141,15 @@ a:hover {
     .pr-hero {
         clip-path: none;
         background: none;
+        color: #000;
+    }
+
+    /* On paper the hero has no background, so its white type would be white on
+       white. These carry their colour explicitly, so they have to be told. */
+    .pr-eyebrow,
+    .pr-hero__subtitle,
+    .pr-hero__title,
+    .pr-btn--ghost {
         color: #000;
     }
 
