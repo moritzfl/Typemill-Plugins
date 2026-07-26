@@ -121,7 +121,8 @@ const app = Vue.createApp({
                 .then((response) => {
                     this.log = response.data.log || [];
                     this.showMessage(
-                        (response.data.message || '') + ' ' + this.$filters.translate('typemillupdate.reload'),
+                        (this.messageText(response.data) + ' '
+                            + this.$filters.translate('typemillupdate.reload')).trim(),
                         'success'
                     );
                     this.load();
@@ -223,7 +224,8 @@ const app = Vue.createApp({
             tmaxios.post('/api/v1/typemillupdate/rollback', { backup: backup.name }, { timeout: 600000 })
                 .then((response) => {
                     this.showMessage(
-                        (response.data.message || '') + ' ' + this.$filters.translate('typemillupdate.reload'),
+                        (this.messageText(response.data) + ' '
+                            + this.$filters.translate('typemillupdate.reload')).trim(),
                         'success'
                     );
                     this.load();
@@ -283,12 +285,37 @@ const app = Vue.createApp({
             );
         },
 
-        errorText(error, fallback) {
-            if (error && error.response && error.response.data && error.response.data.message) {
-                return error.response.data.message;
+        /**
+         * Text of an API message in the admin language.
+         *
+         * A message that carries a value travels as a key plus the values,
+         * because the translator resolves a key but cannot fill placeholders.
+         * A plain message is looked up by its English sentence, which is how
+         * the admin translator derives its keys, and falls back to that
+         * sentence when the language file has no entry for it.
+         */
+        messageText(payload) {
+            if (!payload) {
+                return '';
             }
 
-            return fallback;
+            if (payload.message_key) {
+                const translated = this.$filters.translate(payload.message_key);
+                if (translated && translated !== payload.message_key) {
+                    return Object.keys(payload.message_params || {}).reduce(
+                        (text, name) => text.split('{' + name + '}').join(payload.message_params[name]),
+                        translated
+                    );
+                }
+            }
+
+            return payload.message ? this.$filters.translate(payload.message) : '';
+        },
+
+        errorText(error, fallback) {
+            const fromServer = error && error.response ? this.messageText(error.response.data) : '';
+
+            return fromServer || this.$filters.translate(fallback);
         },
 
         showMessage(text, type) {

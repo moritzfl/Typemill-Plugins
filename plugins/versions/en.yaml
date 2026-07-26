@@ -119,3 +119,21 @@ VERSIONS_CONFIRM_WARNING: This will overwrite the current draft and cannot be un
 VERSIONS_CONFIRM: Confirm
 VERSIONS_SAVING: Saving
 VERSIONS_SAVED: Saved
+ASSET_NAME_IS_MISSING: Asset name is missing.
+INVALID_PATH: Invalid path.
+FILE_OR_FOLDER_NOT_FOUND: File or folder not found.
+VERSION_NOT_FOUND: Version not found.
+VERSION_RESTORE_FAILED: Version restore failed.
+DELETED_VERSION_NOT_FOUND: Deleted version not found.
+A_PAGE_OR_FOLDER_ALREADY_EXISTS_AT_THE_ORIGINAL_LOCATION: A page or folder already exists at the original location.
+INVALID_FILE_PATH_IN_SNAPSHOT: Invalid file path in snapshot.
+A_DELETED_SNAPSHOT_COULD_NOT_BE_READ_FROM_DISK: A deleted snapshot could not be read from disk.
+A_DELETED_SNAPSHOT_COULD_NOT_BE_DECODED: A deleted snapshot could not be decoded.
+DELETED_VERSION_COULD_NOT_BE_RESTORED_COMPLETELY: Deleted version could not be restored completely.
+DOWNLOAD_NOT_AVAILABLE: Download not available.
+PREVIEW_NOT_AVAILABLE: Preview not available.
+VERSION_ID_IS_MISSING: Version ID is missing.
+PAGE_ID_IS_MISSING: Page ID is missing.
+MARKDOWN_CONTENT_IS_MISSING: Markdown content is missing.
+DRAFT_SAVED_SUCCESSFULLY: Draft saved successfully.
+INTERNAL_SERVER_ERROR: Internal server error.

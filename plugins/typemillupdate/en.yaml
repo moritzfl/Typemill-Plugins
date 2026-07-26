@@ -53,3 +53,23 @@ TYPEMILLUPDATE_CHECK_OPCACHE_RESET: OPcache is enabled and will be reset after t
 TYPEMILLUPDATE_CHECK_OPCACHE_RESET_STALE: "OPcache runs with validate_timestamps off; it will be reset after the swap."
 TYPEMILLUPDATE_CHECK_OPCACHE_REVALIDATES: OPcache is enabled and revalidates by timestamp.
 TYPEMILLUPDATE_CHECK_OPCACHE_MANUAL_RESTART: OPcache has validate_timestamps off and opcache_reset() is unavailable. Restart PHP after updating.
+COULD_NOT_DETERMINE_THE_INSTALLED_TYPEMILL_VERSION: Could not determine the installed Typemill version.
+THIS_INSTALLATION_CANNOT_UPDATE_ITSELF_SEE_THE_ENVIRONMENT_CHECKS: This installation cannot update itself. See the environment checks.
+THAT_UPLOADED_ARCHIVE_COULD_NOT_BE_FOUND_PLEASE_UPLOAD_IT_AGAIN: That uploaded archive could not be found. Please upload it again.
+THAT_IS_NOT_A_VALID_VERSION_NUMBER: That is not a valid version number.
+ANOTHER_UPDATE_IS_ALREADY_RUNNING: Another update is already running.
+COULD_NOT_CREATE_THE_WORKING_DIRECTORY: Could not create the working directory.
+INVALID_UPLOAD: Invalid upload.
+THAT_BACKUP_COULD_NOT_BE_FOUND: That backup could not be found.
+RESTORED_THE_PREVIOUS_CORE: Restored the previous core.
+COULD_NOT_LOAD_THE_UPDATE_STATUS: Could not load the update status.
+THE_UPDATE_FAILED: The update failed.
+THE_UPLOAD_FAILED: The upload failed.
+THE_ROLLBACK_FAILED: The rollback failed.
+COULD_NOT_DELETE_THE_STORED_VERSION: Could not delete the stored version.
+TYPEMILLUPDATE_MSG_ALREADY_INSTALLED: "Typemill {version} is already installed."
+TYPEMILLUPDATE_MSG_WORKDIR_FAILED: "Could not create the working directory {path}."
+TYPEMILLUPDATE_MSG_ARCHIVE_VERSION_MISMATCH: "The archive contains Typemill {found}, but {requested} was requested."
+TYPEMILLUPDATE_MSG_PHP_TOO_OLD: "Typemill {version} requires a newer PHP version than {php}."
+TYPEMILLUPDATE_MSG_UPDATED: "Typemill was updated from {from} to {to}."
+TYPEMILLUPDATE_MSG_UPLOAD_PHP_TOO_OLD: "That archive contains Typemill {version}, which needs a newer PHP version than {php}."

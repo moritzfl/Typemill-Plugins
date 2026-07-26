@@ -100,6 +100,7 @@ TRASH_HAS_BEEN_EMPTIED: Papierkorb wurde geleert.
 TRASH_ENTRY_DELETED: Papierkorbeintrag gelöscht.
 PAGE_RESTORED_SUCCESSFULLY: Seite erfolgreich wiederhergestellt.
 SETTINGS_COULD_NOT_BE_SAVED: Einstellungen konnten nicht gespeichert werden.
+NO_VERSIONS: Keine Versionen
 SHOW_UNCHANGED_LINES: Unveränderte Zeilen anzeigen
 COLLAPSE_UNCHANGED: Unveränderte einklappen
 EXPAND_UNCHANGED: Unveränderte ausklappen
@@ -118,3 +119,21 @@ VERSIONS_CONFIRM_WARNING: Dies überschreibt den aktuellen Entwurf und kann nich
 VERSIONS_CONFIRM: Bestätigen
 VERSIONS_SAVING: Wird gespeichert
 VERSIONS_SAVED: Gespeichert
+ASSET_NAME_IS_MISSING: Der Asset-Name fehlt.
+INVALID_PATH: Ungültiger Pfad.
+FILE_OR_FOLDER_NOT_FOUND: Datei oder Ordner nicht gefunden.
+VERSION_NOT_FOUND: Version nicht gefunden.
+VERSION_RESTORE_FAILED: Die Version konnte nicht wiederhergestellt werden.
+DELETED_VERSION_NOT_FOUND: Gelöschte Version nicht gefunden.
+A_PAGE_OR_FOLDER_ALREADY_EXISTS_AT_THE_ORIGINAL_LOCATION: Am ursprünglichen Ort gibt es bereits eine Seite oder einen Ordner.
+INVALID_FILE_PATH_IN_SNAPSHOT: Ungültiger Dateipfad im Snapshot.
+A_DELETED_SNAPSHOT_COULD_NOT_BE_READ_FROM_DISK: Ein gelöschter Snapshot konnte nicht von der Festplatte gelesen werden.
+A_DELETED_SNAPSHOT_COULD_NOT_BE_DECODED: Ein gelöschter Snapshot konnte nicht dekodiert werden.
+DELETED_VERSION_COULD_NOT_BE_RESTORED_COMPLETELY: Die gelöschte Version konnte nicht vollständig wiederhergestellt werden.
+DOWNLOAD_NOT_AVAILABLE: Download nicht verfügbar.
+PREVIEW_NOT_AVAILABLE: Vorschau nicht verfügbar.
+VERSION_ID_IS_MISSING: Die Versions-ID fehlt.
+PAGE_ID_IS_MISSING: Die Seiten-ID fehlt.
+MARKDOWN_CONTENT_IS_MISSING: Der Markdown-Inhalt fehlt.
+DRAFT_SAVED_SUCCESSFULLY: Entwurf erfolgreich gespeichert.
+INTERNAL_SERVER_ERROR: Interner Serverfehler.

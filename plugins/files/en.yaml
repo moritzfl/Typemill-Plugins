@@ -96,3 +96,4 @@ FILES_MSG_FOLDER_PARENT_MISSING: Folder not found.
 FILES_MSG_FOLDER_CREATE_ERROR: Could not create folder.
 FILES_MSG_DOWNLOAD_ERROR: Could not download file.
 FILES_MSG_ZIP_ERROR: Could not create ZIP archive (folder missing, empty, or too large).
+INTERNAL_SERVER_ERROR: Internal server error.

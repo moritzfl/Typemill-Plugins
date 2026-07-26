@@ -53,3 +53,23 @@ TYPEMILLUPDATE_CHECK_OPCACHE_RESET: OPcache ist aktiv und wird nach dem Austausc
 TYPEMILLUPDATE_CHECK_OPCACHE_RESET_STALE: "OPcache läuft mit abgeschaltetem validate_timestamps; er wird nach dem Austausch zurückgesetzt."
 TYPEMILLUPDATE_CHECK_OPCACHE_REVALIDATES: OPcache ist aktiv und prüft anhand des Zeitstempels erneut.
 TYPEMILLUPDATE_CHECK_OPCACHE_MANUAL_RESTART: Bei OPcache ist validate_timestamps abgeschaltet und opcache_reset() steht nicht zur Verfügung. PHP nach dem Update bitte neu starten.
+COULD_NOT_DETERMINE_THE_INSTALLED_TYPEMILL_VERSION: Die installierte Typemill-Version konnte nicht ermittelt werden.
+THIS_INSTALLATION_CANNOT_UPDATE_ITSELF_SEE_THE_ENVIRONMENT_CHECKS: Diese Installation kann sich nicht selbst aktualisieren. Siehe die Umgebungsprüfungen.
+THAT_UPLOADED_ARCHIVE_COULD_NOT_BE_FOUND_PLEASE_UPLOAD_IT_AGAIN: Das hochgeladene Archiv wurde nicht gefunden. Bitte erneut hochladen.
+THAT_IS_NOT_A_VALID_VERSION_NUMBER: Das ist keine gültige Versionsnummer.
+ANOTHER_UPDATE_IS_ALREADY_RUNNING: Es läuft bereits ein anderes Update.
+COULD_NOT_CREATE_THE_WORKING_DIRECTORY: Das Arbeitsverzeichnis konnte nicht angelegt werden.
+INVALID_UPLOAD: Ungültiger Upload.
+THAT_BACKUP_COULD_NOT_BE_FOUND: Diese Sicherung wurde nicht gefunden.
+RESTORED_THE_PREVIOUS_CORE: Der vorherige Core wurde wiederhergestellt.
+COULD_NOT_LOAD_THE_UPDATE_STATUS: Der Update-Status konnte nicht geladen werden.
+THE_UPDATE_FAILED: Das Update ist fehlgeschlagen.
+THE_UPLOAD_FAILED: Der Upload ist fehlgeschlagen.
+THE_ROLLBACK_FAILED: Die Rücksetzung ist fehlgeschlagen.
+COULD_NOT_DELETE_THE_STORED_VERSION: Die gespeicherte Version konnte nicht gelöscht werden.
+TYPEMILLUPDATE_MSG_ALREADY_INSTALLED: "Typemill {version} ist bereits installiert."
+TYPEMILLUPDATE_MSG_WORKDIR_FAILED: "Das Arbeitsverzeichnis {path} konnte nicht angelegt werden."
+TYPEMILLUPDATE_MSG_ARCHIVE_VERSION_MISMATCH: "Das Archiv enthält Typemill {found}, angefordert wurde aber {requested}."
+TYPEMILLUPDATE_MSG_PHP_TOO_OLD: "Typemill {version} benötigt eine neuere PHP-Version als {php}."
+TYPEMILLUPDATE_MSG_UPDATED: "Typemill wurde von {from} auf {to} aktualisiert."
+TYPEMILLUPDATE_MSG_UPLOAD_PHP_TOO_OLD: "Das Archiv enthält Typemill {version} und benötigt eine neuere PHP-Version als {php}."

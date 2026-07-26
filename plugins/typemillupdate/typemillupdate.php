@@ -211,6 +211,8 @@ class typemillupdate extends Plugin
             if (!$force && version_compare($target, $installed, '<=')) {
                 return $this->jsonResponse($response, [
                     'message' => 'Typemill ' . $installed . ' is already installed.',
+                    'message_key' => 'typemillupdate.msg_already_installed',
+                    'message_params' => ['version' => $installed],
                     'installed' => $installed,
                     'latest' => $target,
                 ], 409);
@@ -218,7 +220,11 @@ class typemillupdate extends Plugin
         }
 
         if (!$environment->ensureWorkPath()) {
-            return $this->jsonResponse($response, ['message' => 'Could not create the working directory ' . $environment->workPath() . '.'], 500);
+            return $this->jsonResponse($response, [
+                'message' => 'Could not create the working directory ' . $environment->workPath() . '.',
+                'message_key' => 'typemillupdate.msg_workdir_failed',
+                'message_params' => ['path' => $environment->workPath()],
+            ], 500);
         }
 
         // Two runs at once would delete each other's staging directories. The
@@ -257,6 +263,8 @@ class typemillupdate extends Plugin
 
             return $this->jsonResponse($response, [
                 'message' => 'The archive contains Typemill ' . $meta['version'] . ', but ' . $target . ' was requested.',
+                'message_key' => 'typemillupdate.msg_archive_version_mismatch',
+                'message_params' => ['found' => $meta['version'], 'requested' => $target],
                 'log' => $log,
             ], 422);
         }
@@ -266,6 +274,8 @@ class typemillupdate extends Plugin
 
             return $this->jsonResponse($response, [
                 'message' => 'Typemill ' . $meta['version'] . ' requires a newer PHP version than ' . PHP_VERSION . '.',
+                'message_key' => 'typemillupdate.msg_php_too_old',
+                'message_params' => ['version' => $meta['version'], 'php' => PHP_VERSION],
                 'log' => $log,
             ], 409);
         }
@@ -332,6 +342,8 @@ class typemillupdate extends Plugin
         $this->emitAndExit([
             'ok' => true,
             'message' => 'Typemill was updated from ' . $installed . ' to ' . $meta['version'] . '.',
+            'message_key' => 'typemillupdate.msg_updated',
+            'message_params' => ['from' => $installed, 'to' => $meta['version']],
             'previous' => $installed,
             'installed' => $meta['version'],
             'backup' => basename((string) $swap['backup']),
@@ -406,6 +418,8 @@ class typemillupdate extends Plugin
 
             return $this->jsonResponse($response, [
                 'message' => 'That archive contains Typemill ' . $meta['version'] . ', which needs a newer PHP version than ' . PHP_VERSION . '.',
+                'message_key' => 'typemillupdate.msg_upload_php_too_old',
+                'message_params' => ['version' => $meta['version'], 'php' => PHP_VERSION],
             ], 409);
         }
 
