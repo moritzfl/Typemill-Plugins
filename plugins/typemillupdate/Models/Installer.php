@@ -119,12 +119,12 @@ class Installer
         $staging = $this->stagingPath();
 
         if (!@mkdir($staging, 0755, true) && !is_dir($staging)) {
-            return ['ok' => false, 'error' => 'Could not create the staging directory.'];
+            return self::problem('Could not create the staging directory.', 'err_stage_failed');
         }
 
         $zip = new ZipArchive();
         if ($zip->open($zipPath) !== true) {
-            return ['ok' => false, 'error' => 'Could not open the archive.'];
+            return self::problem('Could not open the archive.', 'err_stage_failed');
         }
 
         $entries = [];
@@ -138,24 +138,24 @@ class Installer
         if ($entries === []) {
             $zip->close();
 
-            return ['ok' => false, 'error' => 'The archive contains no system/ entries.'];
+            return self::problem('The archive contains no system/ entries.', 'err_stage_failed');
         }
 
         $extracted = $zip->extractTo($staging, $entries);
         $zip->close();
 
         if (!$extracted) {
-            return ['ok' => false, 'error' => 'Extracting the archive failed.'];
+            return self::problem('Extracting the archive failed.', 'err_stage_failed');
         }
 
         // extractTo keeps full entry paths, so a wrapped archive lands one
         // directory deeper than a plain one.
         $stagedSystem = $staging . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $prefix) . 'system';
         if (!self::looksLikeCore($stagedSystem)) {
-            return ['ok' => false, 'error' => 'The staged core is incomplete.'];
+            return self::problem('The staged core is incomplete.', 'err_stage_incomplete');
         }
 
-        return ['ok' => true, 'error' => null, 'path' => $stagedSystem, 'entries' => count($entries)];
+        return ['ok' => true, 'error' => null, 'error_key' => null, 'path' => $stagedSystem, 'entries' => count($entries)];
     }
 
     /**
@@ -177,14 +177,14 @@ class Installer
     public function install(string $stagedSystem): array
     {
         if (!self::looksLikeCore($stagedSystem)) {
-            return ['ok' => false, 'touched' => false, 'error' => 'The core to install is incomplete.'];
+            return ['touched' => false] + self::problem('The core to install is incomplete.', 'err_install_incomplete');
         }
 
         $system = $this->environment->systemPath();
         $backup = $this->backupPath();
 
         if (!@mkdir($backup, 0755, true) && !is_dir($backup)) {
-            return ['ok' => false, 'touched' => false, 'error' => 'Could not create the backup directory.'];
+            return ['touched' => false] + self::problem('Could not create the backup directory.', 'err_backup_directory');
         }
 
         $backupSystem = $backup . DIRECTORY_SEPARATOR . 'system';
@@ -196,12 +196,8 @@ class Installer
             $reason = error_get_last()['message'] ?? '';
             @rmdir($backup);
 
-            return [
-                'ok' => false,
-                'touched' => false,
-                'error' => self::renameRefusedMessage($reason),
-                'error_key' => 'typemillupdate.err_rename_unsupported',
-            ];
+            return ['touched' => false]
+                + self::problem(self::renameRefusedMessage($reason), 'err_rename_unsupported');
         }
 
         if (!@rename($stagedSystem, $system)) {
@@ -209,19 +205,22 @@ class Installer
             // system directory.
             $restored = @rename($backupSystem, $system);
 
-            return [
-                'ok' => false,
-                'touched' => !$restored,
-                'error' => $restored
-                    ? 'Could not move the new core into place. The previous core was restored.'
-                    : 'Could not move the new core into place, and restoring the previous core failed. The previous core is at ' . $backupSystem . '.',
-            ];
+            return ['touched' => !$restored] + ($restored
+                ? self::problem(
+                    'Could not move the new core into place. The previous core was restored.',
+                    'err_install_move_failed'
+                )
+                : self::problem(
+                    'Could not move the new core into place, and restoring the previous core failed. The previous core is at ' . $backupSystem . '.',
+                    'err_install_stranded',
+                    ['path' => $backupSystem]
+                ));
         }
 
         clearstatcache(true);
         $this->resetOpcache();
 
-        return ['ok' => true, 'touched' => true, 'error' => null, 'backup' => $backup];
+        return ['ok' => true, 'touched' => true, 'error' => null, 'error_key' => null, 'backup' => $backup];
     }
 
     /**
@@ -235,7 +234,8 @@ class Installer
         $backupSystem = $backupDirectory . DIRECTORY_SEPARATOR . 'system';
 
         if (!self::looksLikeCore($backupSystem)) {
-            return ['ok' => false, 'touched' => false, 'error' => 'That backup does not contain a complete core.'];
+            return ['touched' => false]
+                + self::problem('That backup does not contain a complete core.', 'err_backup_incomplete');
         }
 
         $system = $this->environment->systemPath();
@@ -249,7 +249,8 @@ class Installer
             . 'backup-' . date('Ymd-His') . '-' . bin2hex(random_bytes(3));
 
         if (!@mkdir($parked, 0755, true) && !is_dir($parked)) {
-            return ['ok' => false, 'touched' => false, 'error' => 'Could not create a directory for the core being replaced.'];
+            return ['touched' => false]
+                + self::problem('Could not create a directory for the core being replaced.', 'err_backup_directory');
         }
 
         $parkedSystem = $parked . DIRECTORY_SEPARATOR . 'system';
@@ -261,26 +262,25 @@ class Installer
             $reason = error_get_last()['message'] ?? '';
             @rmdir($parked);
 
-            return [
-                'ok' => false,
-                'touched' => false,
-                'error' => self::renameRefusedMessage($reason),
-                'error_key' => 'typemillupdate.err_rename_unsupported',
-            ];
+            return ['touched' => false]
+                + self::problem(self::renameRefusedMessage($reason), 'err_rename_unsupported');
         }
 
         if (!@rename($backupSystem, $system)) {
             if (!@rename($parkedSystem, $system)) {
-                return [
-                    'ok' => false,
-                    'touched' => true,
-                    'error' => 'Could not restore the backup, and the current core could not be put back. It is at ' . $parkedSystem . '.',
-                ];
+                return ['touched' => true] + self::problem(
+                    'Could not restore the backup, and the current core could not be put back. It is at ' . $parkedSystem . '.',
+                    'err_rollback_stranded',
+                    ['path' => $parkedSystem]
+                );
             }
 
             @rmdir($parked);
 
-            return ['ok' => false, 'touched' => false, 'error' => 'Could not restore the backup. The current core was put back.'];
+            return ['touched' => false] + self::problem(
+                'Could not restore the backup. The current core was put back.',
+                'err_rollback_failed'
+            );
         }
 
         // The restored backup directory is empty now; rmdir only succeeds if
@@ -290,7 +290,7 @@ class Installer
         clearstatcache(true);
         $this->resetOpcache();
 
-        return ['ok' => true, 'touched' => true, 'error' => null];
+        return ['ok' => true, 'touched' => true, 'error' => null, 'error_key' => null];
     }
 
     /**
@@ -440,14 +440,14 @@ class Installer
     {
         $path = $this->resolveBackupPath($name);
         if ($path === null) {
-            return ['ok' => false, 'error' => 'That backup does not exist.'];
+            return self::problem('That backup does not exist.', 'err_backup_missing');
         }
 
         if (!$this->removeDirectory($path)) {
-            return ['ok' => false, 'error' => 'The stored version could not be deleted from disk.'];
+            return self::problem('The stored version could not be deleted from disk.', 'err_backup_delete_failed');
         }
 
-        return ['ok' => true, 'error' => null];
+        return ['ok' => true, 'error' => null, 'error_key' => null];
     }
 
     public function resolveBackupPath(string $name): ?string
@@ -518,6 +518,17 @@ class Installer
         }
 
         return @rmdir($real) && $ok;
+    }
+
+    /** @see Release::problem() - same contract, so the panel can translate it. */
+    private static function problem(string $message, string $key, array $params = []): array
+    {
+        return [
+            'ok' => false,
+            'error' => $message,
+            'error_key' => 'typemillupdate.' . $key,
+            'error_params' => $params,
+        ];
     }
 
     /**

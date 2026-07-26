@@ -68,6 +68,11 @@ const app = Vue.createApp({
                 blocked: false,
                 update_available: false,
                 check_error: null,
+                check_error_key: null,
+                check_error_params: {},
+                // Assumed away until the server says otherwise, so a failed
+                // load never offers a button that only answers 403.
+                can_update: false,
             },
             log: [],
             message: '',
@@ -76,11 +81,29 @@ const app = Vue.createApp({
             restoreTarget: null,
             uploadProgress: null,
             uploadResult: null,
+            returnFocusTo: null,
         };
     },
 
     mounted() {
         this.load();
+        document.addEventListener('keydown', this.onDialogKeydown);
+    },
+
+    unmounted() {
+        document.removeEventListener('keydown', this.onDialogKeydown);
+    },
+
+    watch: {
+        confirmUpdate(open) {
+            this.dialogToggled(Boolean(open));
+        },
+        uploadResult(open) {
+            this.dialogToggled(Boolean(open));
+        },
+        restoreTarget(open) {
+            this.dialogToggled(Boolean(open));
+        },
     },
 
     methods: {
@@ -261,6 +284,83 @@ const app = Vue.createApp({
             return check.blocking ? 'is-error' : 'is-warn';
         },
 
+        dialogOpen() {
+            return Boolean(this.confirmUpdate || this.uploadResult || this.restoreTarget);
+        },
+
+        closeDialogs() {
+            this.confirmUpdate = false;
+            this.uploadResult = null;
+            this.restoreTarget = null;
+        },
+
+        /**
+         * A dialog that asks before replacing every PHP file on the site has to
+         * be operable without a mouse: focus moves into it when it opens, stays
+         * inside it while it is up, returns where it came from when it closes,
+         * and Escape is a way out.
+         */
+        dialogToggled(open) {
+            if (open) {
+                this.returnFocusTo = document.activeElement;
+                this.$nextTick(() => {
+                    const dialog = this.dialogElement();
+                    const target = dialog && dialog.querySelector('.tm-cu-btn--primary');
+                    if (target) {
+                        target.focus();
+                    }
+                });
+                return;
+            }
+
+            const previous = this.returnFocusTo;
+            this.returnFocusTo = null;
+            if (previous && typeof previous.focus === 'function') {
+                previous.focus();
+            }
+        },
+
+        dialogElement() {
+            return document.querySelector('.tm-cu-overlay .tm-cu-dialog');
+        },
+
+        onDialogKeydown(event) {
+            if (!this.dialogOpen()) {
+                return;
+            }
+
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                this.closeDialogs();
+                return;
+            }
+
+            if (event.key !== 'Tab') {
+                return;
+            }
+
+            const dialog = this.dialogElement();
+            if (!dialog) {
+                return;
+            }
+
+            const focusable = Array.prototype.slice.call(dialog.querySelectorAll('button:not([disabled])'));
+            if (focusable.length === 0) {
+                return;
+            }
+
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        },
+
         /**
          * Text of an environment check in the admin language.
          *
@@ -270,17 +370,38 @@ const app = Vue.createApp({
          * English sentence the backend already produced is used instead.
          */
         checkText(check) {
-            if (!check.label) {
-                return check.detail;
+            return this.keyedText(check.label, check.params, check.detail);
+        },
+
+        /** The version check runs on every page load, so its failures are read most. */
+        checkErrorText() {
+            return this.keyedText(
+                this.status.check_error_key,
+                this.status.check_error_params,
+                this.status.check_error
+            );
+        },
+
+        /**
+         * A sentence in the admin language, built from a key plus its values.
+         *
+         * The translator resolves a key to a string but cannot fill in values,
+         * so paths and sizes travel beside the key and are substituted here. A
+         * key with no entry yet resolves to itself, in which case the English
+         * sentence the backend already produced is used instead.
+         */
+        keyedText(key, params, fallback) {
+            if (!key) {
+                return fallback || '';
             }
 
-            const translated = this.$filters.translate(check.label);
-            if (!translated || translated === check.label) {
-                return check.detail;
+            const translated = this.$filters.translate(key);
+            if (!translated || translated === key) {
+                return fallback || '';
             }
 
-            return Object.keys(check.params || {}).reduce(
-                (text, name) => text.split('{' + name + '}').join(check.params[name]),
+            return Object.keys(params || {}).reduce(
+                (text, name) => text.split('{' + name + '}').join(params[name]),
                 translated
             );
         },
@@ -299,14 +420,9 @@ const app = Vue.createApp({
                 return '';
             }
 
-            if (payload.message_key) {
-                const translated = this.$filters.translate(payload.message_key);
-                if (translated && translated !== payload.message_key) {
-                    return Object.keys(payload.message_params || {}).reduce(
-                        (text, name) => text.split('{' + name + '}').join(payload.message_params[name]),
-                        translated
-                    );
-                }
+            const keyed = this.keyedText(payload.message_key, payload.message_params, '');
+            if (keyed) {
+                return keyed;
             }
 
             return payload.message ? this.$filters.translate(payload.message) : '';

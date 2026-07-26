@@ -73,3 +73,42 @@ TYPEMILLUPDATE_CHECK_USABLE_SPACE_SHORT: "Not enough space for an update; it nee
 TYPEMILLUPDATE_CHECK_USABLE_SPACE_NOFILE: A test file could not be created in {root}.
 TYPEMILLUPDATE_MSG_NOT_ENOUGH_SPACE: "Typemill {version} needs {needed} to unpack, and that much could not be written. On shared hosting this is usually the account quota."
 TYPEMILLUPDATE_ERR_RENAME_UNSUPPORTED: This filesystem does not allow the system directory to be renamed, so the update was stopped before anything was changed. Update manually instead.
+TYPEMILLUPDATE_ERR_CHECK_OFFLINE: typemill.net could not be reached. Check whether this server is allowed to make outgoing connections.
+TYPEMILLUPDATE_ERR_CHECK_HTTP: "typemill.net answered with HTTP {status}."
+TYPEMILLUPDATE_ERR_CHECK_FORMAT: typemill.net returned an unexpected version format.
+TYPEMILLUPDATE_ERR_DOWNLOAD_FAILED: The release could not be downloaded.
+TYPEMILLUPDATE_ERR_DOWNLOAD_HTTP: "The download failed with HTTP {status}."
+TYPEMILLUPDATE_ERR_DOWNLOAD_OFFLINE: The download could not be started. Check whether this server is allowed to make outgoing connections.
+TYPEMILLUPDATE_ERR_DOWNLOAD_TARGET: "The download could not be written to {path}."
+TYPEMILLUPDATE_ERR_DOWNLOAD_EMPTY: The download was empty.
+TYPEMILLUPDATE_ERR_ZIP_MISSING: The PHP zip extension is missing.
+TYPEMILLUPDATE_ERR_ARCHIVE_UNREADABLE: The file is not a readable ZIP archive.
+TYPEMILLUPDATE_ERR_ARCHIVE_UNREADABLE_ENTRY: The archive contains an entry that could not be read.
+TYPEMILLUPDATE_ERR_ARCHIVE_TOO_MANY: "The archive contains more entries than expected ({entries})."
+TYPEMILLUPDATE_ERR_ARCHIVE_TOO_BIG: "The archive expands to more than {limit}."
+TYPEMILLUPDATE_ERR_ARCHIVE_UNSAFE_PATH: "The archive contains an unsafe path: {path}"
+TYPEMILLUPDATE_ERR_ARCHIVE_NO_CORE: The archive does not contain a Typemill core. A system folder with typemill and vendor inside it is expected.
+TYPEMILLUPDATE_ERR_ARCHIVE_MISSING_ENTRY: "The archive is missing {entry}, so it is not a complete Typemill core. Downloads from GitHub leave out the dependencies."
+TYPEMILLUPDATE_ERR_ARCHIVE_NO_VERSION: The version could not be read from the archive.
+TYPEMILLUPDATE_ERR_STAGE_FAILED: The new core could not be unpacked.
+TYPEMILLUPDATE_ERR_STAGE_INCOMPLETE: The unpacked core is incomplete, so it was not installed.
+TYPEMILLUPDATE_ERR_INSTALL_INCOMPLETE: The core to install is incomplete, so nothing was changed.
+TYPEMILLUPDATE_ERR_INSTALL_MOVE_FAILED: The new core could not be moved into place. The previous core was restored.
+TYPEMILLUPDATE_ERR_INSTALL_STRANDED: "The new core could not be moved into place and the previous core could not be restored. It is at {path}."
+TYPEMILLUPDATE_ERR_BACKUP_DIRECTORY: The directory for the previous core could not be created.
+TYPEMILLUPDATE_ERR_BACKUP_INCOMPLETE: That stored version does not contain a complete core.
+TYPEMILLUPDATE_ERR_BACKUP_MISSING: That stored version does not exist.
+TYPEMILLUPDATE_ERR_BACKUP_DELETE_FAILED: The stored version could not be deleted from disk.
+TYPEMILLUPDATE_ERR_ROLLBACK_FAILED: The stored version could not be restored. The current core was put back.
+TYPEMILLUPDATE_ERR_ROLLBACK_STRANDED: "The stored version could not be restored and the current core could not be put back. It is at {path}."
+TYPEMILLUPDATE_ERR_UPLOAD_INVALID: Invalid upload.
+TYPEMILLUPDATE_ERR_UPLOAD_CHUNK_TOO_LARGE: A piece of the upload was larger than expected.
+TYPEMILLUPDATE_ERR_UPLOAD_CHUNK_DECODE: A piece of the upload could not be decoded.
+TYPEMILLUPDATE_ERR_UPLOAD_DIRECTORY: The upload directory could not be created.
+TYPEMILLUPDATE_ERR_UPLOAD_STORE: A piece of the upload could not be stored.
+TYPEMILLUPDATE_ERR_UPLOAD_TARGET: The uploaded file could not be opened for writing.
+TYPEMILLUPDATE_ERR_UPLOAD_INCOMPLETE: "The upload is incomplete; piece {chunk} is missing. Please upload the file again."
+TYPEMILLUPDATE_ERR_UPLOAD_TOO_LARGE: "The uploaded file is larger than {limit}."
+TYPEMILLUPDATE_ERR_UPLOAD_WRITE: The uploaded file could not be written.
+TYPEMILLUPDATE_ERR_UPLOAD_EMPTY: The uploaded file is empty.
+TYPEMILLUPDATE_ADMIN_ONLY: Only an administrator can install or restore a version.

@@ -73,3 +73,42 @@ TYPEMILLUPDATE_CHECK_USABLE_SPACE_SHORT: "Zu wenig Speicherplatz für ein Update
 TYPEMILLUPDATE_CHECK_USABLE_SPACE_NOFILE: In {root} konnte keine Testdatei angelegt werden.
 TYPEMILLUPDATE_MSG_NOT_ENOUGH_SPACE: "Typemill {version} braucht {needed} zum Entpacken, und so viel konnte nicht geschrieben werden. Auf Shared Hosting liegt das meist am Speicherkontingent des Kontos."
 TYPEMILLUPDATE_ERR_RENAME_UNSUPPORTED: Dieses Dateisystem erlaubt es nicht, das system-Verzeichnis umzubenennen. Das Update wurde gestoppt, bevor etwas verändert wurde. Bitte manuell aktualisieren.
+TYPEMILLUPDATE_ERR_CHECK_OFFLINE: typemill.net war nicht erreichbar. Bitte prüfen, ob dieser Server ausgehende Verbindungen aufbauen darf.
+TYPEMILLUPDATE_ERR_CHECK_HTTP: "typemill.net hat mit HTTP {status} geantwortet."
+TYPEMILLUPDATE_ERR_CHECK_FORMAT: typemill.net hat ein unerwartetes Versionsformat zurückgegeben.
+TYPEMILLUPDATE_ERR_DOWNLOAD_FAILED: Die Version konnte nicht heruntergeladen werden.
+TYPEMILLUPDATE_ERR_DOWNLOAD_HTTP: "Der Download ist mit HTTP {status} fehlgeschlagen."
+TYPEMILLUPDATE_ERR_DOWNLOAD_OFFLINE: Der Download konnte nicht gestartet werden. Bitte prüfen, ob dieser Server ausgehende Verbindungen aufbauen darf.
+TYPEMILLUPDATE_ERR_DOWNLOAD_TARGET: "Der Download konnte nicht nach {path} geschrieben werden."
+TYPEMILLUPDATE_ERR_DOWNLOAD_EMPTY: Der Download war leer.
+TYPEMILLUPDATE_ERR_ZIP_MISSING: Die PHP-Erweiterung zip fehlt.
+TYPEMILLUPDATE_ERR_ARCHIVE_UNREADABLE: Die Datei ist kein lesbares ZIP-Archiv.
+TYPEMILLUPDATE_ERR_ARCHIVE_UNREADABLE_ENTRY: Das Archiv enthält einen Eintrag, der nicht gelesen werden konnte.
+TYPEMILLUPDATE_ERR_ARCHIVE_TOO_MANY: "Das Archiv enthält mehr Einträge als erwartet ({entries})."
+TYPEMILLUPDATE_ERR_ARCHIVE_TOO_BIG: "Das Archiv entpackt sich auf mehr als {limit}."
+TYPEMILLUPDATE_ERR_ARCHIVE_UNSAFE_PATH: "Das Archiv enthält einen unsicheren Pfad: {path}"
+TYPEMILLUPDATE_ERR_ARCHIVE_NO_CORE: Das Archiv enthält keinen Typemill-Core. Erwartet wird ein system-Ordner mit typemill und vendor darin.
+TYPEMILLUPDATE_ERR_ARCHIVE_MISSING_ENTRY: "Im Archiv fehlt {entry}, damit ist es kein vollständiger Typemill-Core. Downloads von GitHub enthalten die Abhängigkeiten nicht."
+TYPEMILLUPDATE_ERR_ARCHIVE_NO_VERSION: Die Version konnte aus dem Archiv nicht gelesen werden.
+TYPEMILLUPDATE_ERR_STAGE_FAILED: Der neue Core konnte nicht entpackt werden.
+TYPEMILLUPDATE_ERR_STAGE_INCOMPLETE: Der entpackte Core ist unvollständig und wurde deshalb nicht installiert.
+TYPEMILLUPDATE_ERR_INSTALL_INCOMPLETE: Der zu installierende Core ist unvollständig, es wurde nichts verändert.
+TYPEMILLUPDATE_ERR_INSTALL_MOVE_FAILED: Der neue Core konnte nicht an seinen Platz verschoben werden. Der vorherige Core wurde wiederhergestellt.
+TYPEMILLUPDATE_ERR_INSTALL_STRANDED: "Der neue Core konnte nicht an seinen Platz verschoben und der vorherige Core nicht wiederhergestellt werden. Er liegt unter {path}."
+TYPEMILLUPDATE_ERR_BACKUP_DIRECTORY: Das Verzeichnis für den vorherigen Core konnte nicht angelegt werden.
+TYPEMILLUPDATE_ERR_BACKUP_INCOMPLETE: Diese gespeicherte Version enthält keinen vollständigen Core.
+TYPEMILLUPDATE_ERR_BACKUP_MISSING: Diese gespeicherte Version gibt es nicht.
+TYPEMILLUPDATE_ERR_BACKUP_DELETE_FAILED: Die gespeicherte Version konnte nicht von der Festplatte gelöscht werden.
+TYPEMILLUPDATE_ERR_ROLLBACK_FAILED: Die gespeicherte Version konnte nicht wiederhergestellt werden. Der aktuelle Core wurde zurückgelegt.
+TYPEMILLUPDATE_ERR_ROLLBACK_STRANDED: "Die gespeicherte Version konnte nicht wiederhergestellt und der aktuelle Core nicht zurückgelegt werden. Er liegt unter {path}."
+TYPEMILLUPDATE_ERR_UPLOAD_INVALID: Ungültiger Upload.
+TYPEMILLUPDATE_ERR_UPLOAD_CHUNK_TOO_LARGE: Ein Teil des Uploads war größer als erwartet.
+TYPEMILLUPDATE_ERR_UPLOAD_CHUNK_DECODE: Ein Teil des Uploads konnte nicht dekodiert werden.
+TYPEMILLUPDATE_ERR_UPLOAD_DIRECTORY: Das Upload-Verzeichnis konnte nicht angelegt werden.
+TYPEMILLUPDATE_ERR_UPLOAD_STORE: Ein Teil des Uploads konnte nicht gespeichert werden.
+TYPEMILLUPDATE_ERR_UPLOAD_TARGET: Die hochgeladene Datei konnte nicht zum Schreiben geöffnet werden.
+TYPEMILLUPDATE_ERR_UPLOAD_INCOMPLETE: "Der Upload ist unvollständig; Teil {chunk} fehlt. Bitte die Datei erneut hochladen."
+TYPEMILLUPDATE_ERR_UPLOAD_TOO_LARGE: "Die hochgeladene Datei ist größer als {limit}."
+TYPEMILLUPDATE_ERR_UPLOAD_WRITE: Die hochgeladene Datei konnte nicht geschrieben werden.
+TYPEMILLUPDATE_ERR_UPLOAD_EMPTY: Die hochgeladene Datei ist leer.
+TYPEMILLUPDATE_ADMIN_ONLY: Nur ein Administrator kann eine Version installieren oder wiederherstellen.

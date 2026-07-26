@@ -46,28 +46,39 @@ class Upload
     {
         $safeId = self::sanitizeId($uploadId);
         if ($safeId === null || $index < 0) {
-            return ['ok' => false, 'error' => 'Invalid upload.'];
+            return self::problem('Invalid upload.', 'err_upload_invalid');
         }
 
         if (strlen($base64) > self::MAX_CHUNK_BYTES) {
-            return ['ok' => false, 'error' => 'Upload chunk is too large.'];
+            return self::problem('Upload chunk is too large.', 'err_upload_chunk_too_large');
         }
 
         $decoded = base64_decode($base64, true);
         if ($decoded === false) {
-            return ['ok' => false, 'error' => 'Upload chunk could not be decoded.'];
+            return self::problem('Upload chunk could not be decoded.', 'err_upload_chunk_decode');
         }
 
         $directory = $this->chunkDirectory();
         if (!is_dir($directory) && !@mkdir($directory, 0755, true) && !is_dir($directory)) {
-            return ['ok' => false, 'error' => 'Could not create the upload directory.'];
+            return self::problem('Could not create the upload directory.', 'err_upload_directory');
         }
 
         if (@file_put_contents($directory . DIRECTORY_SEPARATOR . $safeId . '.' . $index, $decoded) === false) {
-            return ['ok' => false, 'error' => 'Could not store the upload chunk.'];
+            return self::problem('Could not store the upload chunk.', 'err_upload_store');
         }
 
-        return ['ok' => true, 'error' => null];
+        return ['ok' => true, 'error' => null, 'error_key' => null, 'error_params' => []];
+    }
+
+    /** @see Release::problem() - same contract, so the panel can translate it. */
+    private static function problem(string $message, string $key, array $params = []): array
+    {
+        return [
+            'ok' => false,
+            'error' => $message,
+            'error_key' => 'typemillupdate.' . $key,
+            'error_params' => $params,
+        ];
     }
 
     /**
@@ -78,13 +89,13 @@ class Upload
     {
         $safeId = self::sanitizeId($uploadId);
         if ($safeId === null || $total < 1) {
-            return ['ok' => false, 'error' => 'Invalid upload.'];
+            return self::problem('Invalid upload.', 'err_upload_invalid');
         }
 
         $directory = $this->chunkDirectory();
         $out = @fopen($targetFile, 'wb');
         if ($out === false) {
-            return ['ok' => false, 'error' => 'Could not open the target file for writing.'];
+            return self::problem('Could not open the target file for writing.', 'err_upload_target');
         }
 
         $written = 0;
@@ -96,7 +107,11 @@ class Upload
                 @unlink($targetFile);
                 $this->discard($uploadId, $total);
 
-                return ['ok' => false, 'error' => 'The upload is incomplete; chunk ' . $i . ' is missing.'];
+                return self::problem(
+                    'The upload is incomplete; chunk ' . $i . ' is missing.',
+                    'err_upload_incomplete',
+                    ['chunk' => $i]
+                );
             }
 
             $chunk = (string) @file_get_contents($chunkPath);
@@ -107,7 +122,11 @@ class Upload
                 @unlink($targetFile);
                 $this->discard($uploadId, $total);
 
-                return ['ok' => false, 'error' => 'The uploaded file is larger than ' . Environment::formatBytes(Release::MAX_DOWNLOAD_BYTES) . '.'];
+                return self::problem(
+                    'The uploaded file is larger than ' . Environment::formatBytes(Release::MAX_DOWNLOAD_BYTES) . '.',
+                    'err_upload_too_large',
+                    ['limit' => Environment::formatBytes(Release::MAX_DOWNLOAD_BYTES)]
+                );
             }
 
             if (@fwrite($out, $chunk) === false) {
@@ -115,7 +134,7 @@ class Upload
                 @unlink($targetFile);
                 $this->discard($uploadId, $total);
 
-                return ['ok' => false, 'error' => 'Could not write the uploaded file.'];
+                return self::problem('Could not write the uploaded file.', 'err_upload_write');
             }
         }
 
@@ -125,10 +144,10 @@ class Upload
         if ($written === 0) {
             @unlink($targetFile);
 
-            return ['ok' => false, 'error' => 'The uploaded file is empty.'];
+            return self::problem('The uploaded file is empty.', 'err_upload_empty');
         }
 
-        return ['ok' => true, 'error' => null, 'bytes' => $written];
+        return ['ok' => true, 'error' => null, 'error_key' => null, 'error_params' => [], 'bytes' => $written];
     }
 
     public function discard(string $uploadId, int $total): void

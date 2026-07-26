@@ -35,6 +35,9 @@ describe('Core update API', () => {
         expect(Array.isArray(body.preflight)).toBe(true)
         expect(Array.isArray(body.backups)).toBe(true)
         expect(typeof body.blocked).toBe('boolean')
+
+        // The panel hides the actions it may not use, so it has to be told.
+        expect(body.can_update).toBe(true)
     })
 
     it.skipIf(!configured)('checks everything the swap depends on', async () => {
@@ -111,6 +114,30 @@ describe('Core update API', () => {
 
         const body = await finalize.json()
         expect(body.message).toMatch(/ZIP|archive/i)
+
+        // Carried as a key, so the admin reads it in their own language.
+        expect(body.message_key).toBe('typemillupdate.err_archive_unreadable')
+    })
+
+    it.skipIf(!configured)('names the missing piece when an upload never finished', async () => {
+        const uploadId = 'apitest' + Math.random().toString(36).slice(2, 10)
+
+        await apiPost(session, `${BASE_URL}/api/v1/typemillupdate/upload/chunk`, {
+            uploadId,
+            index: 0,
+            total: 2,
+            data: Buffer.from('first half').toString('base64'),
+        })
+
+        const finalize = await apiPost(session, `${BASE_URL}/api/v1/typemillupdate/upload/finalize`, {
+            uploadId,
+            total: 2,
+        })
+        expect(finalize.status).toBe(400)
+
+        const body = await finalize.json()
+        expect(body.message_key).toBe('typemillupdate.err_upload_incomplete')
+        expect(body.message_params).toEqual({ chunk: 1 })
     })
 
     it.skipIf(!configured)('requires an authenticated session', async () => {

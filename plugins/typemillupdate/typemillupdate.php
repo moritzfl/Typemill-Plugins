@@ -126,10 +126,14 @@ class typemillupdate extends Plugin
 
         $latest = null;
         $checkError = null;
+        $checkErrorKey = null;
+        $checkErrorParams = [];
         if (($request->getQueryParams()['check'] ?? '1') !== '0') {
             $remote = $release->latestVersion();
             $latest = $remote['version'];
             $checkError = $remote['error'];
+            $checkErrorKey = $remote['error_key'] ?? null;
+            $checkErrorParams = $remote['error_params'] ?? [];
         }
 
         return $this->jsonResponse($response, [
@@ -137,6 +141,13 @@ class typemillupdate extends Plugin
             'installed' => $installed,
             'latest' => $latest,
             'check_error' => $checkError,
+            'check_error_key' => $checkErrorKey,
+            'check_error_params' => $checkErrorParams,
+            // The page is open to anyone who may read system settings, but
+            // replacing the core is administrator-only, so the panel is told
+            // which of the two it is showing rather than offering buttons that
+            // can only answer 403.
+            'can_update' => $this->mayUpdate($request),
             'update_available' => $installed !== null && $latest !== null && version_compare($latest, $installed, '>'),
             'download_url' => $latest !== null ? Release::downloadUrl($latest) : null,
             'preflight' => $checks,
@@ -245,7 +256,7 @@ class typemillupdate extends Plugin
             if (!$downloaded['ok']) {
                 $installer->cleanup();
 
-                return $this->jsonResponse($response, ['message' => $downloaded['error'], 'log' => $log], 502);
+                return $this->failureResponse($response, $downloaded, 502, ['log' => $log]);
             }
             $log[] = 'Downloaded ' . Environment::formatBytes((int) $downloaded['bytes']) . ' from ' . $url;
         }
@@ -254,7 +265,7 @@ class typemillupdate extends Plugin
         if (!$meta['ok']) {
             $installer->cleanup();
 
-            return $this->jsonResponse($response, ['message' => $meta['error'], 'log' => $log], 422);
+            return $this->failureResponse($response, $meta, 422, ['log' => $log]);
         }
         $log[] = 'Archive verified: version ' . $meta['version'] . ', ' . $meta['system_entries'] . ' core files.';
 
@@ -300,7 +311,7 @@ class typemillupdate extends Plugin
         if (!$staged['ok']) {
             $installer->cleanup();
 
-            return $this->jsonResponse($response, ['message' => $staged['error'], 'log' => $log], 500);
+            return $this->failureResponse($response, $staged, 500, ['log' => $log]);
         }
         $log[] = 'Staged the new core in ' . basename($installer->stagingPath()) . '.';
 
@@ -317,14 +328,16 @@ class typemillupdate extends Plugin
             // be trusted to build a reply, and this is exactly the message the
             // admin needs to see.
             if (!empty($swap['touched'])) {
-                $this->emitAndExit(['ok' => false, 'message' => $swap['error'], 'log' => $log], 500);
+                $this->emitAndExit([
+                    'ok' => false,
+                    'message' => $swap['error'],
+                    'message_key' => $swap['error_key'] ?? null,
+                    'message_params' => $swap['error_params'] ?? [],
+                    'log' => $log,
+                ], 500);
             }
 
-            return $this->jsonResponse($response, [
-                'message' => $swap['error'],
-                'message_key' => $swap['error_key'] ?? null,
-                'log' => $log,
-            ], 500);
+            return $this->failureResponse($response, $swap, 500, ['log' => $log]);
         }
         $log[] = 'Replaced system/ with Typemill ' . $meta['version'] . '.';
 
@@ -396,7 +409,7 @@ class typemillupdate extends Plugin
         );
 
         if (!$result['ok']) {
-            return $this->jsonResponse($response, ['message' => $result['error']], 400);
+            return $this->failureResponse($response, $result, 400);
         }
 
         return $this->jsonResponse($response, ['ok' => true]);
@@ -428,14 +441,14 @@ class typemillupdate extends Plugin
 
         $assembled = $upload->assemble($safeId, $total, $target);
         if (!$assembled['ok']) {
-            return $this->jsonResponse($response, ['message' => $assembled['error']], 400);
+            return $this->failureResponse($response, $assembled, 400);
         }
 
         $meta = (new Release($environment))->inspectArchive($target);
         if (!$meta['ok']) {
             @unlink($target);
 
-            return $this->jsonResponse($response, ['message' => $meta['error']], 422);
+            return $this->failureResponse($response, $meta, 422);
         }
 
         if ($meta['php_floor'] !== null && PHP_VERSION_ID < $meta['php_floor']) {
@@ -485,13 +498,15 @@ class typemillupdate extends Plugin
 
         if (!$result['ok']) {
             if (!empty($result['touched'])) {
-                $this->emitAndExit(['ok' => false, 'message' => $result['error']], 500);
+                $this->emitAndExit([
+                    'ok' => false,
+                    'message' => $result['error'],
+                    'message_key' => $result['error_key'] ?? null,
+                    'message_params' => $result['error_params'] ?? [],
+                ], 500);
             }
 
-            return $this->jsonResponse($response, [
-                'message' => $result['error'],
-                'message_key' => $result['error_key'] ?? null,
-            ], 500);
+            return $this->failureResponse($response, $result, 500);
         }
 
         $installer->clearTwigCache();
@@ -524,10 +539,29 @@ class typemillupdate extends Plugin
 
         $result = $installer->removeBackup($name);
         if (!$result['ok']) {
-            return $this->jsonResponse($response, ['message' => $result['error'] ?? 'Could not delete the backup.'], 500);
+            return $this->failureResponse($response, $result, 500);
         }
 
         return $this->jsonResponse($response, ['ok' => true]);
+    }
+
+    /**
+     * Whether this user may replace the core.
+     *
+     * The same question the route middleware asks, put to the same access
+     * control list, so the panel and the API cannot disagree.
+     */
+    private function mayUpdate(Request $request): bool
+    {
+        try {
+            return (bool) $this->container->get('acl')->isAllowed(
+                $request->getAttribute('c_userrole'),
+                'user',
+                'update'
+            );
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     private function presentBackups(array $backups): array
@@ -557,6 +591,19 @@ class typemillupdate extends Plugin
 
         echo json_encode($payload);
         exit;
+    }
+
+    /**
+     * Hand a model's failure to the panel together with its translation key,
+     * so the admin reads it in their own language rather than in English.
+     */
+    private function failureResponse(Response $response, array $result, int $status, array $extra = []): Response
+    {
+        return $this->jsonResponse($response, $extra + [
+            'message' => $result['error'] ?? 'The update failed.',
+            'message_key' => $result['error_key'] ?? null,
+            'message_params' => $result['error_params'] ?? [],
+        ], $status);
     }
 
     private function jsonResponse(Response $response, array $payload, int $status = 200): Response

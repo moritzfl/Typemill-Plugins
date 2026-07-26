@@ -58,21 +58,45 @@ class Release
         $result = $this->httpGet(self::VERSION_CHECK_URL, $this->authorizationHeader());
 
         if ($result['error'] !== null) {
-            return ['version' => null, 'error' => $result['error']];
+            return ['version' => null] + self::problem($result['error'], 'err_check_offline');
         }
 
         if ($result['status'] !== 200) {
-            return ['version' => null, 'error' => 'typemill.net answered with HTTP ' . $result['status'] . '.'];
+            return ['version' => null] + self::problem(
+                'typemill.net answered with HTTP ' . $result['status'] . '.',
+                'err_check_http',
+                ['status' => $result['status']]
+            );
         }
 
         $decoded = json_decode((string) $result['body'], true);
         $version = $decoded['system']['typemill'] ?? null;
 
         if (!is_string($version) || preg_match('/^[0-9]+\.[0-9]+\.[0-9]+$/', $version) !== 1) {
-            return ['version' => null, 'error' => 'typemill.net returned an unexpected version format.'];
+            return ['version' => null] + self::problem(
+                'typemill.net returned an unexpected version format.',
+                'err_check_format'
+            );
         }
 
-        return ['version' => $version, 'error' => null];
+        return ['version' => $version, 'error' => null, 'error_key' => null, 'error_params' => []];
+    }
+
+    /**
+     * A failure the panel can put in front of the admin in their own language.
+     *
+     * The English sentence travels along as well: it is what the log records,
+     * and what the panel falls back to when a language file has no entry yet.
+     * Values are carried separately because the admin translator resolves a key
+     * to a string and cannot fill placeholders itself.
+     */
+    private static function problem(string $message, string $key, array $params = []): array
+    {
+        return [
+            'error' => $message,
+            'error_key' => 'typemillupdate.' . $key,
+            'error_params' => $params,
+        ];
     }
 
     /**
@@ -113,7 +137,11 @@ class Release
     {
         $handle = @fopen($targetFile, 'w');
         if ($handle === false) {
-            return ['ok' => false, 'error' => 'Could not open ' . $targetFile . ' for writing.', 'bytes' => 0];
+            return ['ok' => false, 'bytes' => 0] + self::problem(
+                'Could not open ' . $targetFile . ' for writing.',
+                'err_download_target',
+                ['path' => $targetFile]
+            );
         }
 
         $curl = curl_init($url);
@@ -139,16 +167,20 @@ class Release
         if ($success === false) {
             @unlink($targetFile);
 
-            return ['ok' => false, 'error' => 'Download failed: ' . $error, 'bytes' => 0];
+            return ['ok' => false, 'bytes' => 0] + self::problem('Download failed: ' . $error, 'err_download_failed');
         }
 
         if ($status !== 200) {
             @unlink($targetFile);
 
-            return ['ok' => false, 'error' => 'Download failed with HTTP ' . $status . '.', 'bytes' => 0];
+            return ['ok' => false, 'bytes' => 0] + self::problem(
+                'Download failed with HTTP ' . $status . '.',
+                'err_download_http',
+                ['status' => $status]
+            );
         }
 
-        return ['ok' => true, 'error' => null, 'bytes' => (int) @filesize($targetFile)];
+        return ['ok' => true, 'error' => null, 'error_key' => null, 'error_params' => [], 'bytes' => (int) @filesize($targetFile)];
     }
 
     private function downloadWithStream(string $url, string $targetFile): array
@@ -166,7 +198,10 @@ class Release
 
         $source = @fopen($url, 'r', false, $context);
         if ($source === false) {
-            return ['ok' => false, 'error' => 'Could not open the download URL. Check outbound network access.', 'bytes' => 0];
+            return ['ok' => false, 'bytes' => 0] + self::problem(
+                'Could not open the download URL. Check outbound network access.',
+                'err_download_offline'
+            );
         }
 
         // ignore_errors keeps the stream open for 4xx and 5xx too, so the
@@ -176,14 +211,22 @@ class Release
         if ($status !== 200) {
             fclose($source);
 
-            return ['ok' => false, 'error' => 'Download failed with HTTP ' . $status . '.', 'bytes' => 0];
+            return ['ok' => false, 'bytes' => 0] + self::problem(
+                'Download failed with HTTP ' . $status . '.',
+                'err_download_http',
+                ['status' => $status]
+            );
         }
 
         $target = @fopen($targetFile, 'w');
         if ($target === false) {
             fclose($source);
 
-            return ['ok' => false, 'error' => 'Could not open ' . $targetFile . ' for writing.', 'bytes' => 0];
+            return ['ok' => false, 'bytes' => 0] + self::problem(
+                'Could not open ' . $targetFile . ' for writing.',
+                'err_download_target',
+                ['path' => $targetFile]
+            );
         }
 
         $bytes = (int) stream_copy_to_stream($source, $target, self::MAX_DOWNLOAD_BYTES);
@@ -193,10 +236,10 @@ class Release
         if ($bytes <= 0) {
             @unlink($targetFile);
 
-            return ['ok' => false, 'error' => 'The download was empty.', 'bytes' => 0];
+            return ['ok' => false, 'bytes' => 0] + self::problem('The download was empty.', 'err_download_empty');
         }
 
-        return ['ok' => true, 'error' => null, 'bytes' => $bytes];
+        return ['ok' => true, 'error' => null, 'error_key' => null, 'error_params' => [], 'bytes' => $bytes];
     }
 
     /**
@@ -210,25 +253,36 @@ class Release
     public function inspectArchive(string $zipPath): array
     {
         if (!class_exists('ZipArchive')) {
-            return ['ok' => false, 'error' => 'The PHP zip extension is missing.'];
+            return ['ok' => false] + self::problem('The PHP zip extension is missing.', 'err_zip_missing');
         }
 
         $zip = new ZipArchive();
         if ($zip->open($zipPath) !== true) {
-            return ['ok' => false, 'error' => 'The downloaded file is not a readable ZIP archive.'];
+            return ['ok' => false] + self::problem(
+                'The downloaded file is not a readable ZIP archive.',
+                'err_archive_unreadable'
+            );
         }
 
         if ($zip->numFiles > self::MAX_ENTRIES) {
+            $entries = $zip->numFiles;
             $zip->close();
 
-            return ['ok' => false, 'error' => 'The archive contains more entries than expected (' . $zip->numFiles . ').'];
+            return ['ok' => false] + self::problem(
+                'The archive contains more entries than expected (' . $entries . ').',
+                'err_archive_too_many',
+                ['entries' => $entries]
+            );
         }
 
         $prefix = self::findSystemPrefix($zip);
         if ($prefix === null) {
             $zip->close();
 
-            return ['ok' => false, 'error' => 'The archive does not contain a Typemill core. Expected a system/ directory with typemill/ and vendor/ inside it.'];
+            return ['ok' => false] + self::problem(
+                'The archive does not contain a Typemill core. Expected a system/ directory with typemill/ and vendor/ inside it.',
+                'err_archive_no_core'
+            );
         }
 
         $systemEntries = 0;
@@ -240,7 +294,10 @@ class Release
             if ($stat === false) {
                 $zip->close();
 
-                return ['ok' => false, 'error' => 'The archive contains an unreadable entry.'];
+                return ['ok' => false] + self::problem(
+                    'The archive contains an unreadable entry.',
+                    'err_archive_unreadable_entry'
+                );
             }
 
             $name = (string) $stat['name'];
@@ -248,14 +305,22 @@ class Release
             if (!self::isSafeEntryName($name)) {
                 $zip->close();
 
-                return ['ok' => false, 'error' => 'The archive contains an unsafe path: ' . $name];
+                return ['ok' => false] + self::problem(
+                    'The archive contains an unsafe path: ' . $name,
+                    'err_archive_unsafe_path',
+                    ['path' => $name]
+                );
             }
 
             $totalBytes += (int) $stat['size'];
             if ($totalBytes > self::MAX_UNCOMPRESSED_BYTES) {
                 $zip->close();
 
-                return ['ok' => false, 'error' => 'The archive expands to more than ' . Environment::formatBytes(self::MAX_UNCOMPRESSED_BYTES) . '.'];
+                return ['ok' => false] + self::problem(
+                    'The archive expands to more than ' . Environment::formatBytes(self::MAX_UNCOMPRESSED_BYTES) . '.',
+                    'err_archive_too_big',
+                    ['limit' => Environment::formatBytes(self::MAX_UNCOMPRESSED_BYTES)]
+                );
             }
 
             if (self::isSystemEntry($name, $prefix)) {
@@ -268,7 +333,11 @@ class Release
             if ($zip->locateName($prefix . $required) === false) {
                 $zip->close();
 
-                return ['ok' => false, 'error' => 'The archive is missing ' . $required . ', so it is not a complete Typemill core. Archives from GitHub do not include system/vendor.'];
+                return ['ok' => false] + self::problem(
+                    'The archive is missing ' . $required . ', so it is not a complete Typemill core. Archives from GitHub do not include system/vendor.',
+                    'err_archive_missing_entry',
+                    ['entry' => $required]
+                );
             }
         }
 
@@ -281,12 +350,17 @@ class Release
         $zip->close();
 
         if ($version === null) {
-            return ['ok' => false, 'error' => 'Could not read the version from the archive.'];
+            return ['ok' => false] + self::problem(
+                'Could not read the version from the archive.',
+                'err_archive_no_version'
+            );
         }
 
         return [
             'ok' => true,
             'error' => null,
+            'error_key' => null,
+            'error_params' => [],
             'version' => $version,
             'prefix' => $prefix,
             'php_floor' => $phpFloor,
