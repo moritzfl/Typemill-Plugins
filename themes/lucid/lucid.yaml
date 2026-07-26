@@ -16,8 +16,8 @@ settings:
   showTiles: true
   tilesTitle: ''
   tilesLead: ''
-  tilesLinkLabel: 'Learn more'
-  tilesCountLabel: 'pages'
+  tilesLinkLabel: ''
+  tilesCountLabel: ''
   blog: false
   blogfolder: '/blog'
   blogimage: true
@@ -45,13 +45,13 @@ readymades:
       heroSubtitle: 'A calm starting point for a product, a portfolio or a small site. Replace this line with your own.'
       heroBtnLabel: 'Get started'
       heroBtnLink: '/'
-      heroLinkLabel: 'Learn more'
+      heroLinkLabel: ''
       heroLinkTarget: '/'
       showTiles: true
       tilesTitle: 'Explore'
       tilesLead: 'One card for every section of the site.'
-      tilesLinkLabel: 'Learn more'
-      tilesCountLabel: 'pages'
+      tilesLinkLabel: ''
+      tilesCountLabel: ''
       breadcrumb: true
       showDescription: false
       dateFormat: d.m.Y
@@ -75,8 +75,8 @@ readymades:
       showTiles: true
       tilesTitle: 'Sections'
       tilesLead: ''
-      tilesLinkLabel: 'Open'
-      tilesCountLabel: 'pages'
+      tilesLinkLabel: ''
+      tilesCountLabel: ''
       breadcrumb: true
       showDescription: false
       datePosition:
@@ -143,7 +143,7 @@ forms:
         heroLinkLabel:
           type: text
           label: 'Secondary link label'
-          placeholder: 'Learn more'
+          placeholder: 'Open'
           css: 'lg:w-half'
         heroLinkTarget:
           type: text
@@ -171,7 +171,8 @@ forms:
         tilesLinkLabel:
           type: text
           label: 'Tile link label'
-          placeholder: 'Learn more'
+          description: 'Left blank it follows the site language.'
+          placeholder: 'Open'
           css: 'lg:w-half'
         tilesCountLabel:
           type: text

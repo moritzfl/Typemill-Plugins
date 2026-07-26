@@ -18,8 +18,8 @@ settings:
   cardsEyebrow: ''
   cardsTitle: ''
   cardsLead: ''
-  cardsLinkLabel: 'Explore'
-  cardsCountLabel: 'pages'
+  cardsLinkLabel: ''
+  cardsCountLabel: ''
   ctaTitle: ''
   ctaText: ''
   ctaBtnLabel: ''
@@ -58,8 +58,8 @@ readymades:
       cardsEyebrow: 'Sections'
       cardsTitle: 'Start here'
       cardsLead: 'One card for every section of the site.'
-      cardsLinkLabel: 'Explore'
-      cardsCountLabel: 'pages'
+      cardsLinkLabel: ''
+      cardsCountLabel: ''
       ctaTitle: 'Ready when you are.'
       ctaText: 'Drop the call-to-action heading in the theme settings to hide this band.'
       ctaBtnLabel: 'Get in touch'
@@ -89,8 +89,8 @@ readymades:
       cardsEyebrow: ''
       cardsTitle: 'Sections'
       cardsLead: ''
-      cardsLinkLabel: 'Open'
-      cardsCountLabel: 'pages'
+      cardsLinkLabel: ''
+      cardsCountLabel: ''
       ctaTitle: ''
       ctaText: ''
       ctaBtnLabel: ''
@@ -199,7 +199,8 @@ forms:
         cardsLinkLabel:
           type: text
           label: 'Card link label'
-          placeholder: 'Explore'
+          description: 'Left blank it follows the site language.'
+          placeholder: 'Open'
           css: 'lg:w-half'
         cardsCountLabel:
           type: text

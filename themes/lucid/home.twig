@@ -59,15 +59,25 @@
 
       <ul class="lc-tiles">
         {% for element in navigation %}
+          {#
+            The summary is the page's own description when it has one, and the
+            number of pages for a folder otherwise. Rendering the paragraph
+            regardless left an empty line stretched by `flex`, which is what
+            hollowed out a tile for a page that is simply a page.
+          #}
+          {% set meta = getPageMeta(settings, element).meta|default({}) %}
+          {% set summary = meta.description|default('') ?: (
+              element.elementType == 'folder' and element.folderContent|length > 0
+                ? element.folderContent|length ~ ' ' ~ theme.tilesCountLabel|default(translate('pages'))
+                : '') %}
+
           <li class="lc-tile">
             <h3 class="lc-tile__title">{{ element.name|e }}</h3>
-            <p class="lc-tile__text">
-              {% if element.elementType == 'folder' and element.folderContent|length > 0 %}
-                {{ element.folderContent|length }} {{ theme.tilesCountLabel|default('pages')|e }}
-              {% endif %}
-            </p>
-            <div>
-              <a class="lc-link" href="{{ element.urlRel }}">{{ theme.tilesLinkLabel|default('Learn more')|e }}</a>
+            {% if summary %}
+              <p class="lc-tile__text">{{ summary|e }}</p>
+            {% endif %}
+            <div class="lc-tile__action">
+              <a class="lc-link" href="{{ element.urlRel }}">{{ theme.tilesLinkLabel|default(translate('Open'))|e }}</a>
             </div>
           </li>
         {% endfor %}

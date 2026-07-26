@@ -48,27 +48,36 @@
     {% if item.elementType == 'folder' and item.contains == 'posts' %}
       <div style="margin-top:48px">{% include 'partials/posts.twig' %}</div>
     {% elseif item.elementType == 'folder' and item.folderContent|length > 0 %}
-      <ul class="pr-grid" style="margin-top:44px">
+      {# One link per card: the title carried one and the label below carried a
+         second to the very same page, which is two stops in the tab order for
+         one destination. #}
+      <ul class="pr-grid pr-grid--list">
         {% for child in item.folderContent %}
+          {% set meta = getPageMeta(settings, child).meta|default({}) %}
           <li class="pr-card">
-            <h2 class="pr-card__title"><a href="{{ child.urlRel }}">{{ child.name|e }}</a></h2>
-            <div><a class="pr-link" href="{{ child.urlRel }}">{{ theme.cardsLinkLabel|default('Explore')|e }}</a></div>
+            <h2 class="pr-card__title">{{ meta.title|default(child.name)|e }}</h2>
+            {% if meta.description %}
+              <p class="pr-card__text">{{ meta.description|e }}</p>
+            {% endif %}
+            <div class="pr-card__action">
+              <a class="pr-link pr-link--cover" href="{{ child.urlRel }}">{{ theme.cardsLinkLabel|default(translate('Open'))|e }}</a>
+            </div>
           </li>
         {% endfor %}
       </ul>
     {% endif %}
 
     {% if item.prevItem or item.nextItem %}
-      <nav class="pr-pager" aria-label="{{ theme.pagerLabel|default('Page')|e('html_attr') }}">
+      <nav class="pr-pager" aria-label="{{ theme.pagerLabel|default(translate('Page'))|e('html_attr') }}">
         {% if item.prevItem %}
           <a class="pr-pager__item" href="{{ item.prevItem.urlRel }}">
-            <span class="pr-pager__label">{{ theme.previous|default('Previous')|e }}</span>
+            <span class="pr-pager__label">{{ theme.previous|default(translate('Previous'))|e }}</span>
             <span class="pr-pager__title">{{ item.prevItem.name|e }}</span>
           </a>
         {% endif %}
         {% if item.nextItem %}
           <a class="pr-pager__item pr-pager__item--next" href="{{ item.nextItem.urlRel }}">
-            <span class="pr-pager__label">{{ theme.next|default('Next')|e }}</span>
+            <span class="pr-pager__label">{{ theme.next|default(translate('Next'))|e }}</span>
             <span class="pr-pager__title">{{ item.nextItem.name|e }}</span>
           </a>
         {% endif %}
