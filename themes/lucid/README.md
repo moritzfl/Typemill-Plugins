@@ -63,10 +63,11 @@ nothing, and there is no font flash and no third-party request.
 | `page.twig` | Content pages, folder listings, prev/next pager |
 | `404.twig` | Not found |
 
-Folder pages list their children automatically as one grouped panel: hairline separators, the title
-in plain text and a chevron per row, the way a settings pane presents a set of links. A card each
-would give a bare list of names the weight of five articles, and the accent stays on the things you
-act on. Folders marked as containing posts render the post grid instead.
+Folder pages list their children automatically, and they are given the same treatment as the
+navigation panel for that section: the names set large in two columns, turning to the accent on
+hover. It is the same set of links, so it should not look like one thing in the header and another
+in the page — the rules are shared rather than copied, so the two cannot drift apart. Folders marked
+as containing posts render the post grid instead.
 
 ## Settings
 

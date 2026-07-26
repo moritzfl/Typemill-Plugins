@@ -26,7 +26,6 @@
     --lc-border-subtle: #e8e8ed;
     --lc-accent: #0071e3;
     --lc-accent-hover: #0077ed;
-    --lc-row-hover: rgba(0, 0, 0, 0.04);
     --lc-nav-bg: rgba(255, 255, 255, 0.72);
     --lc-code-bg: #f5f5f7;
 
@@ -52,7 +51,6 @@
         --lc-border: #424245;
         --lc-border-subtle: #333336;
         --lc-accent: #2997ff;
-        --lc-row-hover: rgba(255, 255, 255, 0.06);
         --lc-accent-hover: #4aa8ff;
         --lc-nav-bg: rgba(0, 0, 0, 0.72);
         --lc-code-bg: #1d1d1f;
@@ -282,7 +280,8 @@ a:hover {
     margin: 0 0 14px;
 }
 
-.lc-mega__list {
+.lc-mega__list,
+.lc-index {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -291,12 +290,14 @@ a:hover {
     max-width: 620px;
 }
 
-.lc-mega__list li {
+.lc-mega__list li,
+.lc-index li {
     break-inside: avoid;
     margin-bottom: 10px;
 }
 
-.lc-mega__list a {
+.lc-mega__list a,
+.lc-index a {
     font-size: 21px;
     line-height: 1.3;
     font-weight: 600;
@@ -305,17 +306,30 @@ a:hover {
     opacity: 1;
 }
 
-.lc-mega__list a:hover {
+.lc-mega__list a:hover,
+.lc-index a:hover {
     color: var(--lc-accent);
     text-decoration: none;
 }
 
-.lc-mega__list a[aria-current="page"] {
+.lc-mega__list a[aria-current="page"],
+.lc-index a[aria-current="page"] {
     color: var(--lc-accent);
 }
 
+/* In the page rather than in a panel, so the block needs its own separation
+   from the article above it. The rule sits on the block so it lines up with
+   the pager's rule below, rather than stopping where the columns end. The
+   list itself is identical to the panel's. */
+.lc-index-block {
+    margin-top: 40px;
+    padding-top: 36px;
+    border-top: 1px solid var(--lc-border-subtle);
+}
+
 @media (max-width: 640px) {
-    .lc-mega__list {
+    .lc-mega__list,
+    .lc-index {
         columns: 1;
     }
 }
@@ -652,77 +666,6 @@ a:hover {
     margin-top: auto;
     border-radius: var(--lc-radius-md);
     overflow: hidden;
-}
-
-/* ── Grouped list ─────────────────────────────────────────────────────
-   The way a settings pane or a support index presents a set of links: one
-   panel, hairline separators, and the title as plain text with a chevron to
-   say the row leads somewhere. A card each would give five headings the
-   weight of five articles, and colouring the titles would spend the accent on
-   navigation - it is kept for the things you act on. */
-
-.lc-rows {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    background: var(--lc-bg-alt);
-    border-radius: var(--lc-radius-lg);
-    overflow: hidden;
-}
-
-.lc-section--alt .lc-rows {
-    background: var(--lc-bg-elevated);
-}
-
-.lc-row {
-    position: relative;
-}
-
-/* The rule starts under the label rather than at the panel edge, which is
-   what makes the group read as one object instead of stacked boxes. */
-.lc-row + .lc-row::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 24px;
-    right: 0;
-    height: 1px;
-    background: var(--lc-border-subtle);
-}
-
-.lc-row__link {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    min-height: 56px;
-    padding: 14px 20px 14px 24px;
-    color: var(--lc-text);
-    text-decoration: none;
-    transition: background 0.2s ease;
-}
-
-.lc-row__link:hover {
-    background: var(--lc-row-hover);
-}
-
-.lc-row__link:hover .lc-row__chevron {
-    color: var(--lc-text-secondary);
-    transform: translateX(2px);
-}
-
-.lc-row__title {
-    flex: 1;
-    min-width: 0;
-    font-size: 17px;
-    line-height: 1.4;
-    font-weight: 500;
-    letter-spacing: -0.022em;
-}
-
-.lc-row__chevron {
-    flex: none;
-    color: var(--lc-border);
-    transition: transform 0.2s ease, color 0.2s ease;
 }
 
 /* ── Section headings ─────────────────────────────────────────────── */
