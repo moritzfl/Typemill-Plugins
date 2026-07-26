@@ -25,6 +25,9 @@ class ReadmeRenderer
     private const FORBIDDEN_ELEMENTS = [
         'script', 'style', 'iframe', 'object', 'embed', 'applet',
         'form', 'input', 'button', 'select', 'textarea', 'meta', 'link', 'base',
+        // Inline SVG is kept - readmes draw badges with it - but this is the one
+        // element inside it that can carry a document of its own.
+        'foreignObject',
     ];
 
     /** Only these can carry a URL, and only to somewhere sensible. */
@@ -104,6 +107,7 @@ class ReadmeRenderer
 
         $this->removeForbidden($document);
         $this->cleanAttributes($document, $reference);
+        $this->wrapTables($document);
 
         if (!$allowHtml) {
             // Everything that survived is still markup this site did not write.
@@ -164,8 +168,13 @@ class ReadmeRenderer
                 }
 
                 if ($lower === 'style') {
-                    // A style attribute can load and position things; the site's
-                    // own stylesheet decides how the readme looks.
+                    // A style attribute can load and position things, so it goes
+                    // - but the alignment of a table cell is carried in it.
+                    // Markdown's own |:-:| becomes style="text-align: center",
+                    // so dropping the lot would silently left-align every
+                    // centred column in the file. It is kept as the attribute
+                    // that says the same thing and nothing else.
+                    $this->keepTextAlign($element, $value);
                     $element->removeAttribute($name);
                     continue;
                 }
@@ -187,6 +196,65 @@ class ReadmeRenderer
             if (strtolower($element->tagName) === 'a' && str_starts_with($element->getAttribute('href'), 'http')) {
                 $element->setAttribute('rel', 'noopener noreferrer nofollow');
             }
+        }
+    }
+
+    /**
+     * Carry a text-align out of a style attribute and into an align attribute.
+     *
+     * Only on the elements where alignment is a statement about content rather
+     * than a piece of design, and only the three values that mean anything
+     * there.
+     */
+    private function keepTextAlign(DOMElement $element, string $style): void
+    {
+        $alignable = ['td', 'th', 'table', 'p', 'div'];
+
+        if (!in_array(strtolower($element->tagName), $alignable, true) || $element->hasAttribute('align')) {
+            return;
+        }
+
+        if (preg_match('/(?:^|;)\s*text-align\s*:\s*(left|center|right)\s*(?:;|$)/i', $style, $match) === 1) {
+            $element->setAttribute('align', strtolower($match[1]));
+        }
+    }
+
+    /**
+     * Put every table in the container Typemill's own renderer gives them.
+     *
+     * A theme hangs the horizontal scrolling off .tm-table, because a table is
+     * as wide as its columns need and a phone is not. Markdown tables arrive
+     * wrapped already; a table written as raw HTML in the readme does not, and
+     * without the wrapper it pushes the whole page sideways.
+     */
+    private function wrapTables(DOMDocument $document): void
+    {
+        $xpath = new DOMXPath($document);
+        $tables = [];
+
+        foreach ($xpath->query('//table') ?: [] as $table) {
+            $parent = $table->parentNode;
+
+            if ($parent instanceof DOMElement
+                && strtolower($parent->tagName) === 'div'
+                && str_contains($parent->getAttribute('class'), 'tm-table')) {
+                continue;
+            }
+
+            $tables[] = $table;
+        }
+
+        foreach ($tables as $table) {
+            $parent = $table->parentNode;
+            if ($parent === null) {
+                continue;
+            }
+
+            $wrapper = $document->createElement('div');
+            $wrapper->setAttribute('class', 'tm-table');
+
+            $parent->replaceChild($wrapper, $table);
+            $wrapper->appendChild($table);
         }
     }
 

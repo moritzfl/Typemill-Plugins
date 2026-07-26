@@ -842,23 +842,34 @@ a {
     padding: 0;
 }
 
-/* A table is as wide as its columns need, and a phone is not. Left in the flow
-   it pushed the whole page sideways; as a block of its own it scrolls within
-   the column instead. */
-.at-prose table {
-    display: block;
-    width: 100%;
+/*
+ * A table is as wide as its columns need, and a phone is not. Typemill wraps
+ * every table in .tm-table, and that wrapper is where the scrolling belongs:
+ * making the table itself a block takes its own layout away - cells stop
+ * sharing a row, and a table that centres itself stops being centred.
+ */
+.at-prose .tm-table {
     max-width: 100%;
     overflow-x: auto;
+}
+
+.at-prose table {
+    width: 100%;
     border-collapse: collapse;
     font-size: 14px;
 }
 
 .at-prose th,
 .at-prose td {
-    text-align: left;
     padding: 10px 12px;
     border-bottom: 1px solid var(--at-border);
+}
+
+/* An align attribute on a cell is an instruction from whoever wrote the table,
+   so it is not overruled here. */
+.at-prose th:not([align]),
+.at-prose td:not([align]) {
+    text-align: left;
 }
 
 /* Only pictures the viewer actually picked up get the magnifying cursor; a

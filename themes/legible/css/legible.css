@@ -727,18 +727,33 @@ main {
     border-top: 2px solid var(--lg-border-faint);
 }
 
+/*
+ * A table is as wide as its columns need, and a phone is not. Typemill wraps
+ * every table in .tm-table, and that wrapper is where the scrolling belongs:
+ * making the table itself a block takes its own layout away - cells stop
+ * sharing a row, and a table that centres itself stops being centred.
+ */
+.lg-prose .tm-table {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
 .lg-prose table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.9em;
-    display: block;
-    overflow-x: auto;
 }
 
 .lg-prose th,
 .lg-prose td {
     border: 1px solid var(--lg-border);
     padding: 10px 12px;
+}
+
+/* An align attribute on a cell is an instruction from whoever wrote the table,
+   so it is not overruled here. */
+.lg-prose th:not([align]),
+.lg-prose td:not([align]) {
     text-align: left;
 }
 

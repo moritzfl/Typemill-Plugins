@@ -225,4 +225,71 @@ class GithubReadmeRendererTest extends TestCase
         $this->assertSame('', $this->render(''));
         $this->assertSame('', $this->render('   '));
     }
+
+    /**
+     * Markdown writes a column's alignment as a style attribute, and style
+     * attributes are removed. The alignment has to survive that as the
+     * attribute that says the same thing.
+     */
+    public function testColumnAlignmentSurvivesTheRemovalOfStyles(): void
+    {
+        $html = $this->render(
+            '<table><thead><tr>'
+            . '<th>Left</th>'
+            . '<th style="text-align: center;">Middle</th>'
+            . '<th style="text-align: right;">Right</th>'
+            . '</tr></thead><tbody><tr>'
+            . '<td style="text-align: center;">2</td>'
+            . '</tr></tbody></table>'
+        );
+
+        $this->assertStringNotContainsString('style=', $html, 'the style attribute should be gone');
+        $this->assertStringContainsString('<th align="center">Middle</th>', $html);
+        $this->assertStringContainsString('<th align="right">Right</th>', $html);
+        $this->assertStringContainsString('<td align="center">2</td>', $html);
+    }
+
+    /** Anything else in a style attribute still goes. */
+    public function testOnlyTheAlignmentIsTakenOutOfAStyle(): void
+    {
+        $html = $this->render('<td style="position:fixed;inset:0;text-align:center">x</td>');
+
+        $this->assertStringNotContainsString('position', $html);
+        $this->assertStringNotContainsString('inset', $html);
+        $this->assertStringContainsString('align="center"', $html);
+    }
+
+    /** An align an author wrote themselves is not replaced by one from a style. */
+    public function testAnExistingAlignIsLeftAlone(): void
+    {
+        $html = $this->render('<td align="right" style="text-align:center">x</td>');
+
+        $this->assertStringContainsString('align="right"', $html);
+        $this->assertStringNotContainsString('align="center"', $html);
+    }
+
+    /**
+     * A table is as wide as its columns need. Themes hang the horizontal
+     * scrolling off the container Typemill's own renderer provides, so a table
+     * written as raw HTML in a readme needs that container too - otherwise it
+     * pushes the whole page sideways.
+     */
+    public function testRawTablesGetTheContainerThemesScrollWith(): void
+    {
+        $html = $this->render('<table align="center"><tr><td>Only cell</td></tr></table>');
+
+        $this->assertStringContainsString('<div class="tm-table">', $html);
+        $this->assertStringContainsString('align="center"', $html, 'the table keeps centring itself');
+
+        // The table stays a table: its own layout is what puts cells in a row.
+        $this->assertStringNotContainsString('display', $html);
+    }
+
+    /** A markdown table already arrives wrapped, and is not wrapped twice. */
+    public function testAWrappedTableIsNotWrappedAgain(): void
+    {
+        $html = $this->render('<div class="tm-table"><table><tr><td>x</td></tr></table></div>');
+
+        $this->assertSame(1, substr_count($html, 'tm-table'));
+    }
 }
