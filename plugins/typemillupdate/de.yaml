@@ -43,7 +43,7 @@ TYPEMILLUPDATE_CHECK_VENDOR_LOCATION_LEGACY: Diese Installation hält die Compos
 TYPEMILLUPDATE_CHECK_ROOT_WRITABLE_OK: PHP kann im Projektverzeichnis Einträge anlegen und umbenennen.
 TYPEMILLUPDATE_CHECK_ROOT_WRITABLE_NOCREATE: PHP kann in {root} keine Einträge anlegen. Meist gehören die Dateien einem anderen Benutzer als dem Webserver.
 TYPEMILLUPDATE_CHECK_ROOT_WRITABLE_NORENAME: PHP kann in {root} keine Einträge umbenennen, was das Update braucht, um das system-Verzeichnis auszutauschen.
-TYPEMILLUPDATE_CHECK_SYSTEM_WRITABLE_OK: Das system-Verzeichnis ist beschreibbar, eine Kopie an Ort und Stelle ist also möglich, falls das Dateisystem das Umbenennen von Verzeichnissen verweigert.
+TYPEMILLUPDATE_CHECK_SYSTEM_WRITABLE_OK: Schreibzugriff auf das system-Verzeichnis ist vorhanden.
 TYPEMILLUPDATE_CHECK_SYSTEM_WRITABLE_READONLY: Das system-Verzeichnis ist nicht beschreibbar. Das Update hängt dann davon ab, dass es umbenannt werden kann, was nicht jedes Dateisystem erlaubt.
 TYPEMILLUPDATE_CHECK_DISK_SPACE_OK: "{size} frei."
 TYPEMILLUPDATE_CHECK_DISK_SPACE_LOW: "Nur {size} frei; benötigt werden mindestens {required}."

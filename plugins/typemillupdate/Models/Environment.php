@@ -265,7 +265,7 @@ class Environment
 
         return $writable
             ? $this->check('system_writable', true, false,
-                'The system directory is writable, so an in-place copy is possible if the filesystem refuses directory renames.',
+                'Write access to the system directory is available.',
                 'system_writable_ok')
             : $this->check('system_writable', true, false,
                 'The system directory is not writable. The update then depends on being able to rename it, which not every filesystem allows.',
