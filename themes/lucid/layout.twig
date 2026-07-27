@@ -54,6 +54,13 @@
 
       var toggle = nav.querySelector('[data-nav-toggle]');
       var items = Array.prototype.slice.call(nav.querySelectorAll('[data-nav-item]'));
+      var outside = [
+        document.querySelector('main'),
+        document.querySelector('.lc-footer'),
+        document.querySelector('.lc-admin')
+      ].filter(Boolean);
+      var previousInert = [];
+      var previousOverflow = '';
       var hoverCapable = window.matchMedia('(hover: hover)');
       var wide = window.matchMedia('(min-width: 834px)');
       var closeTimer = null;
@@ -92,12 +99,41 @@
         }, 220);
       }
 
-      function setDrawer(open) {
+      function drawerFocusables() {
+        return Array.prototype.slice.call(nav.querySelectorAll(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )).filter(function (element) { return element.getClientRects().length > 0; });
+      }
+
+      // The open drawer covers the page, so what it covers must not be
+      // reachable: inert takes the background out of the tab order and off the
+      // accessibility tree, and each node's own state is put back on close.
+      function setOutsideInert(inert) {
+        if (inert) {
+          previousInert = outside.map(function (element) {
+            return { element: element, inert: element.inert };
+          });
+          previousInert.forEach(function (entry) { entry.element.inert = true; });
+          return;
+        }
+        previousInert.forEach(function (entry) { entry.element.inert = entry.inert; });
+        previousInert = [];
+      }
+
+      function setDrawer(open, restoreFocus) {
         var wasOpen = nav.classList.contains('lc-nav--open');
+        restoreFocus = restoreFocus !== false;
 
         nav.classList.toggle('lc-nav--open', open);
         if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-        document.body.style.overflow = open ? 'hidden' : '';
+        if (open && !wasOpen) {
+          previousOverflow = document.body.style.overflow;
+          document.body.style.overflow = 'hidden';
+          setOutsideInert(true);
+        } else if (!open && wasOpen) {
+          document.body.style.overflow = previousOverflow;
+          setOutsideInert(false);
+        }
         if (!open) closeAll();
 
         // The links sit before the button in the document, so opening the
@@ -107,7 +143,7 @@
         if (open && !wasOpen) {
           var first = nav.querySelector('.lc-nav__link');
           if (first) first.focus();
-        } else if (!open && wasOpen && toggle && nav.contains(document.activeElement)) {
+        } else if (!open && wasOpen && restoreFocus && toggle && nav.contains(document.activeElement)) {
           toggle.focus();
         }
       }
@@ -176,9 +212,25 @@
       });
 
       document.addEventListener('keydown', function (e) {
+        var drawerOpen = nav.classList.contains('lc-nav--open');
+
+        // Tab must not walk out of an open drawer into the page behind it.
+        if (e.key === 'Tab' && drawerOpen) {
+          var focusables = drawerFocusables();
+          var first = focusables[0];
+          var last = focusables[focusables.length - 1];
+          if (first && last && e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (first && last && !e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+          return;
+        }
+
         if (e.key !== 'Escape') return;
 
-        var drawerOpen = nav.classList.contains('lc-nav--open');
         var open = items.filter(function (item) {
           return item.classList.contains('is-open');
         })[0];
@@ -201,8 +253,14 @@
       // Leaving the mobile breakpoint must not strand the drawer open.
       var onChange = function () {
         if (wide.matches) {
-          setDrawer(false);
+          var activeBefore = document.activeElement;
+          setDrawer(false, false);
           closeAll();
+          // Only when the breakpoint hid what had focus: the menu button.
+          if (activeBefore && nav.contains(activeBefore) && activeBefore.getClientRects().length === 0) {
+            var desktopTarget = nav.querySelector('.lc-nav__link') || nav.querySelector('.lc-nav__brand');
+            if (desktopTarget) desktopTarget.focus();
+          }
         }
       };
       wide.addEventListener ? wide.addEventListener('change', onChange) : wide.addListener(onChange);

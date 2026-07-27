@@ -246,6 +246,30 @@
 
       const MOBILE_OPEN  = ['fixed', 'top-14', 'right-0', 'bottom-0', 'z-30', 'flex', 'border-l', 'border-gray-200', 'bg-white/95', 'backdrop-blur-xl', 'shadow-2xl', 'shadow-gray-950/20', 'dark:border-gray-800', 'dark:bg-gray-950/95'];
       const DESKTOP_MEDIA = window.matchMedia('(min-width: 1024px)');
+      // What the open drawer covers. Kept out of the tab order and off the
+      // accessibility tree while it is open, with each node's own state put
+      // back on close.
+      const outside = [document.querySelector('.content-scroll'), document.getElementById('topbar')]
+        .filter(Boolean);
+      let previousInert = [];
+
+      function setOutsideInert(inert) {
+        if (inert) {
+          previousInert = outside.map(function (element) {
+            return { element: element, inert: element.inert };
+          });
+          previousInert.forEach(function (entry) { entry.element.inert = true; });
+          return;
+        }
+        previousInert.forEach(function (entry) { entry.element.inert = entry.inert; });
+        previousInert = [];
+      }
+
+      function sidebarFocusables() {
+        return Array.prototype.slice.call(sidebar.querySelectorAll(
+          'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )).filter(function (element) { return element.getClientRects().length > 0; });
+      }
 
       function openMobileMenu() {
         MOBILE_OPEN.forEach(function (c) { sidebar.classList.add(c); });
@@ -254,20 +278,33 @@
         btn.setAttribute('aria-expanded', 'true');
         iconOpen.classList.add('hidden');
         iconClose.classList.remove('hidden');
+        setOutsideInert(true);
+
+        // The button sits before the drawer, so without this the next Tab
+        // walks past the menu that was just opened.
+        const first = sidebarFocusables()[0];
+        if (first) first.focus();
       }
 
-      function closeMobileMenu() {
+      function closeMobileMenu(restoreFocus) {
+        const wasOpen = !sidebar.classList.contains('hidden');
         sidebar.classList.add('hidden');
         MOBILE_OPEN.forEach(function (c) { sidebar.classList.remove(c); });
         backdrop.classList.add('hidden');
         btn.setAttribute('aria-expanded', 'false');
         iconOpen.classList.remove('hidden');
         iconClose.classList.add('hidden');
+        setOutsideInert(false);
+
+        // Focus would otherwise be left on a link the drawer just hid.
+        if (wasOpen && restoreFocus !== false && sidebar.contains(document.activeElement)) {
+          btn.focus();
+        }
       }
 
       function syncMenuToViewport() {
         if (DESKTOP_MEDIA.matches) {
-          closeMobileMenu();
+          closeMobileMenu(false);
         }
       }
 
@@ -277,6 +314,30 @@
         });
 
         backdrop.addEventListener('click', closeMobileMenu);
+
+        document.addEventListener('keydown', function (e) {
+          const open = !sidebar.classList.contains('hidden') && !DESKTOP_MEDIA.matches;
+          if (!open) return;
+
+          if (e.key === 'Escape') {
+            closeMobileMenu();
+            return;
+          }
+
+          // Tab must not walk out of the open drawer into the page behind it.
+          if (e.key === 'Tab') {
+            const focusables = sidebarFocusables();
+            const first = focusables[0];
+            const last = focusables[focusables.length - 1];
+            if (first && last && e.shiftKey && document.activeElement === first) {
+              e.preventDefault();
+              last.focus();
+            } else if (first && last && !e.shiftKey && document.activeElement === last) {
+              e.preventDefault();
+              first.focus();
+            }
+          }
+        });
 
         sidebar.querySelectorAll('a').forEach(function (a) {
           a.addEventListener('click', function () {
