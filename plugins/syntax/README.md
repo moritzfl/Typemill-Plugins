@@ -32,7 +32,7 @@ npm run build
 
 | Setting | Default | Meaning |
 |---------|---------|---------|
-| Copy button | on | A control on each code block that copies the plain source |
+| Copy button | on (checkbox) | A control on each code block that copies the plain source |
 
 ## How themes cooperate
 

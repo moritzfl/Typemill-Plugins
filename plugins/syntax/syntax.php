@@ -31,8 +31,11 @@ class syntax extends Plugin
             return;
         }
 
-        $settings = $this->getPluginSettings();
-        $copy = !isset($settings['copyButton']) || $settings['copyButton'] === 'true';
+        $settings = $this->getPluginSettings() ?: [];
+        // Default on when the key has never been saved.
+        $copy = array_key_exists('copyButton', $settings)
+            ? !empty($settings['copyButton'])
+            : true;
 
         $this->addCSS('/syntax/css/syntax.css');
         $this->addInlineJS(

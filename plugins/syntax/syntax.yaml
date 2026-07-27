@@ -6,14 +6,12 @@ homepage: https://github.com/moritzfl/Typemill-Plugins
 license: GPL-2.0
 
 settings:
-  copyButton: 'true'
+  copyButton: true
 
 forms:
   fields:
     copyButton:
-      type: radio
+      type: checkbox
       label: Copy button
+      checkboxlabel: Show a copy button on code blocks
       description: "A control on each code block that copies the plain source."
-      options:
-        'true': 'On'
-        'false': 'Off'
