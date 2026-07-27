@@ -1,0 +1,12 @@
+{
+  "name": "typemill-syntax",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/client.js --bundle --minify --format=iife --outfile=public/syntax.min.js --target=es2020"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "shiki": "^3.12.0"
+  }
+}

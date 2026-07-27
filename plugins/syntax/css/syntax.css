@@ -1,0 +1,52 @@
+/*
+ * Dual-theme Shiki output. Tokens carry both GitHub light and dark colours as
+ * CSS variables; this file picks which one shows.
+ *
+ * Light is the default. Dark wins under prefers-color-scheme: dark, when the
+ * document carries data-code-tokens="dark" (themes whose code panel stays dark
+ * in light mode), or when html.dark is set (class-based dark mode).
+ *
+ * The panel itself is the theme's job — Shiki's own background is cleared so a
+ * theme's pre styling is what you see.
+ */
+
+/*
+ * Panel chrome (background, padding, radius) is the theme's. Shiki only puts
+ * colour variables on the tokens — it does not paint a background of its own
+ * when defaultColor is false — so nothing here fights the theme's pre rule.
+ */
+pre.shiki code {
+    background: none;
+    padding: 0;
+    font-size: inherit;
+    color: inherit;
+}
+
+/* defaultColor: false — light vars are the base paint. */
+pre.shiki,
+pre.shiki span {
+    color: var(--shiki-light);
+    font-style: var(--shiki-light-font-style, inherit);
+    font-weight: var(--shiki-light-font-weight, inherit);
+    text-decoration: var(--shiki-light-text-decoration, inherit);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-code-tokens="light"]) pre.shiki,
+    :root:not([data-code-tokens="light"]) pre.shiki span {
+        color: var(--shiki-dark) !important;
+        font-style: var(--shiki-dark-font-style, inherit) !important;
+        font-weight: var(--shiki-dark-font-weight, inherit) !important;
+        text-decoration: var(--shiki-dark-text-decoration, inherit) !important;
+    }
+}
+
+:is(html, body)[data-code-tokens="dark"] pre.shiki,
+:is(html, body)[data-code-tokens="dark"] pre.shiki span,
+html.dark pre.shiki,
+html.dark pre.shiki span {
+    color: var(--shiki-dark) !important;
+    font-style: var(--shiki-dark-font-style, inherit) !important;
+    font-weight: var(--shiki-dark-font-weight, inherit) !important;
+    text-decoration: var(--shiki-dark-text-decoration, inherit) !important;
+}

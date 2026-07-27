@@ -1,0 +1,6 @@
+name: Syntax
+version: 1.0.0
+description: Highlights fenced code with Shiki and paints tokens in GitHub's light and dark high-contrast colours, following the system scheme (or a theme that forces dark tokens on a dark panel).
+author: Moritz
+homepage: https://github.com/moritzfl/Typemill-Plugins
+license: GPL-2.0
