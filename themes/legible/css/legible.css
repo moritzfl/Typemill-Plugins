@@ -725,6 +725,17 @@ main {
     font-size: 1em;
 }
 
+/* Maximum contrast asks for no hue at all. Syntax tokens fall back to body
+   ink, the way links there are told apart by weight and underline rather than
+   colour. Only active when the Syntax plugin has painted the block. */
+:root[data-contrast="high"] .lg-prose pre.shiki,
+:root[data-contrast="high"] .lg-prose pre.shiki span {
+    color: var(--lg-text) !important;
+    font-style: inherit !important;
+    font-weight: inherit !important;
+    text-decoration: none !important;
+}
+
 .lg-prose hr {
     border: 0;
     border-top: 2px solid var(--lg-border-faint);

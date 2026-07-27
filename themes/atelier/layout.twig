@@ -34,7 +34,7 @@
   </style>
   {% endblock %}
 </head>
-<body data-surface="{{ theme.surface|default('white')|e('html_attr') }}">
+<body data-surface="{{ theme.surface|default('white')|e('html_attr') }}"{% if theme.surface|default('white') == 'dark' %} data-code-tokens="dark"{% endif %}>
 
   <a href="#main-content" class="at-skip">{{ theme.skipText|default(translate('Skip to content'))|e }}</a>
 

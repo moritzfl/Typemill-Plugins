@@ -23,7 +23,7 @@
 {% endif %}
 {% set canonicalSuffix = canonicalPage > 1 ? '/p/' ~ canonicalPage : (isHomepage ? '/' : '') %}
 <!DOCTYPE html>
-<html lang="{{ settings.langattr | default('en') }}">
+<html lang="{{ settings.langattr | default('en') }}" data-code-tokens="dark">
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}{% endblock %}</title>
