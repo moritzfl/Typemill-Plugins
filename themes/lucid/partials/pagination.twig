@@ -1,0 +1,24 @@
+{#
+  Post pagination, bounded.
+
+  A folder that keeps growing would otherwise print one control per page: two
+  hundred posts at nine to a page is twenty-three, and a page size of one is two
+  hundred. Only the ends and a window around the current page are rendered, with
+  an ellipsis where numbers were left out.
+#}
+{% if pages > 1 %}
+  <nav class="lc-hero__actions" style="margin-top:44px"
+       aria-label="{{ translate('Pagination')|e('html_attr') }}">
+    {% for i in 1..pages %}
+      {% if i == 1 or i == pages or (i >= page - 2 and i <= page + 2) %}
+        {% if i == page %}
+          <span class="lc-btn" aria-current="page">{{ i }}</span>
+        {% else %}
+          <a class="lc-btn lc-btn--secondary" href="{{ i == 1 ? pagerbase : pagerbase ~ '/p/' ~ i }}">{{ i }}</a>
+        {% endif %}
+      {% elseif (i == 2 and page > 4) or (i == pages - 1 and page < pages - 3) %}
+        <span aria-hidden="true">&hellip;</span>
+      {% endif %}
+    {% endfor %}
+  </nav>
+{% endif %}

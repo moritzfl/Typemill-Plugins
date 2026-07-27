@@ -48,7 +48,28 @@
 
   </article>
 
-  {% if isFolder %}
+  {% if isFolder and item.contains == 'posts' %}
+    {# The wall only shows entries that carry a picture, so those are what a
+       page is counted and cut from - the same rule as the blog homepage. #}
+    {% set entries = item.folderContent|filter(element => getPageMeta(settings, element).meta.heroimage) %}
+    {% set pagesize = theme.blogpagesize|default(12) %}
+    {% set pagesize = pagesize > 0 ? pagesize : 12 %}
+    {% set pages = (entries|length / pagesize)|round(0, 'ceil') %}
+    {% set folderpage = currentpage and currentpage matches '/^[1-9][0-9]*$/' ? currentpage : 1 %}
+    {% set folderpage = pages > 0 and folderpage > pages ? pages : folderpage %}
+
+    <section class="at-section at-section--tight">
+      {% include 'partials/gallery.twig' with {
+        entries: entries|slice((folderpage - 1) * pagesize, pagesize)
+      } %}
+
+      {% include 'partials/pagination.twig' with {
+        page: folderpage,
+        pages: pages,
+        pagerbase: item.urlRel
+      } %}
+    </section>
+  {% elseif isFolder %}
     <section class="at-section at-section--tight">
       {% include 'partials/gallery.twig' %}
     </section>

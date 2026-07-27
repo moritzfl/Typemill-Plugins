@@ -25,7 +25,10 @@
     <nav aria-label="{{ settings.themes.prism.navLabel|default(translate('Main'))|e('html_attr') }}">
       <ul class="pr-nav__links">
         {% for element in navigation %}
-          {% set children = element.elementType == 'folder' ? element.folderContent : [] %}
+          {# A posts folder is one destination in the menu, not a menu of every
+             article it holds. #}
+          {% set children = element.elementType == 'folder' and element.contains|default('pages') != 'posts'
+              ? element.folderContent : [] %}
           {% set panelId = 'pr-sub-' ~ loop.index %}
 
           <li class="pr-nav__item{{ children|length > 0 ? ' pr-nav__item--has-menu' : '' }}"

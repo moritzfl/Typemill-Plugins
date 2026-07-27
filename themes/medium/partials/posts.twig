@@ -3,7 +3,9 @@
   the right, rather than a grid of cards.
 #}
 {% set theme = settings.themes.medium %}
-{% set postitems = postitems is defined and postitems ? postitems : item.folderContent %}
+{# Only the absence of the variable falls back to the page's own children: an
+   explicitly empty slice must stay empty. #}
+{% set postitems = postitems is defined ? postitems : item.folderContent|default([]) %}
 
 {% if postitems|length > 0 %}
   <ul class="md-feed">

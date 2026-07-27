@@ -24,7 +24,10 @@
 
       <ul class="lg-nav__list">
         {% for element in navigation %}
-          {% set children = element.elementType == 'folder' ? element.folderContent : [] %}
+          {# A posts folder is one destination in the menu, not a menu of every
+             article it holds. #}
+          {% set children = element.elementType == 'folder' and element.contains|default('pages') != 'posts'
+              ? element.folderContent : [] %}
           {% set panelId = 'lg-sub-' ~ loop.index %}
 
           <li class="lg-nav__item" {% if children|length > 0 %}data-nav-item{% endif %}>

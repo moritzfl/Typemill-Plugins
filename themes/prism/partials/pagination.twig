@@ -1,0 +1,20 @@
+{#
+  Post pagination, bounded: only the ends and a window around the current page,
+  so a folder of two hundred posts does not print two hundred controls.
+#}
+{% if pages > 1 %}
+  <nav class="pr-hero__actions" style="margin-top:40px"
+       aria-label="{{ translate('Pagination')|e('html_attr') }}">
+    {% for i in 1..pages %}
+      {% if i == 1 or i == pages or (i >= page - 2 and i <= page + 2) %}
+        {% if i == page %}
+          <span class="pr-btn" aria-current="page">{{ i }}</span>
+        {% else %}
+          <a class="pr-btn pr-btn--light" href="{{ i == 1 ? pagerbase : pagerbase ~ '/p/' ~ i }}">{{ i }}</a>
+        {% endif %}
+      {% elseif (i == 2 and page > 4) or (i == pages - 1 and page < pages - 3) %}
+        <span aria-hidden="true">&hellip;</span>
+      {% endif %}
+    {% endfor %}
+  </nav>
+{% endif %}

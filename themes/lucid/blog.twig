@@ -29,11 +29,14 @@
     {% set pagesize = theme.blogpagesize|default(9) %}
     {% set pagesize = pagesize > 0 ? pagesize : 9 %}
     {% set pages = (pagelist.folderContent|length / pagesize)|round(0, 'ceil') %}
-    {% set currentpage = currentpage ? currentpage : 1 %}
-    {% set offset = (currentpage - 1) * pagesize %}
+    {# Core accepts any numeric last segment, so /p/02 and /p/2.5 arrive here
+       too; a float would slice at a fractional offset. #}
+    {% set blogpage = currentpage and currentpage matches '/^[1-9][0-9]*$/' ? currentpage : 1 %}
+    {% set blogpage = pages > 0 and blogpage > pages ? pages : blogpage %}
+    {% set offset = (blogpage - 1) * pagesize %}
     {# The homepage is '/', and '/' ~ '/p/2' is '//p/2' - which a browser reads
        as a host, not as a path, and follows off the site. #}
-    {% set pagerbase = item.urlRel == '/' ? '' : item.urlRel %}
+    {% set pagerbase = item.urlRel == '/' ? base_url : item.urlRel %}
 
     {% if pagelist.contains == 'posts' %}
 
@@ -41,18 +44,11 @@
         postitems: pagelist.folderContent|slice(offset, pagesize)
       } %}
 
-      {% if pages > 1 %}
-        <nav class="lc-hero__actions" style="margin-top:44px"
-             aria-label="{{ translate('Pagination')|e('html_attr') }}">
-          {% for i in 1..pages %}
-            {% if i == currentpage %}
-              <span class="lc-btn" aria-current="page">{{ i }}</span>
-            {% else %}
-              <a class="lc-btn lc-btn--secondary" href="{{ pagerbase }}/p/{{ i }}">{{ i }}</a>
-            {% endif %}
-          {% endfor %}
-        </nav>
-      {% endif %}
+      {% include 'partials/pagination.twig' with {
+        page: blogpage,
+        pages: pages,
+        pagerbase: pagerbase
+      } %}
 
     {% else %}
       <p class="lc-section__lead">

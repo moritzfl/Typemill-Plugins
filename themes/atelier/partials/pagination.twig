@@ -1,0 +1,20 @@
+{#
+  Post pagination, bounded: only the ends and a window around the current page,
+  so a wall of two hundred pictures does not print two hundred controls.
+#}
+{% if pages > 1 %}
+  <nav class="at-pager" style="justify-content:center;gap:18px;border:0"
+       aria-label="{{ translate('Pagination')|e('html_attr') }}">
+    {% for i in 1..pages %}
+      {% if i == 1 or i == pages or (i >= page - 2 and i <= page + 2) %}
+        {% if i == page %}
+          <span class="at-label" style="color:var(--at-text)" aria-current="page">{{ i }}</span>
+        {% else %}
+          <a class="at-label" href="{{ i == 1 ? pagerbase : pagerbase ~ '/p/' ~ i }}">{{ i }}</a>
+        {% endif %}
+      {% elseif (i == 2 and page > 4) or (i == pages - 1 and page < pages - 3) %}
+        <span class="at-label" aria-hidden="true">&hellip;</span>
+      {% endif %}
+    {% endfor %}
+  </nav>
+{% endif %}

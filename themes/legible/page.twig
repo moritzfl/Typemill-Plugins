@@ -34,7 +34,26 @@
       <h2 class="lg-section__title" id="lg-contents-title">
         {{ theme.contentsTitle|default(translate('In this section'))|e }}
       </h2>
-      {% include 'partials/pagelist.twig' with { entries: item.folderContent } %}
+
+      {% if item.contains == 'posts' %}
+        {% set pagesize = theme.blogpagesize|default(10) %}
+        {% set pagesize = pagesize > 0 ? pagesize : 10 %}
+        {% set pages = (item.folderContent|length / pagesize)|round(0, 'ceil') %}
+        {% set folderpage = currentpage and currentpage matches '/^[1-9][0-9]*$/' ? currentpage : 1 %}
+        {% set folderpage = pages > 0 and folderpage > pages ? pages : folderpage %}
+
+        {% include 'partials/pagelist.twig' with {
+          entries: item.folderContent|slice((folderpage - 1) * pagesize, pagesize)
+        } %}
+
+        {% include 'partials/pagination.twig' with {
+          page: folderpage,
+          pages: pages,
+          pagerbase: item.urlRel
+        } %}
+      {% else %}
+        {% include 'partials/pagelist.twig' with { entries: item.folderContent } %}
+      {% endif %}
     </section>
   {% endif %}
 

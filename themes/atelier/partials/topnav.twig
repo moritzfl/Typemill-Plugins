@@ -19,7 +19,10 @@
     <nav aria-label="{{ settings.themes.atelier.navLabel|default(translate('Main'))|e('html_attr') }}">
       <ul class="at-nav__links">
         {% for element in navigation %}
-          {% set children = element.elementType == 'folder' ? element.folderContent : [] %}
+          {# A posts folder is one destination in the menu, not a menu of every
+             article it holds. #}
+          {% set children = element.elementType == 'folder' and element.contains|default('pages') != 'posts'
+              ? element.folderContent : [] %}
           {% set panelId = 'at-sub-' ~ loop.index %}
 
           <li class="at-nav__item{{ children|length > 0 ? ' at-nav__item--has-menu' : '' }}"

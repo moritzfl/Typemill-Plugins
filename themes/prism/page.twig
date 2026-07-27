@@ -46,7 +46,23 @@
     </div>
 
     {% if item.elementType == 'folder' and item.contains == 'posts' %}
-      <div style="margin-top:48px">{% include 'partials/posts.twig' %}</div>
+      {% set pagesize = theme.blogpagesize|default(9) %}
+      {% set pagesize = pagesize > 0 ? pagesize : 9 %}
+      {% set pages = (item.folderContent|length / pagesize)|round(0, 'ceil') %}
+      {% set folderpage = currentpage and currentpage matches '/^[1-9][0-9]*$/' ? currentpage : 1 %}
+      {% set folderpage = pages > 0 and folderpage > pages ? pages : folderpage %}
+
+      <div style="margin-top:48px">
+        {% include 'partials/posts.twig' with {
+          postitems: item.folderContent|slice((folderpage - 1) * pagesize, pagesize)
+        } %}
+
+        {% include 'partials/pagination.twig' with {
+          page: folderpage,
+          pages: pages,
+          pagerbase: item.urlRel
+        } %}
+      </div>
     {% elseif item.elementType == 'folder' and item.folderContent|length > 0 %}
       {# One link per card: the title carried one and the label below carried a
          second to the very same page, which is two stops in the tab order for

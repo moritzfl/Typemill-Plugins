@@ -20,7 +20,10 @@
     <nav aria-label="{{ settings.themes.lucid.navLabel|default(translate('Main'))|e('html_attr') }}">
       <ul class="lc-nav__links">
         {% for element in navigation %}
-          {% set children = element.elementType == 'folder' ? element.folderContent : [] %}
+          {# A posts folder is one destination in the menu, not a menu of every
+             article it holds: a news section grows without limit. #}
+          {% set children = element.elementType == 'folder' and element.contains|default('pages') != 'posts'
+              ? element.folderContent : [] %}
           {% set panelId = 'lc-sub-' ~ loop.index %}
 
           <li class="lc-nav__item{{ children|length > 0 ? ' lc-nav__item--has-menu' : '' }}"

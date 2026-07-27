@@ -1,0 +1,23 @@
+{#
+  Post pagination, bounded: only the ends and a window around the current page,
+  so a section of two hundred posts does not print two hundred controls.
+#}
+{% if pages > 1 %}
+  <nav aria-label="{{ settings.themes.legible.paginationLabel|default(translate('Pagination'))|e('html_attr') }}">
+    <ul class="lg-pagination">
+      {% for i in 1..pages %}
+        {% if i == 1 or i == pages or (i >= page - 2 and i <= page + 2) %}
+          <li>
+            {% if i == page %}
+              <span aria-current="page">{{ i }}</span>
+            {% else %}
+              <a href="{{ i == 1 ? pagerbase : pagerbase ~ '/p/' ~ i }}">{{ i }}</a>
+            {% endif %}
+          </li>
+        {% elseif (i == 2 and page > 4) or (i == pages - 1 and page < pages - 3) %}
+          <li><span aria-hidden="true">&hellip;</span></li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </nav>
+{% endif %}

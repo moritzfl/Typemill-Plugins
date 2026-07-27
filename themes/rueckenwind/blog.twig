@@ -31,11 +31,14 @@
   {% set pagelist = getPageList(navigation, theme.blogfolder, base_url) %}
   {% set pagesize = 10 %}
   {% set pages = (pagelist.folderContent|length / pagesize)|round(0, 'ceil') %}
-  {% set currentpage = currentpage ? currentpage : 1 %}
-  {% set offset = (currentpage - 1) * pagesize %}
+  {# Core accepts any numeric last segment, so /p/02 and /p/2.5 arrive here too;
+     a float would slice at a fractional offset. #}
+  {% set blogpage = currentpage and currentpage matches '/^[1-9][0-9]*$/' ? currentpage : 1 %}
+  {% set blogpage = pages > 0 and blogpage > pages ? pages : blogpage %}
+  {% set offset = (blogpage - 1) * pagesize %}
   {# The homepage is '/', and '/' ~ '/p/2' is '//p/2' - which a browser reads as
      a host, not as a path, and follows off the site. #}
-  {% set pagerbase = item.urlRel == '/' ? '' : item.urlRel %}
+  {% set pagerbase = item.urlRel == '/' ? base_url : item.urlRel %}
 
   {% if pagelist.contains == 'posts' %}
 
@@ -88,17 +91,23 @@
       {% endfor %}
     </ul>
 
-    {# Pagination #}
+    {# Pagination, bounded: a folder that keeps growing would otherwise print one
+       control per page. #}
     {% if pages > 1 %}
-      <div class="mt-10 flex items-center justify-center gap-2">
+      <nav class="mt-10 flex items-center justify-center gap-2"
+           aria-label="{{ translate('Pagination')|e('html_attr') }}">
         {% for i in 1..pages %}
-          {% if i == currentpage %}
-            <span class="rounded-full bg-primary-600 px-3.5 py-2 text-sm font-medium text-white shadow-lg shadow-primary-600/20">{{ i }}</span>
-          {% else %}
-            <a href="{{ pagerbase }}/p/{{ i }}" class="rounded-full border border-gray-300 bg-white/80 px-3.5 py-2 text-sm text-gray-600 shadow-sm shadow-gray-950/5 transition-colors hover:border-primary-300 hover:text-primary-700 dark:border-gray-700 dark:bg-gray-900/70 dark:text-gray-300 dark:hover:border-primary-700 dark:hover:text-primary-200">{{ i }}</a>
+          {% if i == 1 or i == pages or (i >= blogpage - 2 and i <= blogpage + 2) %}
+            {% if i == blogpage %}
+              <span class="rounded-full bg-primary-600 px-3.5 py-2 text-sm font-medium text-white shadow-lg shadow-primary-600/20">{{ i }}</span>
+            {% else %}
+              <a href="{{ i == 1 ? pagerbase : pagerbase ~ '/p/' ~ i }}" class="rounded-full border border-gray-300 bg-white/80 px-3.5 py-2 text-sm text-gray-600 shadow-sm shadow-gray-950/5 transition-colors hover:border-primary-300 hover:text-primary-700 dark:border-gray-700 dark:bg-gray-900/70 dark:text-gray-300 dark:hover:border-primary-700 dark:hover:text-primary-200">{{ i }}</a>
+            {% endif %}
+          {% elseif (i == 2 and blogpage > 4) or (i == pages - 1 and blogpage < pages - 3) %}
+            <span class="text-sm text-gray-400 dark:text-gray-500" aria-hidden="true">&hellip;</span>
           {% endif %}
         {% endfor %}
-      </div>
+      </nav>
     {% endif %}
 
   {% else %}

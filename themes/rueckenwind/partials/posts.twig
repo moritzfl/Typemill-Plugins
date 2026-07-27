@@ -1,7 +1,10 @@
 {% set pagesize = 10 %}
 {% set pages = (item.folderContent|length / pagesize)|round(0, 'ceil') %}
-{% set currentpage = currentpage ? currentpage : 1 %}
-{% set offset = (currentpage - 1) * pagesize %}
+{# Core accepts any numeric last segment, so /p/02 and /p/2.5 arrive here too;
+   a float would slice at a fractional offset. #}
+{% set folderpage = currentpage and currentpage matches '/^[1-9][0-9]*$/' ? currentpage : 1 %}
+{% set folderpage = pages > 0 and folderpage > pages ? pages : folderpage %}
+{% set offset = (folderpage - 1) * pagesize %}
 
 <ul class="space-y-6">
   {% for element in item.folderContent|slice(offset, pagesize) %}
@@ -49,14 +52,21 @@
   {% endfor %}
 </ul>
 
+{# Bounded: only the ends and a window around the current page, so two hundred
+   posts do not print two hundred controls. #}
 {% if pages > 1 %}
-  <div class="mt-8 flex items-center justify-center gap-2">
+  <nav class="mt-8 flex items-center justify-center gap-2"
+       aria-label="{{ translate('Pagination')|e('html_attr') }}">
     {% for i in 1..pages %}
-      {% if i == currentpage %}
-        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-primary-600 text-sm font-medium text-white shadow-lg shadow-primary-600/20">{{ i }}</span>
-      {% else %}
-        <a href="{{ item.urlRel }}/p/{{ i }}" class="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 bg-white/80 text-sm text-gray-600 shadow-sm shadow-gray-950/5 transition-colors hover:border-primary-300 hover:text-primary-700 dark:border-gray-700 dark:bg-gray-900/70 dark:text-gray-300 dark:hover:border-primary-700 dark:hover:text-primary-200">{{ i }}</a>
+      {% if i == 1 or i == pages or (i >= folderpage - 2 and i <= folderpage + 2) %}
+        {% if i == folderpage %}
+          <span class="flex h-9 w-9 items-center justify-center rounded-full bg-primary-600 text-sm font-medium text-white shadow-lg shadow-primary-600/20">{{ i }}</span>
+        {% else %}
+          <a href="{{ i == 1 ? item.urlRel : item.urlRel ~ '/p/' ~ i }}" class="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 bg-white/80 text-sm text-gray-600 shadow-sm shadow-gray-950/5 transition-colors hover:border-primary-300 hover:text-primary-700 dark:border-gray-700 dark:bg-gray-900/70 dark:text-gray-300 dark:hover:border-primary-700 dark:hover:text-primary-200">{{ i }}</a>
+        {% endif %}
+      {% elseif (i == 2 and folderpage > 4) or (i == pages - 1 and folderpage < pages - 3) %}
+        <span class="text-sm text-gray-400 dark:text-gray-500" aria-hidden="true">&hellip;</span>
       {% endif %}
     {% endfor %}
-  </div>
+  </nav>
 {% endif %}
