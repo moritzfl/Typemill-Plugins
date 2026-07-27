@@ -12,7 +12,8 @@ forms:
   fields:
     copyButton:
       type: radio
-      label: syntax.copy_button
+      label: Copy button
+      description: "A control on each code block that copies the plain source."
       options:
-        'true': 'true'
-        'false': 'false'
+        'true': 'On'
+        'false': 'Off'

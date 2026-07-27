@@ -60,8 +60,14 @@ const ICON_OK = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" ari
 
 function config() {
     const raw = typeof window !== 'undefined' ? window.__SYNTAX__ : null
+    const labels = raw && raw.labels && typeof raw.labels === 'object' ? raw.labels : {}
     return {
         copy: !raw || raw.copy !== false,
+        labels: {
+            copy: typeof labels.copy === 'string' && labels.copy ? labels.copy : 'Copy code',
+            copied: typeof labels.copied === 'string' && labels.copied ? labels.copied : 'Copied',
+            failed: typeof labels.failed === 'string' && labels.failed ? labels.failed : 'Copy failed',
+        },
     }
 }
 
@@ -100,7 +106,7 @@ async function writeClipboard(text) {
     }
 }
 
-function attachCopy(pre) {
+function attachCopy(pre, labels) {
     if (pre.closest('.syntax-block')) return pre
 
     const shell = document.createElement('div')
@@ -109,7 +115,7 @@ function attachCopy(pre) {
     const button = document.createElement('button')
     button.type = 'button'
     button.className = 'syntax-copy'
-    button.setAttribute('aria-label', 'Copy code')
+    button.setAttribute('aria-label', labels.copy)
     button.innerHTML = ICON_COPY
 
     let resetTimer = 0
@@ -117,16 +123,16 @@ function attachCopy(pre) {
         try {
             await writeClipboard(plainTextOf(pre))
             button.classList.add('is-copied')
-            button.setAttribute('aria-label', 'Copied')
+            button.setAttribute('aria-label', labels.copied)
             button.innerHTML = ICON_OK
             window.clearTimeout(resetTimer)
             resetTimer = window.setTimeout(() => {
                 button.classList.remove('is-copied')
-                button.setAttribute('aria-label', 'Copy code')
+                button.setAttribute('aria-label', labels.copy)
                 button.innerHTML = ICON_COPY
             }, 1600)
         } catch {
-            button.setAttribute('aria-label', 'Copy failed')
+            button.setAttribute('aria-label', labels.failed)
         }
     })
 
@@ -162,7 +168,7 @@ function highlightBlock(highlighter, pre, code, options) {
     if (keep.length) next.classList.add(...keep)
 
     pre.replaceWith(next)
-    if (options.copy) attachCopy(next)
+    if (options.copy) attachCopy(next, options.labels)
 }
 
 async function run() {
@@ -185,7 +191,7 @@ async function run() {
             highlightBlock(highlighter, pre, code, options)
         } catch {
             // Leave the plain block alone if a grammar misbehaves; still offer copy.
-            if (options.copy) attachCopy(pre)
+            if (options.copy) attachCopy(pre, options.labels)
         }
     }
 
