@@ -222,10 +222,11 @@ function collectText() {
         if (!text) continue
 
         // A Shiki block's own colour is only the fallback ink; every real token
-        // is a child span measured on its own. Treating the whole <pre> as one
-        // run mixes that fallback with diff tints and empty gutters and answers
-        // nonsense.
-        if (node.matches && node.matches('pre.shiki')) continue
+        // is a child span measured on its own. Treating the whole <pre> (or its
+        // <code>) as one run mixes that fallback with diff tints, empty gutters
+        // and the copy control that sits on the corner, and answers nonsense.
+        if (node.matches && node.matches('pre.shiki, pre.shiki code, .syntax-copy')) continue
+        if (node.closest && node.closest('pre.shiki') && node.tagName === 'CODE') continue
 
         const rect = node.getBoundingClientRect()
         if (rect.width < 2 || rect.height < 2) continue
@@ -311,7 +312,12 @@ function collectText() {
 function hideProbes() {
     const style = document.createElement('style')
     style.id = 'contrast-probe-style'
-    style.textContent = '[data-contrast-probe]:not([data-contrast-panel]) { visibility: hidden !important; }'
+    // The copy control sits on the code panel; leave it up and a token under it
+    // is scored against the button instead of the panel.
+    style.textContent = [
+        '[data-contrast-probe]:not([data-contrast-panel]) { visibility: hidden !important; }',
+        '.syntax-copy { visibility: hidden !important; }',
+    ].join('\n')
     document.head.appendChild(style)
 }
 
@@ -527,6 +533,15 @@ async function main() {
                             tokens > 0,
                             `${label}: no highlighted tokens on the code fixture.`
                             + ' Activate the Syntax plugin (npm run test:setup).'
+                        )
+                        // Copy is on by default; its absence means the client
+                        // never finished wrapping the blocks.
+                        const copies = await page.evaluate(
+                            () => document.querySelectorAll('.syntax-copy').length
+                        )
+                        assert(
+                            copies > 0,
+                            `${label}: no copy controls on the code fixture.`
                         )
                     }
 

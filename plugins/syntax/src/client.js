@@ -8,6 +8,8 @@
  *
  * Languages are the set a docs / portfolio site actually hits. Adding one is a
  * one-line import plus a rebuild — the full Shiki catalogue is not shipped.
+ *
+ * window.__SYNTAX__ may set { copy: true } so each block gets a copy control.
  */
 import { createHighlighterCore } from 'shiki/core'
 import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'
@@ -53,6 +55,16 @@ const ALIASES = {
     plaintext: 'txt',
 }
 
+const ICON_COPY = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M5.75 1.75h6.5a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1h-6.5a1 1 0 0 1-1-1v-6.5a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.4"/><path d="M3.75 5.25h-.5a1 1 0 0 0-1 1v6.5a1 1 0 0 0 1 1h6.5a1 1 0 0 0 1-1v-.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>'
+const ICON_OK = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+
+function config() {
+    const raw = typeof window !== 'undefined' ? window.__SYNTAX__ : null
+    return {
+        copy: !raw || raw.copy !== false,
+    }
+}
+
 function languageOf(block) {
     const classes = block.className || ''
     const match = classes.match(/(?:language|lang)-([a-z0-9_+#-]+)/i)
@@ -61,7 +73,72 @@ function languageOf(block) {
     return ALIASES[raw] || raw
 }
 
-function highlightBlock(highlighter, pre, code) {
+function plainTextOf(pre) {
+    // Prefer the <code> node so a copy button's label is never included.
+    const code = pre.querySelector('code')
+    return (code ? code.textContent : pre.textContent) || ''
+}
+
+async function writeClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text)
+        return
+    }
+    const area = document.createElement('textarea')
+    area.value = text
+    area.setAttribute('readonly', '')
+    area.style.position = 'fixed'
+    area.style.top = '-9999px'
+    document.body.appendChild(area)
+    area.select()
+    try {
+        if (!document.execCommand('copy')) {
+            throw new Error('copy failed')
+        }
+    } finally {
+        area.remove()
+    }
+}
+
+function attachCopy(pre) {
+    if (pre.closest('.syntax-block')) return pre
+
+    const shell = document.createElement('div')
+    shell.className = 'syntax-block'
+
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'syntax-copy'
+    button.setAttribute('aria-label', 'Copy code')
+    button.innerHTML = ICON_COPY
+
+    let resetTimer = 0
+    button.addEventListener('click', async () => {
+        try {
+            await writeClipboard(plainTextOf(pre))
+            button.classList.add('is-copied')
+            button.setAttribute('aria-label', 'Copied')
+            button.innerHTML = ICON_OK
+            window.clearTimeout(resetTimer)
+            resetTimer = window.setTimeout(() => {
+                button.classList.remove('is-copied')
+                button.setAttribute('aria-label', 'Copy code')
+                button.innerHTML = ICON_COPY
+            }, 1600)
+        } catch {
+            button.setAttribute('aria-label', 'Copy failed')
+        }
+    })
+
+    const parent = pre.parentNode
+    if (!parent) return pre
+    parent.insertBefore(shell, pre)
+    shell.appendChild(button)
+    shell.appendChild(pre)
+    return pre
+}
+
+function highlightBlock(highlighter, pre, code, options) {
     const lang = languageOf(code)
     const source = code.textContent || ''
     const loaded = lang && highlighter.getLoadedLanguages().includes(lang)
@@ -85,9 +162,11 @@ function highlightBlock(highlighter, pre, code) {
     if (keep.length) next.classList.add(...keep)
 
     pre.replaceWith(next)
+    if (options.copy) attachCopy(next)
 }
 
 async function run() {
+    const options = config()
     const blocks = Array.from(document.querySelectorAll('pre code'))
     if (!blocks.length) return
 
@@ -103,9 +182,10 @@ async function run() {
         if (!pre || pre.tagName !== 'PRE') continue
         if (pre.classList.contains('shiki')) continue
         try {
-            highlightBlock(highlighter, pre, code)
+            highlightBlock(highlighter, pre, code, options)
         } catch {
-            // Leave the plain block alone if a grammar misbehaves.
+            // Leave the plain block alone if a grammar misbehaves; still offer copy.
+            if (options.copy) attachCopy(pre)
         }
     }
 

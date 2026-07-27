@@ -28,6 +28,12 @@ npm install
 npm run build
 ```
 
+## Settings
+
+| Setting | Default | Meaning |
+|---------|---------|---------|
+| Copy button | on | A control on each code block that copies the plain source |
+
 ## How themes cooperate
 
 The plugin colours **tokens only**. The surrounding panel (`pre` background,

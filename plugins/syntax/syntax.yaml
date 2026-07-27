@@ -4,3 +4,15 @@ description: Highlights fenced code with Shiki and paints tokens in GitHub's lig
 author: Moritz
 homepage: https://github.com/moritzfl/Typemill-Plugins
 license: GPL-2.0
+
+settings:
+  copyButton: 'true'
+
+forms:
+  fields:
+    copyButton:
+      type: radio
+      label: syntax.copy_button
+      options:
+        'true': 'true'
+        'false': 'false'

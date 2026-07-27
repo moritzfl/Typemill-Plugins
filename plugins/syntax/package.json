@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "esbuild src/client.js --bundle --minify --format=iife --outfile=public/syntax.min.js --target=es2020"
+    "build": "node ./scripts/build.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

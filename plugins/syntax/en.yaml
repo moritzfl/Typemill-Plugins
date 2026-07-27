@@ -1,2 +1,3 @@
 syntax:
   name: Syntax
+  copy_button: "Show a copy button on code blocks"
