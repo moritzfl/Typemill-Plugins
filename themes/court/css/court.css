@@ -867,6 +867,9 @@ a:hover {
     font-family: var(--ct-font-mono);
     font-size: 0.9em;
     background: var(--ct-code-bg);
+    /* Its own colour, not the block's: inside a quote or an aside the inherited
+       grey lands on the chip's tint and drops under the contrast floor. */
+    color: var(--ct-text);
     padding: 0.1em 0.35em;
     border-radius: 6px;
 }

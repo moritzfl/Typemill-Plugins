@@ -602,6 +602,9 @@ a {
     font-family: var(--md-mono);
     font-size: 0.8em;
     background: var(--md-code-bg);
+    /* Its own colour, not the block's: inside a quote or an aside the inherited
+       grey lands on the chip's tint and drops under the contrast floor. */
+    color: var(--md-text);
     padding: 0.15em 0.4em;
     border-radius: var(--md-radius-sm);
 }

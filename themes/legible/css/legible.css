@@ -699,6 +699,9 @@ main {
     font-family: var(--lg-mono);
     font-size: 0.9em;
     background: var(--lg-bg-alt);
+    /* Its own colour, not the block's: inside a quote or an aside the inherited
+       grey lands on the chip's tint and drops under the contrast floor. */
+    color: var(--lg-text);
     border: 1px solid var(--lg-border-faint);
     border-radius: 4px;
     padding: 0.1em 0.35em;
