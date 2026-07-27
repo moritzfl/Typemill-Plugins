@@ -57,7 +57,7 @@ npm run test:browser    # Puppeteer browser smoke tests in Docker (required for 
 
 API tests live in `tests/api/` and use `tests/api/helpers/auth.js` for session login with the correct `Referer` and `X-Session-Auth` headers.
 
-`test:setup` also ensures **`versions`**, **`preview`**, **`files`**, **`typemillupdate`**, **`linkbuttons`**, and **`readmemd`** are active in settings (required for trash, file-manager, preview, core-update API tests, the theme prose layout test, and the readme meta-field test). On a fresh instance it creates minimal `settings.yaml`; on an existing instance it only toggles those plugins and refreshes the test user.
+`test:setup` also ensures **`versions`**, **`preview`**, **`files`**, **`typemillupdate`**, **`linkbuttons`**, **`readmemd`**, and **`syntax`** are active in settings (required for trash, file-manager, preview, core-update API tests, the theme prose layout test, the readme meta-field test, and the syntax-colour half of the contrast test). On a fresh instance it creates minimal `settings.yaml`; on an existing instance it only toggles those plugins and refreshes the test user. Stock **Highlight** is forced off when present — it fights Syntax for the same blocks.
 
 The setup script builds a local Typemill image with PHP **`zip`** baked in (exports and folder ZIP downloads). If you use an older container without it, setup installs `zip` at runtime and reloads Apache.
 
@@ -84,7 +84,7 @@ Browser tests live in `tests/browser/`:
 | `blog-homepage.mjs` | Makes the post list the homepage in each theme, follows the pager to page two (it must stay on this site), and asks for a page of zero posts. |
 | `theme-language.mjs` | Switches the site to German and reads the words that come out: labels must follow the site language, not the theme's shipped English. |
 | `theme-navigation.mjs` | Opens the mobile drawer with the keyboard and checks where focus goes, then closes it with Escape and checks again. A drawer that covers the page must also hold Tab inside it, take the page behind it out of reach, and hand back the scroll lock exactly as it found it. |
-| `theme-contrast.mjs` | Hides the text, photographs what is behind it, and measures every run of text against the worst pixel underneath — in light and dark, and on each of Atelier's surfaces. |
+| `theme-contrast.mjs` | Hides the text, photographs what is behind it, and measures every run of text against the worst pixel underneath — in light and dark, and on each of Atelier's surfaces. Highlighted code is included token by token, because a keyword, a string and a comment are each a separate colour on the same panel. |
 | `court-club.mjs` | What Court owes beyond the shared contract: canonical URLs and `noindex` for paginated and impossible pages, bounded pager controls, one target per post card, dark hover legibility, and the pager cell Next keeps to itself. |
 | `theme-scale.mjs` | Builds a folder of 200 posts and holds every own theme to the same contract: the folder page shows one page of posts, `/p/2` moves the list, the pager stays bounded, and no article becomes a menu link. |
 | `plugin-readmemd.mjs` | Points a page at a repository and then takes GitHub away: the stored copy has to carry the page. Also checks placement, a page naming no repository, the live fetch (tolerantly), and that the admin screens load. |

@@ -96,6 +96,17 @@ CSS with custom properties, so there is no build step.
 
 ## Plugins
 
+### `syntax` — Syntax
+
+Highlights fenced code with [Shiki](https://shiki.style) and paints tokens in GitHub's light and dark high-contrast
+palettes at once. Which set shows follows the system colour scheme (or a theme that keeps a dark code panel in light
+mode). Themes own the panel chrome; the plugin owns only the tokens. Replaces Typemill's stock Highlight plugin when
+both would fight over the same blocks.
+
+→ See [`plugins/syntax/README.md`](plugins/syntax/README.md) for full documentation.
+
+---
+
 ### `htmldeveloper` — HTML Developer Mode
 
 Lets you embed raw HTML, CSS, and JavaScript directly in Typemill content pages using fenced code blocks tagged

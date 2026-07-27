@@ -41,6 +41,14 @@ const TM_BASE_URL = process.env.TM_BASE_URL || 'http://127.0.0.1:8080'
 const TM_USER     = 'admin'
 const TM_PASSWORD = 'Test1234!'
 
+// Plugins the automated tests need switched on.
+const TEST_PLUGINS = [
+    'versions', 'preview', 'files', 'typemillupdate', 'linkbuttons', 'readmemd', 'syntax',
+]
+
+// Stock Highlight fights our Syntax plugin for the same blocks.
+const DISABLE_PLUGINS = ['highlight']
+
 // ---------------------------------------------------------------------------
 
 function log(msg) { console.log(`[setup] ${msg}`) }
@@ -52,7 +60,7 @@ function ensureTestPluginsActive() {
     }
 
     let content = readFileSync(SETTINGS_FILE, 'utf8')
-    for (const plugin of ['versions', 'preview', 'files', 'typemillupdate', 'linkbuttons', 'readmemd']) {
+    for (const plugin of TEST_PLUGINS) {
         // Anchor continuation lines to deeper indentation than the plugin key,
         // so the match can never run into the next plugin's block.
         const blockRe = new RegExp(
@@ -76,6 +84,16 @@ function ensureTestPluginsActive() {
             /^plugins:\s*\n/m,
             `plugins:\n    ${plugin}:\n        active: true\n`
         )
+    }
+
+    for (const plugin of DISABLE_PLUGINS) {
+        const blockRe = new RegExp(
+            `(^([ \\t]+)${plugin}:[ \\t]*\\n(?:\\2[ \\t]+[^\\n]+\\n)*?\\2[ \\t]+active:[ \\t]*)(true|false)`,
+            'm'
+        )
+        if (blockRe.test(content)) {
+            content = content.replace(blockRe, '$1false')
+        }
     }
 
     writeFileSync(SETTINGS_FILE, content)
@@ -218,18 +236,7 @@ if (!file_exists($dir . '/settings.yaml')) {
         "language: en",
         "author: $user",
         "plugins:",
-        "    versions:",
-        "        active: true",
-        "    preview:",
-        "        active: true",
-        "    files:",
-        "        active: true",
-        "    typemillupdate:",
-        "        active: true",
-        "    linkbuttons:",
-        "        active: true",
-        "    readmemd:",
-        "        active: true",
+${TEST_PLUGINS.map(p => `        "    ${p}:",\n        "        active: true",`).join('\n')}
         "",
     ]);
     file_put_contents($dir . '/settings.yaml', $settings);

@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "npm run build:frontend",
-    "build:frontend": "npm run build:rueckenwind",
+    "build:frontend": "npm run build:rueckenwind && npm run build:syntax",
     "build:rueckenwind": "tailwindcss -i ./themes/rueckenwind/styles/tailwind.css -o ./themes/rueckenwind/css/theme.css --minify",
+    "build:syntax": "npm run build --prefix plugins/syntax",
     "watch:rueckenwind": "tailwindcss -i ./themes/rueckenwind/styles/tailwind.css -o ./themes/rueckenwind/css/theme.css --watch",
     "update:mergely": "node ./scripts/update-mergely.mjs",
     "sync:frontend": "npm run build:rueckenwind && npm run update:mergely",

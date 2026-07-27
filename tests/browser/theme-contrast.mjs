@@ -33,6 +33,12 @@ const PAGE_URL = process.env.TM_SUBPAGE || '/getting-started/edit-the-page-meta'
 // in several themes, a deliberately faded colour. That is exactly where a
 // palette slips below the floor without anyone noticing, so a page of it is
 // written here rather than hoping the demo content contains some.
+//
+// Syntax colouring is the harder half. The Syntax plugin (Shiki) paints each
+// token in GitHub light and dark at once; which set shows follows the scheme
+// or a theme that forces dark tokens on a dark panel. The fences below are
+// picked so the full range of tokens shows up - keywords, strings, numbers,
+// comments, tags and the two diff tints.
 const CODE_SLUG = '94-theme-code-fixture'
 const CODE_URL = '/theme-code-fixture'
 const CODE_MARKDOWN = `# Theme code fixture
@@ -46,6 +52,29 @@ second mention of \`~/.config/opencode/opencode.json\` to make it longer.
   "enabled": true,
   "retries": 3
 }
+\`\`\`
+
+\`\`\`javascript
+// Reads the memory summary and hands it to the model.
+import { readFile } from 'node:fs/promises'
+
+export async function summary(root = '~/.local/share/opencode') {
+    const text = await readFile(\`\${root}/memories/MEMORY.md\`, 'utf8')
+    return text.replace(/^#\\s+/gm, '').slice(0, 2500)
+}
+\`\`\`
+
+\`\`\`html
+<section class="notes" data-open="true">
+  <h2>Notes</h2>
+</section>
+\`\`\`
+
+\`\`\`diff
+--- a/opencode.json
++++ b/opencode.json
+-  "plugin": ["opencode-codex-memory"]
++  "plugin": ["opencode-codex-memory@0.4.1"]
 \`\`\`
 
 \`\`\`
@@ -176,8 +205,11 @@ function collectText() {
     const candidates = document.querySelectorAll(
         'main p, article p, .at-prose p, .lg-prose p, .md-prose p, .lc-prose p, .pr-prose p,'
         // Code is text too, and it is the text themes fade hardest: a tinted
-        // panel, a smaller size and a quieter colour.
+        // panel, a smaller size and a quieter colour. Each Shiki token is its
+        // own colour on that same panel, so each one is measured rather than
+        // only the block it sits in.
         + ' main pre, article pre, main code, article code,'
+        + ' pre.shiki span,'
         + ' time, nav a, footer a, footer p, .at-label, .at-tile__meta, .lc-post__date, .lc-pager__label,'
         + ' .md-byline__meta, .md-post__meta, .pr-post__date, .pr-eyebrow, .pr-hero__subtitle,'
         + ' .lc-btn, .pr-btn, .md-btn, .lg-pager__label, [class*="breadcrumb"] a'
@@ -189,6 +221,12 @@ function collectText() {
         const text = (node.textContent || '').trim()
         if (!text) continue
 
+        // A Shiki block's own colour is only the fallback ink; every real token
+        // is a child span measured on its own. Treating the whole <pre> as one
+        // run mixes that fallback with diff tints and empty gutters and answers
+        // nonsense.
+        if (node.matches && node.matches('pre.shiki')) continue
+
         const rect = node.getBoundingClientRect()
         if (rect.width < 2 || rect.height < 2) continue
         if (rect.bottom < 0 || rect.top > window.innerHeight) continue
@@ -198,7 +236,10 @@ function collectText() {
         if (style.visibility === 'hidden' || style.display === 'none') continue
 
         // A colour written into the page by whoever wrote the page is their
-        // decision, not the theme's, and no theme can be held to it.
+        // decision, not the theme's, and no theme can be held to it. Shiki's
+        // dual-theme tokens only carry CSS variables in the style attribute
+        // (no `color:`), so they still pass this gate and are measured via
+        // getComputedStyle after the stylesheet picks light or dark.
         if (/(^|;)\s*color\s*:/i.test(node.getAttribute('style') || '')) continue
 
         const key = node.tagName + '|' + text.slice(0, 24) + '|' + Math.round(rect.top)
@@ -473,6 +514,22 @@ async function main() {
                         + ` in ${scheme} at ${url}`
 
                     await page.goto(`${BASE_URL}${url}`, { waitUntil: 'networkidle2' })
+
+                    // Without the Syntax plugin no token is ever painted, and
+                    // the half of this test that watches them would pass by
+                    // measuring nothing at all. Shiki paints after load.
+                    if (url === CODE_URL) {
+                        await page.waitForSelector('pre.shiki span', { timeout: 15000 })
+                        const tokens = await page.evaluate(
+                            () => document.querySelectorAll('pre.shiki span').length
+                        )
+                        assert(
+                            tokens > 0,
+                            `${label}: no highlighted tokens on the code fixture.`
+                            + ' Activate the Syntax plugin (npm run test:setup).'
+                        )
+                    }
+
                     counted += await assertContrast(page, label)
                 }
 
