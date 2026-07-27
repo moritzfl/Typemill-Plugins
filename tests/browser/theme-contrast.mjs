@@ -17,7 +17,7 @@
  *   npm run test:browser
  */
 import puppeteer from 'puppeteer'
-import { readFileSync, writeFileSync, existsSync, readdirSync, rmSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync, readdirSync, rmSync, unlinkSync } from 'node:fs'
 import { join } from 'node:path'
 
 const BASE_URL = process.env.TM_BASE_URL || 'http://127.0.0.1:8080'
@@ -25,8 +25,40 @@ const TM_ROOT = process.env.TM_ROOT || '/var/www/html'
 
 const SETTINGS_FILE = join(TM_ROOT, 'settings', 'settings.yaml')
 const NAV_CACHE = join(TM_ROOT, 'data', 'navigation')
+const CONTENT_DIR = join(TM_ROOT, 'content')
 
 const PAGE_URL = process.env.TM_SUBPAGE || '/getting-started/edit-the-page-meta'
+
+// Code is the quietest text a theme sets: a tinted panel, a smaller size and,
+// in several themes, a deliberately faded colour. That is exactly where a
+// palette slips below the floor without anyone noticing, so a page of it is
+// written here rather than hoping the demo content contains some.
+const CODE_SLUG = '94-theme-code-fixture'
+const CODE_URL = '/theme-code-fixture'
+const CODE_MARKDOWN = `# Theme code fixture
+
+A paragraph that mentions \`inline code\` in the middle of a sentence, and a
+second mention of \`~/.config/opencode/opencode.json\` to make it longer.
+
+\`\`\`json
+{
+  "plugin": ["opencode-codex-memory@0.4.1"],
+  "enabled": true,
+  "retries": 3
+}
+\`\`\`
+
+\`\`\`
+~/.local/share/opencode/
+  memory.db            # the plugin's own database
+  memories/            # one recap per past session
+\`\`\`
+
+* A list item with \`inline code\` in it
+* A plain list item
+
+> A quote that carries \`inline code\` too.
+`
 
 /**
  * Each case is a theme, the settings it needs, and the page to look at.
@@ -46,8 +78,9 @@ const CASES = [
 ]
 
 // The homepage carries the hero, the buttons and the section cards; the
-// subpage carries the running text, the breadcrumb and the pager.
-const URLS = ['/', PAGE_URL]
+// subpage carries the running text, the breadcrumb and the pager, and the code
+// fixture carries the panels that running text never touches.
+const URLS = ['/', PAGE_URL, CODE_URL]
 
 const SCHEMES = ['light', 'dark']
 
@@ -64,6 +97,25 @@ function clearNavigationCache() {
     for (const entry of readdirSync(NAV_CACHE)) {
         rmSync(join(NAV_CACHE, entry), { force: true, recursive: true })
     }
+}
+
+function writeCodeFixture() {
+    writeFileSync(join(CONTENT_DIR, `${CODE_SLUG}.md`), CODE_MARKDOWN)
+    writeFileSync(
+        join(CONTENT_DIR, `${CODE_SLUG}.yaml`),
+        "meta:\n    title: 'Theme code fixture'\n    hide: true\n    noindex: true\n"
+    )
+    clearNavigationCache()
+}
+
+function removeCodeFixture() {
+    for (const extension of ['md', 'yaml', 'txt']) {
+        const file = join(CONTENT_DIR, `${CODE_SLUG}.${extension}`)
+        if (existsSync(file)) {
+            unlinkSync(file)
+        }
+    }
+    clearNavigationCache()
 }
 
 function configure(theme, settings) {
@@ -123,6 +175,9 @@ function collectText() {
 
     const candidates = document.querySelectorAll(
         'main p, article p, .at-prose p, .lg-prose p, .md-prose p, .lc-prose p, .pr-prose p,'
+        // Code is text too, and it is the text themes fade hardest: a tinted
+        // panel, a smaller size and a quieter colour.
+        + ' main pre, article pre, main code, article code,'
         + ' time, nav a, footer a, footer p, .at-label, .at-tile__meta, .lc-post__date, .lc-pager__label,'
         + ' .md-byline__meta, .md-post__meta, .pr-post__date, .pr-eyebrow, .pr-hero__subtitle,'
         + ' .lc-btn, .pr-btn, .md-btn, .lg-pager__label, [class*="breadcrumb"] a'
@@ -158,16 +213,42 @@ function collectText() {
 
         const painted = parse(style.color)
 
+        // Text on a panel of its own - a code block, a chip - sits on that
+        // panel, not on whatever is behind the panel. Those are photographed
+        // in a second pass that clears the ink but keeps the panel painted.
+        const own = parse(style.backgroundColor)
+        const paintsOwnBackground = own[3] > 0.05 || style.backgroundImage !== 'none'
+        if (paintsOwnBackground) {
+            node.setAttribute('data-contrast-panel', '')
+        }
+
+        // A rounded panel's bounding box includes its corners, and the corners
+        // are the page behind it. Sampling those answers "light text on white"
+        // for a panel that is in fact dark, so the sample is pulled inside the
+        // curve.
+        const radius = Math.max(
+            parseFloat(style.borderTopLeftRadius) || 0,
+            parseFloat(style.borderBottomRightRadius) || 0
+        )
+        const inset = paintsOwnBackground ? Math.min(Math.ceil(radius) + 2, 24) : 0
+        const sample = {
+            x: Math.max(0, rect.x + inset),
+            y: Math.max(0, rect.y + inset),
+            width: Math.max(1, Math.min(rect.width - inset * 2, window.innerWidth - Math.max(0, rect.x + inset))),
+            height: Math.max(1, Math.min(rect.height - inset * 2, window.innerHeight - Math.max(0, rect.y + inset))),
+        }
+
         results.push({
             index: index++,
             text: text.slice(0, 40),
             selector: node.tagName.toLowerCase() + (node.className ? '.' + String(node.className).split(' ')[0] : ''),
             color: painted.slice(0, 3),
+            panel: paintsOwnBackground,
             // Faded text is really its colour mixed with whatever is behind it,
             // whether the fade comes from opacity or from the colour's alpha.
             opacity: (parseFloat(style.opacity) || 1) * painted[3],
             large,
-            rect: {
+            rect: paintsOwnBackground ? sample : {
                 x: Math.max(0, rect.x),
                 y: Math.max(0, rect.y),
                 width: Math.min(rect.width, window.innerWidth - Math.max(0, rect.x)),
@@ -179,12 +260,46 @@ function collectText() {
     return results
 }
 
-/** Hide the measured text so the background behind it can be photographed. */
+/**
+ * Hide the measured text so the background behind it can be photographed.
+ *
+ * Panels keep their ink here: a code block's own background is what the code
+ * inside it sits on, and hiding the block would take that background away and
+ * answer for the page behind it instead. Panels are measured in the ink pass.
+ */
 function hideProbes() {
     const style = document.createElement('style')
     style.id = 'contrast-probe-style'
-    style.textContent = '[data-contrast-probe] { visibility: hidden !important; }'
+    style.textContent = '[data-contrast-probe]:not([data-contrast-panel]) { visibility: hidden !important; }'
     document.head.appendChild(style)
+}
+
+/**
+ * Clear the ink but keep every panel painted.
+ *
+ * `visibility: hidden` would take an element's own background with it, and a
+ * code block is exactly a panel whose background is the thing its text sits on;
+ * measuring that text against the page behind the panel answers the wrong
+ * question. Descendants are included so a paragraph does not keep the inline
+ * code inside it painted while the paragraph itself goes clear.
+ */
+function hideInk() {
+    const style = document.createElement('style')
+    style.id = 'contrast-ink-style'
+    style.textContent = '[data-contrast-probe], [data-contrast-probe] * {'
+        + ' color: transparent !important; text-shadow: none !important;'
+        + ' text-decoration-color: transparent !important; }'
+    document.head.appendChild(style)
+}
+
+function showInk() {
+    const style = document.getElementById('contrast-ink-style')
+    if (style) style.remove()
+}
+
+function removeProbeStyle() {
+    const style = document.getElementById('contrast-probe-style')
+    if (style) style.remove()
 }
 
 function showProbes() {
@@ -192,6 +307,7 @@ function showProbes() {
     if (style) style.remove()
     document.querySelectorAll('[data-contrast-probe]').forEach((node) => {
         node.removeAttribute('data-contrast-probe')
+        node.removeAttribute('data-contrast-panel')
     })
 }
 
@@ -271,6 +387,25 @@ async function assertContrast(page, label) {
         shot,
         measured.map((entry) => entry.rect)
     )
+    await page.evaluate(removeProbeStyle)
+
+    // Panels are measured against themselves rather than against the page they
+    // are laid on, so they need their own photograph.
+    if (measured.some((entry) => entry.panel)) {
+        await page.evaluate(hideInk)
+        const panelShot = await page.screenshot({ encoding: 'base64' })
+        const panelExtremes = await page.evaluate(
+            extremesPerRect,
+            panelShot,
+            measured.map((entry) => entry.rect)
+        )
+        await page.evaluate(showInk)
+
+        for (const [i, entry] of measured.entries()) {
+            if (entry.panel) extremes[i] = panelExtremes[i]
+        }
+    }
+
     await page.evaluate(showProbes)
 
     const failures = []
@@ -320,6 +455,7 @@ async function main() {
     const browser = await puppeteer.launch(launchOptions)
 
     try {
+        writeCodeFixture()
         const page = await browser.newPage()
         await page.setViewport({ width: 1280, height: 900 })
 
@@ -348,6 +484,7 @@ async function main() {
     } finally {
         await browser.close()
         writeFileSync(SETTINGS_FILE, originalSettings)
+        removeCodeFixture()
         clearNavigationCache()
     }
 }

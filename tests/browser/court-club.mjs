@@ -1,11 +1,13 @@
 /**
- * Court under the shape it was built for: a club news folder that keeps growing.
+ * What Court owes beyond the contract every theme is held to.
  *
- * Two hundred posts are deliberate. They prove that articles do not become two
- * hundred menu links or two hundred cards, that folder pagination really slices
- * the live navigation, and that its controls stay bounded. The mobile drawer is
- * also measured and driven with the keyboard, because a backdrop-filter once
- * made its fixed panel only as tall as the header.
+ * The shared suites cover the rest: `theme-scale.mjs` builds the same two
+ * hundred posts for every theme and checks that a folder page is one page of
+ * posts and that articles never become menu links, and `theme-navigation.mjs`
+ * drives every drawer with the keyboard. What is left here is Court's own:
+ * which URL a paginated list calls canonical, whether an impossible page is
+ * offered to crawlers, the card that is a single target, and the pager cell
+ * Next keeps to itself.
  */
 import puppeteer from 'puppeteer'
 import {
@@ -219,105 +221,22 @@ async function assertPaginationBoundaries(page) {
     }
 }
 
-async function assertNewsDoesNotBecomeAMenu(page) {
-    await page.setViewport({ width: 1280, height: 800 })
-    await open(page, NEWS_URL)
-
-    const desktop = await page.evaluate((newsUrl) => {
-        const link = document.querySelector(`.ct-nav__link[href="${newsUrl}"]`)
-        return {
-            exists: Boolean(link),
-            expands: Boolean(link?.hasAttribute('data-nav-parent')),
-            postLinks: document.querySelectorAll(`.ct-nav a[href^="${newsUrl}/"]`).length,
-        }
-    }, NEWS_URL)
-    assert(desktop.exists, 'court: the news folder is missing from desktop navigation')
-    assert(!desktop.expands, 'court: the news folder still opens a submenu of posts')
-    assert(desktop.postLinks === 0, `court: desktop navigation contains ${desktop.postLinks} post links`)
-}
-
-async function assertMobileDrawer(page) {
+/**
+ * Crossing the desktop breakpoint with the drawer open.
+ *
+ * Closing it hides the menu button, so focus has to move to a control that can
+ * still be seen rather than being left on a `display: none` element.
+ */
+async function assertBreakpointKeepsFocusVisible(page) {
     await page.setViewport({ width: 390, height: 800 })
     await open(page, NEWS_URL)
     await page.focus('[data-nav-toggle]')
     await page.keyboard.press('Enter')
-
-    const openState = await page.evaluate((newsUrl) => {
-        const drawer = document.querySelector('.ct-nav__links')
-        const rect = drawer.getBoundingClientRect()
-        return {
-            expanded: document.querySelector('[data-nav-toggle]')?.getAttribute('aria-expanded'),
-            position: getComputedStyle(drawer).position,
-            top: Math.round(rect.top),
-            bottom: Math.round(rect.bottom),
-            viewport: window.innerHeight,
-            bodyOverflow: getComputedStyle(document.body).overflow,
-            mainInert: document.querySelector('main')?.inert,
-            footerInert: document.querySelector('.ct-footer')?.inert,
-            postLinks: document.querySelectorAll(`.ct-nav a[href^="${newsUrl}/"]`).length,
-            activeInNav: document.querySelector('[data-nav]')?.contains(document.activeElement),
-        }
-    }, NEWS_URL)
-
-    assert(openState.expanded === 'true', 'court: mobile menu does not report itself open')
-    assert(openState.position === 'fixed', `court: mobile drawer position is ${openState.position}`)
-    assert(openState.top === 60, `court: mobile drawer starts at ${openState.top}px, expected 60px`)
-    assert(
-        Math.abs(openState.bottom - openState.viewport) <= 1,
-        `court: mobile drawer ends at ${openState.bottom}px in a ${openState.viewport}px viewport`
-    )
-    assert(openState.bodyOverflow === 'hidden', `court: body overflow is ${openState.bodyOverflow} while open`)
-    assert(openState.mainInert && openState.footerInert, 'court: content behind the drawer remains interactive')
-    assert(openState.postLinks === 0, `court: mobile drawer contains ${openState.postLinks} post links`)
-    assert(openState.activeInNav, 'court: opening the drawer did not move focus into it')
-
-    for (let i = 0; i < 30; i++) {
-        await page.keyboard.press('Tab')
-        const inNav = await page.evaluate(() =>
-            document.querySelector('[data-nav]')?.contains(document.activeElement)
-        )
-        assert(inNav, `court: Tab ${i + 1} escaped the open drawer`)
-    }
-
-    await page.keyboard.press('Escape')
-    const closed = await page.evaluate(() => ({
-        expanded: document.querySelector('[data-nav-toggle]')?.getAttribute('aria-expanded'),
-        focusOnToggle: document.activeElement?.hasAttribute('data-nav-toggle'),
-        mainInert: document.querySelector('main')?.inert,
-        bodyOverflow: getComputedStyle(document.body).overflow,
-    }))
-    assert(closed.expanded === 'false', 'court: Escape did not close the drawer')
-    assert(closed.focusOnToggle, 'court: Escape did not return focus to the menu button')
-    assert(!closed.mainInert, 'court: closing the drawer left page content inert')
-    assert(closed.bodyOverflow !== 'hidden', 'court: closing the drawer left body scrolling locked')
-
-    // A drawer must restore state it did not create; another modal may already
-    // own the scroll lock or have made the page inert.
-    await page.evaluate(() => {
-        document.body.style.overflow = 'clip'
-        document.querySelector('main').inert = true
-    })
-    await page.focus('[data-nav-toggle]')
-    await page.keyboard.press('Enter')
-    await page.keyboard.press('Escape')
-    const restored = await page.evaluate(() => ({
-        overflow: document.body.style.overflow,
-        mainInert: document.querySelector('main').inert,
-    }))
-    assert(restored.overflow === 'clip', `court: drawer replaced an existing "${restored.overflow}" scroll lock`)
-    assert(restored.mainInert, 'court: drawer cleared inert state owned by another UI')
-    await page.evaluate(() => {
-        document.body.style.overflow = ''
-        document.querySelector('main').inert = false
-    })
-
-    // Crossing the desktop breakpoint closes the drawer. Focus must move to a
-    // visible desktop link rather than the now-hidden menu button.
-    await page.focus('[data-nav-toggle]')
-    await page.keyboard.press('Enter')
     await page.focus(`.ct-nav__link[href="${NEWS_URL}"]`)
+
     await page.setViewport({ width: 1000, height: 800 })
     await new Promise((resolve) => setTimeout(resolve, 100))
+
     const widened = await page.evaluate(() => {
         const active = document.activeElement
         const rect = active.getBoundingClientRect()
@@ -434,13 +353,10 @@ async function main() {
         browser = await puppeteer.launch(launchOptions)
         const page = await browser.newPage()
         await assertFolderPagination(page)
-        console.log('ok: court club (200 posts stay paginated)')
+        console.log('ok: court club (canonical, noindex and bounded controls)')
 
-        await assertNewsDoesNotBecomeAMenu(page)
-        console.log('ok: court club (news posts stay out of the menu)')
-
-        await assertMobileDrawer(page)
-        console.log('ok: court club (mobile drawer fills the viewport and traps focus)')
+        await assertBreakpointKeepsFocusVisible(page)
+        console.log('ok: court club (widening keeps focus on something visible)')
 
         await assertNextAlwaysUsesTheRightColumn(page)
         console.log('ok: court club (Next alone stays on the right)')

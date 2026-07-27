@@ -11,6 +11,12 @@
  * link that was open, which the closing drawer had just hidden, so the focus
  * ring vanished into a `display: none` element.
  *
+ * A drawer that *covers* the page owes more than that. While it is open the page
+ * behind it is decoration: Tab must not walk into it, it must not be announced,
+ * and the scroll it locked must be handed back exactly as it was found. Themes
+ * whose menu expands inline rather than covering the page are held to none of
+ * this - there is nothing behind an inline disclosure to escape into.
+ *
  * All of it is invisible to a screenshot, so it is driven here for real: open
  * with the keyboard, look at where focus went, press Escape, look again.
  *
@@ -31,6 +37,13 @@ const NAV_CACHE = join(TM_ROOT, 'data', 'navigation')
 const VIEWPORT = { width: 390, height: 800 }
 
 const THEMES = ['atelier', 'court', 'legible', 'lucid', 'medium', 'prism']
+
+// Rueckenwind's drawer is a sidebar with its own toggle and markup.
+const RUECKENWIND = {
+    name: 'rueckenwind',
+    drawer: '#sidebar',
+    toggle: '#mobile-menu-btn',
+}
 
 function assert(condition, message) {
     if (!condition) {
@@ -140,6 +153,147 @@ async function assertDrawerKeyboard(page, theme) {
     assert(collapsed === 'false', `${theme}: the menu button still reports aria-expanded="${collapsed}" after Escape`)
 }
 
+/** Is the open drawer laid over the page, or does it expand inline? */
+function describeDrawer(drawerSelector) {
+    const drawer = drawerSelector
+        ? document.querySelector(drawerSelector)
+        : (document.querySelector('[data-nav]') || document.querySelector('header'))?.querySelector('ul')
+
+    if (!drawer) {
+        return { found: false }
+    }
+
+    const style = getComputedStyle(drawer)
+    const rect = drawer.getBoundingClientRect()
+
+    return {
+        found: true,
+        overlay: style.position === 'fixed',
+        bottom: Math.round(rect.bottom),
+        viewport: window.innerHeight,
+        bodyOverflow: getComputedStyle(document.body).overflow,
+    }
+}
+
+/**
+ * Can anything behind the drawer still be reached?
+ *
+ * Asked of the document rather than of one property: `inert` on an ancestor
+ * makes its descendants inert without setting the property on them, and a
+ * theme may mark a scroll container rather than <main>. Focus is put back into
+ * the drawer afterwards, so the tab order can be walked from a known place.
+ */
+function probeBackgroundReachable(drawerSelector) {
+    const target = document.querySelector('main a[href], main button:not([disabled])')
+    let reachable = false
+
+    if (target) {
+        target.focus()
+        reachable = document.activeElement === target
+    }
+
+    const nav = drawerSelector
+        ? document.querySelector(drawerSelector)
+        : document.querySelector('[data-nav]') || document.querySelector('header')
+    const first = nav
+        ? Array.prototype.slice.call(nav.querySelectorAll('a[href], button:not([disabled])'))
+              .filter((element) => element.getClientRects().length > 0)[0]
+        : null
+    if (first) first.focus()
+
+    return { reachable, refocused: Boolean(first) }
+}
+
+/**
+ * The contract for a drawer that covers the page.
+ *
+ * `open`/`close` are theme-specific because the sidebar themes have their own
+ * toggle; everything asserted afterwards is the same for all of them.
+ */
+async function assertOverlayDrawer(page, theme, { drawer = null, toggle = '[data-nav-toggle]' } = {}) {
+    setTheme(theme)
+    await page.setViewport(VIEWPORT)
+
+    const response = await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' })
+    const status = response ? response.status() : 0
+    assert(status === 200, `${theme}: the homepage answered with HTTP ${status}`)
+
+    const hasToggle = await page.evaluate((selector) => Boolean(document.querySelector(selector)), toggle)
+    assert(hasToggle, `${theme}: no menu button was rendered, so nothing was proven`)
+
+    // Somebody else's scroll lock must survive the drawer opening and closing.
+    await page.evaluate(() => {
+        document.body.style.overflow = 'clip'
+    })
+
+    await page.focus(toggle)
+    await page.keyboard.press('Enter')
+
+    const opened = await page.evaluate(describeDrawer, drawer)
+    assert(opened.found, `${theme}: the drawer could not be found`)
+
+    if (!opened.overlay) {
+        // An inline menu leaves the page in reach on purpose.
+        await page.keyboard.press('Escape')
+        await page.evaluate(() => {
+            document.body.style.overflow = ''
+        })
+        return 'inline'
+    }
+
+    assert(
+        Math.abs(opened.bottom - opened.viewport) <= 2,
+        `${theme}: the open drawer ends at ${opened.bottom}px in a ${opened.viewport}px viewport`
+    )
+    assert(
+        ['hidden', 'clip'].includes(opened.bodyOverflow),
+        `${theme}: the page still scrolls behind the open drawer (overflow: ${opened.bodyOverflow})`
+    )
+
+    const background = await page.evaluate(probeBackgroundReachable, drawer)
+    assert(!background.reachable, `${theme}: the page behind the open drawer can still be focused`)
+    assert(background.refocused, `${theme}: the open drawer offers nothing to focus`)
+
+    for (let i = 0; i < 25; i++) {
+        await page.keyboard.press('Tab')
+        const contained = await page.evaluate((selector) => {
+            const nav = selector
+                ? document.querySelector(selector)
+                : document.querySelector('[data-nav]') || document.querySelector('header')
+            return Boolean(nav && nav.contains(document.activeElement))
+        }, drawer)
+        assert(contained, `${theme}: Tab ${i + 1} left the open drawer for the page behind it`)
+    }
+
+    await page.keyboard.press('Escape')
+
+    const closed = await page.evaluate((selector) => ({
+        expanded: document.querySelector(selector)?.getAttribute('aria-expanded'),
+        onToggle: document.activeElement === document.querySelector(selector),
+        bodyOverflow: document.body.style.overflow,
+        backgroundReachable: (() => {
+            const target = document.querySelector('main a[href], main button:not([disabled])')
+            if (!target) return false
+            target.focus()
+            return document.activeElement === target
+        })(),
+    }), toggle)
+
+    assert(closed.expanded === 'false', `${theme}: Escape did not close the drawer`)
+    assert(closed.onToggle, `${theme}: Escape did not return focus to the menu button`)
+    assert(
+        closed.bodyOverflow === 'clip',
+        `${theme}: closing replaced the page's own scroll lock with "${closed.bodyOverflow}"`
+    )
+    assert(closed.backgroundReachable, `${theme}: the page stayed unreachable after the drawer closed`)
+
+    await page.evaluate(() => {
+        document.body.style.overflow = ''
+    })
+
+    return 'overlay'
+}
+
 async function main() {
     if (!existsSync(SETTINGS_FILE)) {
         console.error(`settings.yaml not found at ${SETTINGS_FILE}; run npm run test:setup first`)
@@ -165,6 +319,17 @@ async function main() {
             await assertDrawerKeyboard(page, theme)
             console.log(`ok: mobile menu keyboard (${theme})`)
         }
+
+        for (const theme of THEMES) {
+            const kind = await assertOverlayDrawer(page, theme)
+            console.log(`ok: mobile menu contains the page (${theme}, ${kind})`)
+        }
+
+        const kind = await assertOverlayDrawer(page, RUECKENWIND.name, {
+            drawer: RUECKENWIND.drawer,
+            toggle: RUECKENWIND.toggle,
+        })
+        console.log(`ok: mobile menu contains the page (${RUECKENWIND.name}, ${kind})`)
     } finally {
         await browser.close()
         writeFileSync(SETTINGS_FILE, originalSettings)
