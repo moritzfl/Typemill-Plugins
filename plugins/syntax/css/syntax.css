@@ -1,13 +1,14 @@
 /*
- * Dual-theme Shiki output. Tokens carry both GitHub light and dark colours as
- * CSS variables; this file picks which one shows.
+ * Dual-theme Shiki output. Tokens carry both light and dark colours as CSS
+ * variables; this file picks which one shows.
  *
  * Light is the default. Dark wins under prefers-color-scheme: dark, when the
  * document carries data-code-tokens="dark" (themes whose code panel stays dark
  * in light mode), or when html.dark is set (class-based dark mode).
  *
- * The panel itself is the theme's job — Shiki only colours tokens. An optional
- * copy control sits on the block without changing the theme's pre chrome.
+ * The panel itself is the theme's job — Shiki only colours tokens. Optional
+ * copy control, line numbers and word wrap sit on the block without changing
+ * the theme's pre chrome.
  */
 
 /*
@@ -51,16 +52,63 @@ html.dark pre.shiki span {
     text-decoration: var(--shiki-dark-text-decoration, inherit) !important;
 }
 
-/* ── Copy control ──────────────────────────────────────────────────── */
+/* ── Block shell ───────────────────────────────────────────────────── */
 
 .syntax-block {
     position: relative;
 }
 
-.syntax-block > pre {
+.syntax-block:has(.syntax-copy) > pre {
     /* Room for the button so the first line is not covered on narrow panels. */
     padding-right: 2.75rem;
 }
+
+/* ── Line numbers (Shiki already wraps each line in .line) ─────────── */
+
+.syntax-block--lines pre.shiki code {
+    counter-reset: syntax-line;
+}
+
+.syntax-block--lines pre.shiki .line {
+    display: inline-block;
+    width: 100%;
+    counter-increment: syntax-line;
+}
+
+.syntax-block--lines pre.shiki .line::before {
+    content: counter(syntax-line);
+    display: inline-block;
+    min-width: 2ch;
+    margin-right: 1.1em;
+    padding-right: 0.75em;
+    text-align: right;
+    color: #64748b;
+    -webkit-user-select: none;
+    user-select: none;
+    pointer-events: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-code-tokens="light"]) .syntax-block--lines pre.shiki .line::before {
+        color: #94a3b8;
+    }
+}
+
+:is(html, body)[data-code-tokens="dark"] .syntax-block--lines pre.shiki .line::before,
+html.dark .syntax-block--lines pre.shiki .line::before {
+    color: #94a3b8;
+}
+
+/* ── Word wrap ─────────────────────────────────────────────────────── */
+
+.syntax-block--wrap pre.shiki,
+.syntax-block--wrap pre.shiki code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* ── Copy control ──────────────────────────────────────────────────── */
 
 .syntax-copy {
     position: absolute;

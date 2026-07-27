@@ -5,14 +5,27 @@ namespace Plugins\syntax;
 use Typemill\Plugin;
 
 /**
- * Frontend syntax highlighting via Shiki (GitHub light + dark).
+ * Frontend syntax highlighting via Shiki.
  *
- * Themes keep the panel chrome. Tokens follow the system scheme, or a theme
- * that sets data-code-tokens="dark" / html.dark when its code panel stays dark
- * in light mode. An optional copy button is painted by the same client script.
+ * Themes keep the panel chrome. Tokens follow a chosen light/dark pair under
+ * the system scheme, or a theme that sets data-code-tokens="dark" / html.dark
+ * when its code panel stays dark in light mode. Optional copy button, line
+ * numbers and word wrap are painted by the same client script.
  */
 class syntax extends Plugin
 {
+    /** @var list<string> */
+    private const PAIRS = [
+        'github-hc',
+        'github',
+        'one',
+        'catppuccin',
+        'vitesse',
+        'rose-pine',
+        'solarized',
+        'gruvbox',
+    ];
+
     public static function setPremiumLicense()
     {
         return false;
@@ -32,22 +45,37 @@ class syntax extends Plugin
         }
 
         $settings = $this->getPluginSettings() ?: [];
-        // Default on when the key has never been saved.
-        $copy = array_key_exists('copyButton', $settings)
-            ? !empty($settings['copyButton'])
-            : true;
+        $pair = (string) ($settings['pair'] ?? 'github-hc');
+        if (!in_array($pair, self::PAIRS, true)) {
+            $pair = 'github-hc';
+        }
 
         $this->addCSS('/syntax/css/syntax.css');
         $this->addInlineJS(
             'window.__SYNTAX__=' . json_encode(
                 [
-                    'copy' => $copy,
+                    'pair' => $pair,
+                    'copy' => $this->flag($settings, 'copyButton', true),
+                    'lines' => $this->flag($settings, 'lineNumbers', false),
+                    'wrap' => $this->flag($settings, 'wordWrap', false),
                     'labels' => $this->labels(),
                 ],
                 JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
             ) . ';'
         );
         $this->addJS('/syntax/public/syntax.min.js');
+    }
+
+    /**
+     * Checkbox that defaults on or off when the key has never been saved.
+     *
+     * @param array<string, mixed> $settings
+     */
+    private function flag(array $settings, string $key, bool $default): bool
+    {
+        return array_key_exists($key, $settings)
+            ? !empty($settings[$key])
+            : $default;
     }
 
     /**

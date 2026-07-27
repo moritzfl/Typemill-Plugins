@@ -1,23 +1,37 @@
 /**
  * Client-side Shiki highlighter for Typemill content pages.
  *
- * Dual GitHub themes are baked into each token as CSS variables. The matching
- * stylesheet (css/syntax.css) picks light or dark from the system scheme, or
- * from data-code-tokens / html.dark when a theme keeps a dark panel in light
- * mode. The panel chrome stays with the theme.
+ * A chosen light/dark colour pair is baked into each token as CSS variables.
+ * The matching stylesheet picks light or dark from the system scheme, or from
+ * data-code-tokens / html.dark when a theme keeps a dark panel in light mode.
+ * The panel chrome stays with the theme.
  *
- * Languages are the set a docs / portfolio site actually hits. Adding one is a
- * one-line import plus a rebuild — the full Shiki catalogue is not shipped.
- *
- * window.__SYNTAX__ may set { copy: true } so each block gets a copy control.
+ * window.__SYNTAX__ may set:
+ *   pair   - colour pair id (see PAIRS)
+ *   copy   - show a copy control
+ *   lines  - show line numbers
+ *   wrap   - wrap long lines
+ *   labels - { copy, copied, failed } for the copy control
  */
 import { createHighlighterCore } from 'shiki/core'
 import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'
 
-// High-contrast variants: GitHub's default prettylights leave a few tokens
-// (the orange "variable" especially) under 4.5:1 on a light panel.
-import githubLight from '@shikijs/themes/github-light-high-contrast'
-import githubDark from '@shikijs/themes/github-dark-high-contrast'
+import githubLightHc from '@shikijs/themes/github-light-high-contrast'
+import githubDarkHc from '@shikijs/themes/github-dark-high-contrast'
+import githubLight from '@shikijs/themes/github-light-default'
+import githubDark from '@shikijs/themes/github-dark-default'
+import oneLight from '@shikijs/themes/one-light'
+import oneDark from '@shikijs/themes/one-dark-pro'
+import catppuccinLatte from '@shikijs/themes/catppuccin-latte'
+import catppuccinMocha from '@shikijs/themes/catppuccin-mocha'
+import vitesseLight from '@shikijs/themes/vitesse-light'
+import vitesseDark from '@shikijs/themes/vitesse-dark'
+import rosePineDawn from '@shikijs/themes/rose-pine-dawn'
+import rosePineMoon from '@shikijs/themes/rose-pine-moon'
+import solarizedLight from '@shikijs/themes/solarized-light'
+import solarizedDark from '@shikijs/themes/solarized-dark'
+import gruvboxLight from '@shikijs/themes/gruvbox-light-medium'
+import gruvboxDark from '@shikijs/themes/gruvbox-dark-medium'
 
 import langBash from '@shikijs/langs/bash'
 import langCss from '@shikijs/langs/css'
@@ -40,6 +54,19 @@ const LANGS = [
     langKotlin, langMd, langPhp, langPython, langShell, langTs, langXml, langYaml,
 ]
 
+// Only true light/dark pairs from the same family. Each entry is the two Shiki
+// theme modules; their .name is what codeToHtml expects.
+const PAIRS = {
+    'github-hc': { light: githubLightHc, dark: githubDarkHc },
+    github: { light: githubLight, dark: githubDark },
+    one: { light: oneLight, dark: oneDark },
+    catppuccin: { light: catppuccinLatte, dark: catppuccinMocha },
+    vitesse: { light: vitesseLight, dark: vitesseDark },
+    'rose-pine': { light: rosePineDawn, dark: rosePineMoon },
+    solarized: { light: solarizedLight, dark: solarizedDark },
+    gruvbox: { light: gruvboxLight, dark: gruvboxDark },
+}
+
 // Common aliases Typemill / GitHub fences use that Shiki names differently.
 const ALIASES = {
     js: 'javascript',
@@ -61,8 +88,12 @@ const ICON_OK = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" ari
 function config() {
     const raw = typeof window !== 'undefined' ? window.__SYNTAX__ : null
     const labels = raw && raw.labels && typeof raw.labels === 'object' ? raw.labels : {}
+    const pair = raw && typeof raw.pair === 'string' && PAIRS[raw.pair] ? raw.pair : 'github-hc'
     return {
+        pair,
         copy: !raw || raw.copy !== false,
+        lines: !!(raw && raw.lines),
+        wrap: !!(raw && raw.wrap),
         labels: {
             copy: typeof labels.copy === 'string' && labels.copy ? labels.copy : 'Copy code',
             copied: typeof labels.copied === 'string' && labels.copied ? labels.copied : 'Copied',
@@ -106,16 +137,32 @@ async function writeClipboard(text) {
     }
 }
 
-function attachCopy(pre, labels) {
-    if (pre.closest('.syntax-block')) return pre
+function ensureShell(pre) {
+    let shell = pre.closest('.syntax-block')
+    if (shell) return shell
 
-    const shell = document.createElement('div')
+    shell = document.createElement('div')
     shell.className = 'syntax-block'
+    const parent = pre.parentNode
+    if (!parent) return null
+    parent.insertBefore(shell, pre)
+    shell.appendChild(pre)
+    return shell
+}
+
+function decorate(pre, options) {
+    const shell = ensureShell(pre)
+    if (!shell) return
+
+    shell.classList.toggle('syntax-block--lines', options.lines)
+    shell.classList.toggle('syntax-block--wrap', options.wrap)
+
+    if (!options.copy || shell.querySelector('.syntax-copy')) return
 
     const button = document.createElement('button')
     button.type = 'button'
     button.className = 'syntax-copy'
-    button.setAttribute('aria-label', labels.copy)
+    button.setAttribute('aria-label', options.labels.copy)
     button.innerHTML = ICON_COPY
 
     let resetTimer = 0
@@ -123,36 +170,31 @@ function attachCopy(pre, labels) {
         try {
             await writeClipboard(plainTextOf(pre))
             button.classList.add('is-copied')
-            button.setAttribute('aria-label', labels.copied)
+            button.setAttribute('aria-label', options.labels.copied)
             button.innerHTML = ICON_OK
             window.clearTimeout(resetTimer)
             resetTimer = window.setTimeout(() => {
                 button.classList.remove('is-copied')
-                button.setAttribute('aria-label', labels.copy)
+                button.setAttribute('aria-label', options.labels.copy)
                 button.innerHTML = ICON_COPY
             }, 1600)
         } catch {
-            button.setAttribute('aria-label', labels.failed)
+            button.setAttribute('aria-label', options.labels.failed)
         }
     })
 
-    const parent = pre.parentNode
-    if (!parent) return pre
-    parent.insertBefore(shell, pre)
-    shell.appendChild(button)
-    shell.appendChild(pre)
-    return pre
+    shell.insertBefore(button, shell.firstChild)
 }
 
-function highlightBlock(highlighter, pre, code, options) {
+function highlightBlock(highlighter, pre, code, options, pair) {
     const lang = languageOf(code)
     const source = code.textContent || ''
     const loaded = lang && highlighter.getLoadedLanguages().includes(lang)
     const html = highlighter.codeToHtml(source, {
         lang: loaded ? lang : 'text',
         themes: {
-            light: 'github-light-high-contrast',
-            dark: 'github-dark-high-contrast',
+            light: pair.light.name,
+            dark: pair.dark.name,
         },
         defaultColor: false,
     })
@@ -168,16 +210,17 @@ function highlightBlock(highlighter, pre, code, options) {
     if (keep.length) next.classList.add(...keep)
 
     pre.replaceWith(next)
-    if (options.copy) attachCopy(next, options.labels)
+    decorate(next, options)
 }
 
 async function run() {
     const options = config()
+    const pair = PAIRS[options.pair] || PAIRS['github-hc']
     const blocks = Array.from(document.querySelectorAll('pre code'))
     if (!blocks.length) return
 
     const highlighter = await createHighlighterCore({
-        themes: [githubLight, githubDark],
+        themes: [pair.light, pair.dark],
         langs: LANGS,
         // No WASM: works under strict CSP and without a separate asset fetch.
         engine: createJavaScriptRegexEngine(),
@@ -188,10 +231,10 @@ async function run() {
         if (!pre || pre.tagName !== 'PRE') continue
         if (pre.classList.contains('shiki')) continue
         try {
-            highlightBlock(highlighter, pre, code, options)
+            highlightBlock(highlighter, pre, code, options, pair)
         } catch {
-            // Leave the plain block alone if a grammar misbehaves; still offer copy.
-            if (options.copy) attachCopy(pre, options.labels)
+            // Leave the plain block alone if a grammar misbehaves; still decorate.
+            decorate(pre, options)
         }
     }
 

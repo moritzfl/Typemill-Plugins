@@ -98,10 +98,11 @@ CSS with custom properties, so there is no build step.
 
 ### `syntax` — Syntax
 
-Highlights fenced code with [Shiki](https://shiki.style) and paints tokens in GitHub's light and dark high-contrast
-palettes at once. Which set shows follows the system colour scheme (or a theme that keeps a dark code panel in light
-mode). Themes own the panel chrome; the plugin owns only the tokens. Replaces Typemill's stock Highlight plugin when
-both would fight over the same blocks.
+Highlights fenced code with [Shiki](https://shiki.style) and paints tokens in a light/dark colour pair (GitHub High
+Contrast by default, with One, Catppuccin, Vitesse, Rosé Pine, Solarized and Gruvbox also available). Which side shows
+follows the system colour scheme (or a theme that keeps a dark code panel in light mode). Optional copy button, line
+numbers and word wrap. Themes own the panel chrome; the plugin owns only the tokens. Replaces Typemill's stock Highlight
+plugin when both would fight over the same blocks.
 
 → See [`plugins/syntax/README.md`](plugins/syntax/README.md) for full documentation.
 

@@ -1,17 +1,41 @@
 name: Syntax
-version: 1.0.0
-description: Highlights fenced code with Shiki and paints tokens in GitHub's light and dark high-contrast colours, following the system scheme (or a theme that forces dark tokens on a dark panel).
+version: 1.1.0
+description: Highlights fenced code with Shiki and paints tokens in a light/dark colour pair, following the system scheme (or a theme that forces dark tokens on a dark panel).
 author: Moritz
 homepage: https://github.com/moritzfl/Typemill-Plugins
 license: GPL-2.0
 
 settings:
+  pair: github-hc
   copyButton: true
+  lineNumbers: false
+  wordWrap: false
 
 forms:
   fields:
+    pair:
+      type: select
+      label: Colour pair
+      description: "Every option is a light theme and a dark theme from the same family. Which side shows follows the system scheme, or a site theme that keeps its code panel dark in light mode."
+      options:
+        github-hc: "GitHub High Contrast (default)"
+        github: "GitHub"
+        one: "One Light / One Dark Pro"
+        catppuccin: "Catppuccin Latte / Mocha"
+        vitesse: "Vitesse"
+        rose-pine: "Rosé Pine Dawn / Moon"
+        solarized: "Solarized"
+        gruvbox: "Gruvbox"
     copyButton:
       type: checkbox
       label: Copy button
       checkboxlabel: Show a copy button on code blocks
       description: "A control on each code block that copies the plain source."
+    lineNumbers:
+      type: checkbox
+      label: Line numbers
+      checkboxlabel: Show line numbers
+    wordWrap:
+      type: checkbox
+      label: Word wrap
+      checkboxlabel: Wrap long lines

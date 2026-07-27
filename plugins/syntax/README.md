@@ -1,16 +1,13 @@
 # Syntax
 
 Highlights fenced code blocks with [Shiki](https://shiki.style) and paints the
-tokens in **GitHub light and dark high-contrast** at the same time. Which set
-shows follows the system colour scheme — no theme picker, no second stylesheet.
-The high-contrast pair is still GitHub's own palette; the default pair leaves a
-few tokens (the orange "variable" especially) under the WCAG AA floor on a light
-code panel.
+tokens in a **light/dark colour pair**. Which side shows follows the system
+colour scheme — no second stylesheet, no single-scheme trap.
 
-Typemill's stock Highlight plugin (highlight.js) loads one single-scheme
-stylesheet. Pick light and dark mode is unreadable; pick dark and light mode
-is. Shiki's dual-theme output carries both palettes on every token as CSS
-variables, so one build covers both.
+Typemill's stock Highlight plugin loads one single-scheme stylesheet. Pick
+light and dark mode is unreadable; pick dark and light mode is. Shiki's dual
+theme output carries both palettes on every token as CSS variables, so one
+build covers both.
 
 ## Install
 
@@ -20,7 +17,7 @@ variables, so one build covers both.
    would try to colour the same blocks.
 
 The browser script is pre-built at `public/syntax.min.js`. To rebuild after
-changing languages or the client:
+changing languages, pairs or the client:
 
 ```bash
 cd plugins/syntax
@@ -32,13 +29,35 @@ npm run build
 
 | Setting | Default | Meaning |
 |---------|---------|---------|
-| Copy button | on (checkbox) | A control on each code block that copies the plain source |
+| Colour pair | GitHub High Contrast | Light + dark themes from the same family |
+| Copy button | on | Control that copies the plain source |
+| Line numbers | off | Gutter from Shiki's per-line spans |
+| Word wrap | off | Break long lines instead of scrolling sideways |
+
+### Colour pairs
+
+Every option is a real light/dark pair — never a lone dark theme with no day
+side. The default is GitHub High Contrast because a few tokens in GitHub's
+regular prettylights sit under the WCAG AA floor on a light panel.
+
+| Pair | Light | Dark | Character |
+|------|-------|------|-----------|
+| **GitHub High Contrast** | `github-light-high-contrast` | `github-dark-high-contrast` | Docs default; strongest contrast |
+| **GitHub** | `github-light-default` | `github-dark-default` | Current github.com look |
+| **One Light / One Dark Pro** | `one-light` | `one-dark-pro` | Atom / classic editor |
+| **Catppuccin Latte / Mocha** | `catppuccin-latte` | `catppuccin-mocha` | Soft pastels |
+| **Vitesse** | `vitesse-light` | `vitesse-dark` | Clean, Vue/Vite-adjacent |
+| **Rosé Pine Dawn / Moon** | `rose-pine-dawn` | `rose-pine-moon` | Warm, muted |
+| **Solarized** | `solarized-light` | `solarized-dark` | The classic |
+| **Gruvbox** | `gruvbox-light-medium` | `gruvbox-dark-medium` | Retro earth tones |
+
+Only these pairs are bundled. Adding another is a small change in
+`src/client.js` plus a rebuild.
 
 ## How themes cooperate
 
 The plugin colours **tokens only**. The surrounding panel (`pre` background,
-padding, radius, border) stays with the theme — Shiki's own background is
-cleared on purpose.
+padding, radius, border) stays with the theme.
 
 Most themes need nothing else.
 
@@ -54,11 +73,10 @@ or the same attribute on `<body>`. Class-based dark mode is also recognised
 
 ## Languages
 
-A curated set is bundled (no extra network fetch, no WASM): bash, c, c++, css,
-diff, docker, go, html, ini, java, javascript/jsx, json, kotlin, markdown, php,
-python, ruby, rust, scss, shell, sql, toml, typescript/tsx, xml, yaml. Unknown
-fences fall back to plain text. Common aliases (`js`, `ts`, `yml`, `sh`, …) are
-mapped automatically.
+A curated set is bundled (no extra network fetch, no WASM): bash, css, diff,
+html, java, javascript, json, kotlin, markdown, php, python, shell, typescript,
+xml, yaml. Unknown fences fall back to plain text. Common aliases (`js`, `ts`,
+`yml`, `sh`, …) are mapped automatically.
 
 ## Why Shiki
 
@@ -71,4 +89,4 @@ mapped automatically.
 ## License
 
 Plugin code is GPL-2.0, same as the other plugins in this repository. Shiki is
-MIT; the bundled GitHub themes follow their upstream licenses.
+MIT; bundled themes follow their upstream licenses.
