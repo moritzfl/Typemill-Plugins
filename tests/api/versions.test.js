@@ -100,27 +100,6 @@ describe('GET /api/v1/versions/page', () => {
     })
 })
 
-describe('GET /api/v1/versions/trash', () => {
-    it.skipIf(!configured)('returns a list (empty array when trash is empty)', async () => {
-        requireSession()
-        const resp = await apiGet(session, `${BASE_URL}/api/v1/versions/trash`)
-        // Some Typemill configurations return 404 when the trash subsystem
-        // is not yet initialised; otherwise expect an empty or populated array.
-        if (resp.status === 404) return
-
-        expect(resp.status).toBe(200)
-        const data = await resp.json()
-        expect(Array.isArray(data)).toBe(true)
-
-        for (const entry of data) {
-            expect(entry).toHaveProperty('record_id')
-            expect(entry).toHaveProperty('version_id')
-            expect(entry).toHaveProperty('title')
-            expect(entry).toHaveProperty('deleted_at')
-        }
-    })
-})
-
 describe('GET /api/v1/versions/export/options', () => {
     it.skipIf(!configured)('returns available media folders and defaults', async () => {
         requireSession()

@@ -186,7 +186,9 @@ class VersionStore
             ];
         }
 
-        $this->records->savePageRecord($pageId, $record);
+        if (!$this->records->savePageRecord($pageId, $record)) {
+            return [];
+        }
 
         return $entry;
     }

@@ -690,17 +690,7 @@ class versions extends Plugin
         $navigation->setProject($this->getSettings(), $url, $this->getDispatcher());
         $content = new Content($urlinfo['baseurl'], $this->getSettings(), $this->getDispatcher());
 
-        if (($item->elementType ?? 'file') === 'folder') {
-            $result = $content->deleteFolder($item);
-        } else {
-            $result = $content->deletePage($item);
-        }
-
-        if ($result !== true) {
-            return $this->jsonResponse($response, ['message' => $result], 500);
-        }
-
-        $store->storeVersion(
+        $stored = $store->storeVersion(
             $item,
             $metadata,
             $currentMarkdown,
@@ -713,6 +703,22 @@ class versions extends Plugin
                 'restorable' => $restorable,
             ]
         );
+
+        if ($stored === []) {
+            return $this->jsonResponse($response, [
+                'message' => Translations::translate('Could not record the page in the recycle bin.'),
+            ], 500);
+        }
+
+        if (($item->elementType ?? 'file') === 'folder') {
+            $result = $content->deleteFolder($item);
+        } else {
+            $result = $content->deletePage($item);
+        }
+
+        if ($result !== true) {
+            return $this->jsonResponse($response, ['message' => $result], 500);
+        }
 
         if (count($item->keyPathArray) === 1) {
             $navigation->clearNavigation();

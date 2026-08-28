@@ -137,3 +137,4 @@ PAGE_ID_IS_MISSING: Die Seiten-ID fehlt.
 MARKDOWN_CONTENT_IS_MISSING: Der Markdown-Inhalt fehlt.
 DRAFT_SAVED_SUCCESSFULLY: Entwurf erfolgreich gespeichert.
 INTERNAL_SERVER_ERROR: Interner Serverfehler.
+COULD_NOT_RECORD_THE_PAGE_IN_THE_RECYCLE_BIN: Die Seite konnte nicht im Papierkorb vermerkt werden.
