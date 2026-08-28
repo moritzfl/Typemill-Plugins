@@ -23,7 +23,10 @@ class GitHubClient
 
     public function __construct(string $apiBase = self::DEFAULT_API_BASE, ?string $token = null, int $timeout = 5)
     {
-        $this->apiBase = rtrim($apiBase !== '' ? $apiBase : self::DEFAULT_API_BASE, '/');
+        $candidate = rtrim($apiBase !== '' ? $apiBase : self::DEFAULT_API_BASE, '/');
+        $this->apiBase = preg_match('#^https?://#i', $candidate) === 1
+            ? $candidate
+            : self::DEFAULT_API_BASE;
         $this->token = ($token !== null && $token !== '') ? $token : null;
         $this->timeout = max(1, min($timeout, 30));
     }
@@ -79,6 +82,8 @@ class GitHubClient
             CURLOPT_HTTPHEADER => $headers,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_MAXREDIRS => 3,
+            CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+            CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
             CURLOPT_CONNECTTIMEOUT => $this->timeout,
             CURLOPT_TIMEOUT => $this->timeout,
             CURLOPT_MAXFILESIZE => self::MAX_RESPONSE_BYTES,
