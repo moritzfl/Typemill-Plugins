@@ -1,6 +1,6 @@
 name: Typemill Update
 version: 1.1.0
-description: "Update the Typemill core and plugins from the official directory. Downloads the release archive from typemill.net, verifies it, and replaces only the system folder; plugins listed at plugins.typemill.net can be updated the same way. Content, media, settings, data and themes are never touched, and the previous core is kept as a rollback."
+description: "Update the Typemill core, and exclusively plugins from the official directory (https://plugins.typemill.net). Downloads the release archive from typemill.net, verifies it, and replaces only the system folder. Content, media, settings, data and themes are never touched, and the previous core is kept as a rollback."
 author: Moritz
 homepage: https://github.com/moritzfl/Typemill-Plugins
 license: GPL-2.0

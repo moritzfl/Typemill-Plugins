@@ -472,12 +472,15 @@ class Environment
     /**
      * Claim the bytes for real and release them again.
      *
+     * @param ?string $inDirectory Where to write the probe. Plugin updates pass
+     *        plugins/.tm-update so the check hits the same mount as the unpack.
      * @return array{ok: bool, reason: ?string} `reason` is 'nofile' when the
      *         probe could not be created at all and 'short' when it ran out.
      */
-    public function probeSpace(int $needed): array
+    public function probeSpace(int $needed, ?string $inDirectory = null): array
     {
-        $path = $this->root . DIRECTORY_SEPARATOR . '.tm-update-space-' . bin2hex(random_bytes(6));
+        $directory = $inDirectory ?? $this->root;
+        $path = rtrim($directory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . '.tm-update-space-' . bin2hex(random_bytes(6));
         $handle = @fopen($path, 'wb');
 
         if ($handle === false) {

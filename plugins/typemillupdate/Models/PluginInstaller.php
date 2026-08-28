@@ -38,6 +38,26 @@ class PluginInstaller
             && is_file($path . DIRECTORY_SEPARATOR . $slug . '.yaml');
     }
 
+    /**
+     * Cheap gate before a swap: a parse error here would white-screen the
+     * admin on the next request. Runtime errors are not caught.
+     */
+    public static function phpParses(string $path): bool
+    {
+        $code = @file_get_contents($path);
+        if (!is_string($code) || $code === '') {
+            return false;
+        }
+
+        try {
+            token_get_all($code, TOKEN_PARSE);
+
+            return true;
+        } catch (\ParseError $e) {
+            return false;
+        }
+    }
+
     public function livePath(string $slug): string
     {
         return $this->environment->pluginsPath() . DIRECTORY_SEPARATOR . $slug;
@@ -104,6 +124,13 @@ class PluginInstaller
             return self::problem('The staged plugin is incomplete.', 'err_plugin_incomplete');
         }
 
+        if (!self::phpParses($stagedPlugin . DIRECTORY_SEPARATOR . $slug . '.php')) {
+            return self::problem(
+                'The new plugin PHP does not parse, so it was not installed.',
+                'err_plugin_php'
+            );
+        }
+
         return ['ok' => true, 'error' => null, 'error_key' => null, 'path' => $stagedPlugin, 'entries' => count($entries)];
     }
 
@@ -116,6 +143,13 @@ class PluginInstaller
     {
         if (!self::looksLikePlugin($stagedPlugin, $slug)) {
             return ['touched' => false] + self::problem('The plugin to install is incomplete.', 'err_plugin_incomplete');
+        }
+
+        if (!self::phpParses($stagedPlugin . DIRECTORY_SEPARATOR . $slug . '.php')) {
+            return ['touched' => false] + self::problem(
+                'The new plugin PHP does not parse, so it was not installed.',
+                'err_plugin_php'
+            );
         }
 
         $live = $this->livePath($slug);

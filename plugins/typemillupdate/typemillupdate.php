@@ -479,7 +479,7 @@ class typemillupdate extends Plugin
 
         if (!isset($catalog['plugins'][$slug])) {
             return $this->jsonResponse($response, [
-                'message' => 'The plugin ' . $slug . ' is not in the Typemill directory, so it cannot be updated from here.',
+                'message' => 'The plugin ' . $slug . ' is not in the official directory (https://plugins.typemill.net), so it cannot be updated from here.',
                 'message_key' => 'typemillupdate.msg_plugin_not_directory',
                 'message_params' => ['slug' => $slug],
             ], 404);
@@ -546,7 +546,7 @@ class typemillupdate extends Plugin
         }
 
         $needed = Environment::requiredForCore((int) ($meta['plugin_bytes'] ?? 0));
-        if ($needed > 0 && !$environment->probeSpace($needed)['ok']) {
+        if ($needed > 0 && !$environment->probeSpace($needed, $environment->pluginWorkPath())['ok']) {
             $installer->cleanup();
             $plugins->cleanup($slug);
 

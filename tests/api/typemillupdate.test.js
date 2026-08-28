@@ -69,6 +69,7 @@ describe('Core update API', () => {
             failing,
             `blocking checks failed: ${failing.map((c) => `${c.id}: ${c.detail}`).join(' | ')}`
         ).toEqual([])
+        expect(body.plugin_blocked).toBe(false)
     })
 
     it.skipIf(!configured)('rejects a backup name that tries to escape the working directory', async () => {
@@ -168,5 +169,12 @@ describe('Core update API', () => {
     it.skipIf(!configured)('requires an authenticated session', async () => {
         const response = await fetch(`${BASE_URL}/api/v1/typemillupdate/status`)
         expect(response.status).toBeGreaterThanOrEqual(400)
+
+        const plugin = await fetch(`${BASE_URL}/api/v1/typemillupdate/plugin`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ plugin: 'search' }),
+        })
+        expect(plugin.status).toBeGreaterThanOrEqual(400)
     })
 })

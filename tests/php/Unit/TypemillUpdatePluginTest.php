@@ -191,11 +191,71 @@ class TypemillUpdatePluginTest extends TestCase
         $this->assertFileDoesNotExist($installer->stagingPath() . '/evil.php');
     }
 
+    public function testStagingAWrappedArchiveExtractsThePlugin(): void
+    {
+        $zipPath = $this->root . '/wrapped.zip';
+        $wrapped = [];
+        foreach ($this->pluginEntries('search', '2.2.0') as $name => $content) {
+            $wrapped['search-2.2.0/' . $name] = $content;
+        }
+        $this->makeZip($zipPath, $wrapped);
+
+        $environment = new Environment($this->root);
+        mkdir($environment->pluginsPath(), 0777, true);
+        $installer = new PluginInstaller($environment, new Installer($environment));
+        $result = $installer->stage($zipPath, 'search', 'search-2.2.0/');
+
+        $this->assertTrue($result['ok'], $result['error'] ?? '');
+        $this->assertFileExists($result['path'] . '/search.php');
+        $this->assertFileExists($result['path'] . '/search.yaml');
+    }
+
+    public function testInstallRefusesASymlink(): void
+    {
+        $this->writePlugin('search', '2.1.0', 'old body');
+        $live = $this->root . '/plugins/search';
+        $target = $this->root . '/plugins/search-real';
+        rename($live, $target);
+        symlink($target, $live);
+
+        $environment = new Environment($this->root);
+        $installer = new PluginInstaller($environment, new Installer($environment));
+        $staged = $installer->stagingPath() . '/search';
+        $this->writeAbsolute($staged . '/search.php', '<?php // new body');
+        $this->writeAbsolute($staged . '/search.yaml', "name: Search\nversion: '2.2.0'\n");
+
+        $result = $installer->install('search', $staged);
+
+        $this->assertFalse($result['ok']);
+        $this->assertFalse($result['touched']);
+        $this->assertTrue(is_link($live));
+        $this->assertStringContainsString('old body', (string) file_get_contents($target . '/search.php'));
+    }
+
+    public function testInstallRefusesPhpThatDoesNotParse(): void
+    {
+        $this->writePlugin('search', '2.1.0', 'old body');
+
+        $environment = new Environment($this->root);
+        $installer = new PluginInstaller($environment, new Installer($environment));
+        $staged = $installer->stagingPath() . '/search';
+        $this->writeAbsolute($staged . '/search.php', '<?php function (');
+        $this->writeAbsolute($staged . '/search.yaml', "name: Search\nversion: '2.2.0'\n");
+
+        $result = $installer->install('search', $staged);
+
+        $this->assertFalse($result['ok']);
+        $this->assertFalse($result['touched']);
+        $this->assertSame('typemillupdate.err_plugin_php', $result['error_key']);
+        $this->assertStringContainsString('old body', (string) file_get_contents($this->root . '/plugins/search/search.php'));
+    }
+
     public function testInstallReplacesThePluginAndKeepsABackup(): void
     {
         $this->writePlugin('search', '2.1.0', 'old body');
         $this->writePlugin('versions', '1.0.0', 'leave me');
         $this->write('/content/index.md', '# My site');
+        $this->write('/settings/settings.yaml', "plugins:\n  search:\n    active: true\n    token: secret\n");
 
         $environment = new Environment($this->root);
         $core = new Installer($environment);
@@ -216,6 +276,10 @@ class TypemillUpdatePluginTest extends TestCase
         $this->assertStringContainsString('old body', (string) file_get_contents($result['backup'] . '/search.php'));
         $this->assertFileExists($this->root . '/plugins/versions/versions.php');
         $this->assertFileExists($this->root . '/content/index.md');
+        $this->assertStringContainsString(
+            'token: secret',
+            (string) file_get_contents($this->root . '/settings/settings.yaml')
+        );
     }
 
     public function testInstallRefusesAnIncompleteStagedPlugin(): void

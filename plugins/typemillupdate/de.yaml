@@ -1,5 +1,5 @@
 TYPEMILLUPDATE_TITLE: Typemill-Update
-TYPEMILLUPDATE_SUBTITLE: Typemill selbst und Plugins aus dem Typemill-Verzeichnis aktualisieren.
+TYPEMILLUPDATE_SUBTITLE: Typemill selbst und ausschließlich Plugins aus dem offiziellen Verzeichnis (https://plugins.typemill.net) aktualisieren.
 TYPEMILLUPDATE_INSTALLED: Installierte Version
 TYPEMILLUPDATE_LATEST: Neueste Version
 TYPEMILLUPDATE_UNKNOWN: Unbekannt
@@ -17,7 +17,7 @@ TYPEMILLUPDATE_LOADING: Lädt
 TYPEMILLUPDATE_RUNNING: Update läuft. Diese Seite bitte nicht schließen.
 TYPEMILLUPDATE_LOG: Details
 TYPEMILLUPDATE_CONFIRM_TITLE: Typemill aktualisieren?
-TYPEMILLUPDATE_CONFIRM_TEXT: Der system-Ordner wird ersetzt. Inhalte, Medien, Einstellungen, Plugins und Themes bleiben unverändert, und der aktuelle Core wird zur Wiederherstellung aufbewahrt.
+TYPEMILLUPDATE_CONFIRM_TEXT: Der system-Ordner wird ersetzt. Inhalte, Medien, Einstellungen und Themes bleiben unverändert, und der aktuelle Core wird zur Wiederherstellung aufbewahrt.
 TYPEMILLUPDATE_CONFIRM_RESTORE_TITLE: Diese Version wiederherstellen?
 TYPEMILLUPDATE_CONFIRM_RESTORE_TEXT: Der aktuelle Core wird durch den gespeicherten ersetzt.
 TYPEMILLUPDATE_CANCEL: Abbrechen
@@ -30,7 +30,7 @@ TYPEMILLUPDATE_UPLOADING: Wird hochgeladen
 TYPEMILLUPDATE_UPLOADED_VERSION: Version in der Datei
 TYPEMILLUPDATE_UPLOADED_SIZE: Datei
 TYPEMILLUPDATE_CONFIRM_UPLOAD_TITLE: Diese Version installieren?
-TYPEMILLUPDATE_CONFIRM_UPLOAD_TEXT: Der system-Ordner wird durch den Core aus dieser Datei ersetzt. Inhalte, Medien, Einstellungen, Plugins und Themes bleiben unverändert, und der aktuelle Core wird zur Wiederherstellung aufbewahrt.
+TYPEMILLUPDATE_CONFIRM_UPLOAD_TEXT: Der system-Ordner wird durch den Core aus dieser Datei ersetzt. Inhalte, Medien, Einstellungen und Themes bleiben unverändert, und der aktuelle Core wird zur Wiederherstellung aufbewahrt.
 TYPEMILLUPDATE_DOWNGRADE_WARNING: Diese Version ist älter als die aktuell installierte.
 TYPEMILLUPDATE_REINSTALL_WARNING: Diese Version ist bereits installiert.
 TYPEMILLUPDATE_CHECK_ZIPARCHIVE_OK: Die PHP-Erweiterung zip ist vorhanden.
@@ -114,16 +114,16 @@ TYPEMILLUPDATE_ERR_UPLOAD_EMPTY: Die hochgeladene Datei ist leer.
 TYPEMILLUPDATE_ADMIN_ONLY: Nur ein Administrator kann eine Version installieren oder wiederherstellen.
 TYPEMILLUPDATE_PLUGINS: Plugins
 TYPEMILLUPDATE_PLUGINS_HELP: Es können ausschließlich Plugins aus dem offiziellen Verzeichnis (https://plugins.typemill.net) aktualisiert werden.
-TYPEMILLUPDATE_PLUGINS_NONE: Es sind keine Plugins aus dem Typemill-Verzeichnis installiert.
+TYPEMILLUPDATE_PLUGINS_NONE: Es sind keine Plugins aus dem offiziellen Verzeichnis (https://plugins.typemill.net) installiert.
 TYPEMILLUPDATE_PLUGIN_BLOCKED: Plugins können nicht aktualisiert werden. Der plugins-Ordner muss beschreibbar sein und die PHP-Erweiterung zip muss vorhanden sein.
 TYPEMILLUPDATE_PLUGIN_UPDATE: Aktualisieren
 TYPEMILLUPDATE_PLUGIN_UP_TO_DATE: Aktuell
 TYPEMILLUPDATE_PLUGIN_CONFIRM_TITLE: Dieses Plugin aktualisieren?
-TYPEMILLUPDATE_PLUGIN_CONFIRM_TEXT: Der Plugin-Ordner wird durch das ZIP aus dem Typemill-Verzeichnis ersetzt. Die Einstellungen des Plugins bleiben erhalten.
+TYPEMILLUPDATE_PLUGIN_CONFIRM_TEXT: Der Plugin-Ordner wird durch das ZIP aus dem offiziellen Verzeichnis (https://plugins.typemill.net) ersetzt. Die Einstellungen des Plugins bleiben erhalten.
 THE_PLUGIN_UPDATE_FAILED: Das Plugin-Update ist fehlgeschlagen.
 TYPEMILLUPDATE_MSG_PLUGIN_SELF: Typemill-Update kann sich nicht selbst ersetzen.
 TYPEMILLUPDATE_MSG_PLUGIN_NOT_INSTALLED: "Das Plugin {slug} ist nicht installiert."
-TYPEMILLUPDATE_MSG_PLUGIN_NOT_DIRECTORY: "Das Plugin {slug} ist nicht im Typemill-Verzeichnis, daher kann es von hier nicht aktualisiert werden."
+TYPEMILLUPDATE_MSG_PLUGIN_NOT_DIRECTORY: "Das Plugin {slug} ist nicht im offiziellen Verzeichnis (https://plugins.typemill.net), daher kann es von hier nicht aktualisiert werden."
 TYPEMILLUPDATE_MSG_PLUGIN_ALREADY: "{slug} {version} ist bereits installiert."
 TYPEMILLUPDATE_MSG_PLUGIN_ARCHIVE_VERSION_MISMATCH: "Das Archiv enthält {slug} {found}, angefordert wurde aber {requested}."
 TYPEMILLUPDATE_MSG_PLUGIN_NOT_ENOUGH_SPACE: "{slug} {version} braucht {needed} zum Entpacken, und so viel konnte nicht geschrieben werden."
@@ -137,6 +137,7 @@ TYPEMILLUPDATE_ERR_PLUGIN_ARCHIVE_WRONG_SLUG: "Das Archiv enthält Dateien auße
 TYPEMILLUPDATE_ERR_PLUGIN_ARCHIVE_MISSING_ENTRY: "Im Archiv fehlt {entry}, damit ist es kein vollständiges Plugin."
 TYPEMILLUPDATE_ERR_PLUGIN_STAGE_FAILED: Das neue Plugin konnte nicht entpackt werden.
 TYPEMILLUPDATE_ERR_PLUGIN_INCOMPLETE: Das Plugin ist unvollständig und wurde deshalb nicht ersetzt.
+TYPEMILLUPDATE_ERR_PLUGIN_PHP: Das neue Plugin-PHP ist syntaktisch ungültig und wurde deshalb nicht installiert.
 TYPEMILLUPDATE_ERR_PLUGIN_SYMLINK: Dieses Plugin ist ein Symlink; es zu ersetzen wird nicht unterstützt.
 TYPEMILLUPDATE_ERR_PLUGIN_WORKDIR: Das Arbeitsverzeichnis für Plugin-Updates konnte nicht angelegt werden.
 TYPEMILLUPDATE_ERR_PLUGIN_BACKUP: Eine Sicherung des installierten Plugins konnte nicht angelegt werden.
