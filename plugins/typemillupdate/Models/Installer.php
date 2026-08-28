@@ -465,11 +465,20 @@ class Installer
         return is_dir($path) ? $path : null;
     }
 
-    private function resetOpcache(): void
+    public function resetOpcache(): void
     {
         if (function_exists('opcache_reset')) {
             @opcache_reset();
         }
+    }
+
+    /**
+     * Recursive delete, fenced to the project root. Plugin updates stage and
+     * back up under plugins/, which is still inside that root.
+     */
+    public function deleteInsideRoot(string $path): bool
+    {
+        return $this->removeDirectory($path);
     }
 
     /**

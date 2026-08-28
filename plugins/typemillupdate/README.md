@@ -1,7 +1,8 @@
 # Typemill Update — Typemill Plugin
 
 A Typemill plugin that updates Typemill itself from the dashboard, instead of replacing the
-`system` folder over FTP by hand.
+`system` folder over FTP by hand, and that updates plugins listed in the
+[Typemill plugin directory](https://plugins.typemill.net).
 
 ## Installation
 
@@ -18,10 +19,14 @@ Only the `system` directory is replaced. That directory holds the entire core:
 | `system/typemill/` | yes — core PHP, templates, admin assets |
 | `system/vendor/` | yes — Composer dependencies |
 | `system/autoload.php` | yes |
-| `content/`, `media/`, `settings/`, `data/`, `cache/`, `plugins/`, `themes/` | **no** |
+| `content/`, `media/`, `settings/`, `data/`, `cache/`, `themes/` | **no** |
+| `plugins/{slug}/` for a plugin listed in the Typemill directory | **yes**, when that plugin is updated |
+| other `plugins/` folders | **no** |
 | `index.php`, `.htaccess` | **no** |
 
-This matches Typemill's [documented manual procedure](https://docs.typemill.net/getting-started/update).
+A core update matches Typemill's [documented manual procedure](https://docs.typemill.net/getting-started/update).
+Plugin updates replace the same folder an admin would replace over FTP when the
+author panel shows an update banner.
 
 ## How an update runs
 
@@ -47,6 +52,24 @@ This matches Typemill's [documented manual procedure](https://docs.typemill.net/
    to reach itself.
 
 The previous core is kept, so it can be restored from the same screen.
+
+## Plugins from the directory
+
+The same screen lists installed plugins that also appear in the Typemill
+directory, and offers an update when the directory has a newer version. Plugins
+this site has that the directory does not know — including this updater itself —
+are left alone.
+
+An update downloads `https://plugins.typemill.net/download?plugins={slug}`,
+checks that the zip is exactly that plugin (`{slug}/{slug}.php` and
+`{slug}/{slug}.yaml`, no Zip Slip, no extra top-level files), then renames the
+live folder aside and the staged folder into its place. Staging and the backup
+live under `plugins/.tm-update/`, on the same filesystem as the plugin: when
+`plugins/` is a bind mount, a rename from the project-root working directory
+would fail with `EXDEV`.
+
+Settings for the plugin stay in `settings.yaml`. A MAKER or BUSINESS plugin can
+still be downloaded; activation remains a licence check in Typemill itself.
 
 ## Installing from a file
 
@@ -77,8 +100,9 @@ change is needed.
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `GET` | `/api/v1/typemillupdate/status` | Installed version, latest release, environment checks, stored backups |
+| `GET` | `/api/v1/typemillupdate/status` | Installed version, latest release, environment checks, stored backups, directory plugins |
 | `POST` | `/api/v1/typemillupdate/run` | Install. Downloads the current release, or installs a previously uploaded archive when given `archive` |
+| `POST` | `/api/v1/typemillupdate/plugin` | Update one installed directory plugin. Body: `{ "plugin": "search" }` |
 | `POST` | `/api/v1/typemillupdate/upload/chunk` | Receive one base64 slice of an archive |
 | `POST` | `/api/v1/typemillupdate/upload/finalize` | Assemble and verify the upload, and report the version it contains |
 | `POST` | `/api/v1/typemillupdate/rollback` | Restore a stored core |
@@ -89,7 +113,8 @@ change something are restricted to administrators (`user` / `update`) rather tha
 `update`, because the manager role also holds the latter, and replacing every PHP file on the site
 is a far wider blast radius than the settings screens that privilege normally guards.
 
-Add `?check=0` to `status` to skip the request to typemill.net.
+Add `?check=0` to `status` to skip the requests to typemill.net and
+plugins.typemill.net.
 
 Updates, rollbacks and backup deletions are serialised with a lock file, so a second one while
 another is in progress is refused with 409 rather than deleting the first one's staging directory or
@@ -101,13 +126,16 @@ swept once they are six hours old.
 
 ## Working directory
 
-Downloads, staging and backups live in `.tm-update/` in the project root. It has to sit there:
+Core downloads, staging and backups live in `.tm-update/` in the project root. It has to sit there:
 the swap renames the staged core over `system`, and `rename()` cannot cross filesystems — on a
 typical Docker setup `data/` is a bind mount and would fail with `EXDEV`.
 
-The directory is created with an `.htaccess` that denies all access. **On nginx that file is
-ignored**, so if you run nginx, block `/.tm-update` in the server config, or delete stored
-backups once you no longer need them.
+Plugin staging and backups live in `plugins/.tm-update/` for the same reason: `plugins/` is often
+its own mount, and the live plugin folder has to be renamed on that filesystem.
+
+Both directories are created with an `.htaccess` that denies all access. **On nginx that file is
+ignored**, so if you run nginx, block `/.tm-update` and `/plugins/.tm-update` in the server config,
+or delete stored backups once you no longer need them.
 
 ## Requirements and limits
 
@@ -125,10 +153,13 @@ backups once you no longer need them.
   stale.
 - `typemill.net` publishes only the current release, so a specific older version cannot be fetched.
   Rollback therefore relies on the local backup.
-- No checksum or signature is published for the release archive. Integrity rests on TLS plus the
-  structural checks above, so the trust boundary is typemill.net itself: anyone able to serve a
-  different archive from that host could place their own code on the site. The download is capped at
-  128 MB and the unpacked size at 256 MB, which limits damage but does not authenticate the source.
+- PHP must be able to create and rename entries in `plugins/` for a plugin update. That check is
+  separate from the core preflight: a site that cannot rename `system` can still update plugins.
+- No checksum or signature is published for the release archive or for directory plugins. Integrity
+  rests on TLS plus the structural checks above, so the trust boundary is typemill.net /
+  plugins.typemill.net: anyone able to serve a different archive from those hosts could place their
+  own code on the site. Core downloads are capped at 128 MB and 256 MB unpacked; plugin zips at
+  64 MB unpacked.
 
 ## Notes
 

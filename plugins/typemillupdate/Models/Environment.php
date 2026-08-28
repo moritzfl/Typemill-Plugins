@@ -6,11 +6,11 @@ namespace Plugins\typemillupdate\Models;
  * Locates the Typemill installation and answers whether this environment is
  * capable of updating its own core.
  *
- * A Typemill update only replaces the `system` directory, which holds the core
+ * A core update only replaces the `system` directory, which holds the core
  * (`system/typemill`), the Composer dependencies (`system/vendor`) and
- * `system/autoload.php`. Everything else - content, media, settings, data,
- * cache, plugins, themes, index.php, .htaccess - is user state and is never
- * touched.
+ * `system/autoload.php`. Content, media, settings, data, cache, themes,
+ * index.php and .htaccess are user state and are never touched. Plugins from
+ * the Typemill directory can be replaced separately, one folder at a time.
  */
 class Environment
 {
@@ -76,9 +76,35 @@ class Environment
         return $this->root . DIRECTORY_SEPARATOR . 'system';
     }
 
+    public function pluginsPath(): string
+    {
+        return $this->root . DIRECTORY_SEPARATOR . 'plugins';
+    }
+
     public function workPath(): string
     {
         return $this->root . DIRECTORY_SEPARATOR . self::WORK_DIRNAME;
+    }
+
+    /**
+     * Staging and backups for directory plugins.
+     *
+     * This has to sit inside plugins/: the swap renames the live plugin folder,
+     * and rename() cannot cross filesystems. On the Docker test setup plugins/
+     * is a bind mount and the project-root working directory is not.
+     */
+    public function pluginWorkPath(): string
+    {
+        return $this->pluginsPath() . DIRECTORY_SEPARATOR . self::WORK_DIRNAME;
+    }
+
+    /**
+     * Folder names Typemill will load as plugins, and that a zip from the
+     * directory may legally replace. Dots, slashes and traversal are out.
+     */
+    public static function isPluginSlug(string $slug): bool
+    {
+        return preg_match('/^[A-Za-z0-9][A-Za-z0-9_-]{0,62}$/', $slug) === 1;
     }
 
     /**
@@ -107,6 +133,105 @@ class Environment
         }
 
         return is_dir($work);
+    }
+
+    public function ensurePluginWorkPath(): bool
+    {
+        $work = $this->pluginWorkPath();
+
+        if (!is_dir($work) && !@mkdir($work, 0755, true) && !is_dir($work)) {
+            return false;
+        }
+
+        $htaccess = $work . DIRECTORY_SEPARATOR . '.htaccess';
+        if (!file_exists($htaccess)) {
+            @file_put_contents(
+                $htaccess,
+                "# Downloaded and superseded plugin files. Never serve these.\n"
+                . "<IfModule mod_authz_core.c>\n    Require all denied\n</IfModule>\n"
+                . "<IfModule !mod_authz_core.c>\n    Order allow,deny\n    Deny from all\n</IfModule>\n"
+            );
+        }
+
+        return is_dir($work);
+    }
+
+    /**
+     * Plugins this installation has on disk.
+     *
+     * Only folders that look like a Typemill plugin - `{slug}/{slug}.php` and
+     * `{slug}/{slug}.yaml` - are returned. Hidden folders are skipped, because
+     * that is where plugin staging lives.
+     *
+     * @return array<string, array{slug: string, name: string, version: ?string}>
+     */
+    public function installedPlugins(): array
+    {
+        $dir = $this->pluginsPath();
+        if (!is_dir($dir)) {
+            return [];
+        }
+
+        $plugins = [];
+
+        foreach ((array) @scandir($dir) as $entry) {
+            if (!is_string($entry) || $entry === '.' || $entry === '..' || str_starts_with($entry, '.')) {
+                continue;
+            }
+
+            if (!self::isPluginSlug($entry)) {
+                continue;
+            }
+
+            $path = $dir . DIRECTORY_SEPARATOR . $entry;
+            if (!is_dir($path) || is_link($path) || !PluginInstaller::looksLikePlugin($path, $entry)) {
+                continue;
+            }
+
+            $yaml = (string) file_get_contents($path . DIRECTORY_SEPARATOR . $entry . '.yaml');
+            $name = $entry;
+            if (preg_match('/^\s*name:\s*[\'"]?([^\'"\n]+)/m', $yaml, $matches) === 1) {
+                $name = trim($matches[1]);
+            }
+
+            $plugins[$entry] = [
+                'slug' => $entry,
+                'name' => $name !== '' ? $name : $entry,
+                'version' => self::parseVersionFromYaml($yaml),
+            ];
+        }
+
+        return $plugins;
+    }
+
+    /**
+     * Whether plugin folders can be created and renamed, which the swap needs.
+     *
+     * The probe runs against plugins/ itself and never touches an installed
+     * plugin.
+     */
+    public function pluginsAreWritable(): bool
+    {
+        $plugins = $this->pluginsPath();
+        if (!is_dir($plugins)) {
+            return false;
+        }
+
+        $probe = $plugins . DIRECTORY_SEPARATOR . '.tm-update-probe-' . bin2hex(random_bytes(6));
+        if (!@mkdir($probe, 0755)) {
+            return false;
+        }
+
+        $moved = $probe . '-moved';
+        if (!@rename($probe, $moved)) {
+            @rmdir($probe);
+
+            return false;
+        }
+
+        @rmdir($moved);
+
+        return true;
     }
 
     public function installedVersion(): ?string

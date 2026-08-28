@@ -13,6 +13,7 @@
 !themes/**
 !plugins/
 !plugins/**
+plugins/.tm-update/
 !README_TESTING.md
 !vitest.config.js
 !tests/

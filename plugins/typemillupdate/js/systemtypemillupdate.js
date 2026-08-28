@@ -49,6 +49,14 @@ typemillupdateStyle.textContent = `
 .tm-cu-summary{display:flex;flex-direction:column;gap:.3rem;margin-bottom:1rem;font-size:.85rem}
 .tm-cu-summary li{display:flex;justify-content:space-between;gap:1rem;border-bottom:1px solid #e7e5e4;padding-bottom:.25rem}
 .dark .tm-cu-summary li{border-color:#44403c}
+.tm-cu-plugin-list{display:flex;flex-direction:column;gap:.5rem}
+.tm-cu-plugin{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;padding:.5rem .75rem;background:#fafaf9;border:1px solid #e7e5e4;font-size:.875rem}
+.dark .tm-cu-plugin{background:#1c1917;border-color:#44403c}
+.tm-cu-plugin__text{display:flex;flex-wrap:wrap;align-items:baseline;gap:.5rem .75rem;flex:1}
+.tm-cu-plugin__name{font-weight:700}
+.tm-cu-plugin__versions{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8125rem}
+.tm-cu-plugin__flag{font-size:.75rem;color:#b45309}
+.tm-cu-plugin__flag--ok{color:#0d9488}
 `;
 document.head.appendChild(typemillupdateStyle);
 
@@ -73,11 +81,17 @@ const app = Vue.createApp({
                 // Assumed away until the server says otherwise, so a failed
                 // load never offers a button that only answers 403.
                 can_update: false,
+                plugins: [],
+                plugin_blocked: false,
+                plugin_check_error: null,
+                plugin_check_error_key: null,
+                plugin_check_error_params: {},
             },
             log: [],
             message: '',
             messageClass: '',
             confirmUpdate: false,
+            confirmPlugin: null,
             restoreTarget: null,
             uploadProgress: null,
             uploadResult: null,
@@ -96,6 +110,9 @@ const app = Vue.createApp({
 
     watch: {
         confirmUpdate(open) {
+            this.dialogToggled(Boolean(open));
+        },
+        confirmPlugin(open) {
             this.dialogToggled(Boolean(open));
         },
         uploadResult(open) {
@@ -124,6 +141,35 @@ const app = Vue.createApp({
         runUpdate() {
             this.confirmUpdate = false;
             this.performInstall({});
+        },
+
+        runPluginUpdate() {
+            const plugin = this.confirmPlugin;
+            this.confirmPlugin = null;
+            if (!plugin) {
+                return;
+            }
+
+            this.busy = true;
+            this.log = [];
+            this.message = '';
+
+            tmaxios.post('/api/v1/typemillupdate/plugin', { plugin: plugin.slug }, { timeout: 600000 })
+                .then((response) => {
+                    this.log = response.data.log || [];
+                    this.showMessage(this.messageText(response.data), 'success');
+                    this.load();
+                })
+                .catch((error) => {
+                    if (error.response && error.response.data && error.response.data.log) {
+                        this.log = error.response.data.log;
+                    }
+                    this.showMessage(this.errorText(error, 'The plugin update failed.'), 'error');
+                    this.load();
+                })
+                .then(() => {
+                    this.busy = false;
+                });
         },
 
         installUploaded() {
@@ -285,11 +331,12 @@ const app = Vue.createApp({
         },
 
         dialogOpen() {
-            return Boolean(this.confirmUpdate || this.uploadResult || this.restoreTarget);
+            return Boolean(this.confirmUpdate || this.confirmPlugin || this.uploadResult || this.restoreTarget);
         },
 
         closeDialogs() {
             this.confirmUpdate = false;
+            this.confirmPlugin = null;
             this.uploadResult = null;
             this.restoreTarget = null;
         },
@@ -379,6 +426,14 @@ const app = Vue.createApp({
                 this.status.check_error_key,
                 this.status.check_error_params,
                 this.status.check_error
+            );
+        },
+
+        pluginCheckErrorText() {
+            return this.keyedText(
+                this.status.plugin_check_error_key,
+                this.status.plugin_check_error_params,
+                this.status.plugin_check_error
             );
         },
 

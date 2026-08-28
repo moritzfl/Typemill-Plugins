@@ -35,6 +35,8 @@ describe('Core update API', () => {
         expect(Array.isArray(body.preflight)).toBe(true)
         expect(Array.isArray(body.backups)).toBe(true)
         expect(typeof body.blocked).toBe('boolean')
+        expect(Array.isArray(body.plugins)).toBe(true)
+        expect(typeof body.plugin_blocked).toBe('boolean')
 
         // The panel hides the actions it may not use, so it has to be told.
         expect(body.can_update).toBe(true)
@@ -138,6 +140,29 @@ describe('Core update API', () => {
         const body = await finalize.json()
         expect(body.message_key).toBe('typemillupdate.err_upload_incomplete')
         expect(body.message_params).toEqual({ chunk: 1 })
+    })
+
+    it.skipIf(!configured)('rejects a plugin name that could escape the plugins directory', async () => {
+        for (const plugin of ['../evil', 'a/b', '', 'has.dot', '.hidden']) {
+            const response = await apiPost(session, `${BASE_URL}/api/v1/typemillupdate/plugin`, { plugin })
+            expect(response.status, `expected rejection for ${JSON.stringify(plugin)}`).toBe(422)
+        }
+    })
+
+    it.skipIf(!configured)('refuses to update a plugin that is not installed', async () => {
+        const response = await apiPost(session, `${BASE_URL}/api/v1/typemillupdate/plugin`, { plugin: 'search' })
+        expect(response.status).toBe(404)
+
+        const body = await response.json()
+        expect(body.message_key).toBe('typemillupdate.msg_plugin_not_installed')
+    })
+
+    it.skipIf(!configured)('refuses to replace this updater', async () => {
+        const response = await apiPost(session, `${BASE_URL}/api/v1/typemillupdate/plugin`, { plugin: 'typemillupdate' })
+        expect(response.status).toBe(409)
+
+        const body = await response.json()
+        expect(body.message_key).toBe('typemillupdate.msg_plugin_self')
     })
 
     it.skipIf(!configured)('requires an authenticated session', async () => {

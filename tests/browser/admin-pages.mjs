@@ -284,6 +284,7 @@ async function assertTypemillUpdatePage(page) {
             versions: Array.from(document.querySelectorAll('.tm-cu-version__value')).map((el) => el.textContent.trim()),
             checks: document.querySelectorAll('.tm-cu-check').length,
             uploadControl: Boolean(document.querySelector('input.tm-cu-file[type="file"]')),
+            pluginsSection: Boolean(document.querySelector('.tm-cu-plugins')),
             unresolvedBindings: document.querySelector('.tm-cu').textContent.includes('{{'),
         }))
 
@@ -293,6 +294,7 @@ async function assertTypemillUpdatePage(page) {
         )
         assert(info.checks > 0, 'Typemill Update: no environment checks rendered')
         assert(info.uploadControl, 'Typemill Update: the archive upload control is missing')
+        assert(info.pluginsSection, 'Typemill Update: the plugins section is missing')
         assert(!info.unresolvedBindings, 'Typemill Update: template left unrendered {{ }} bindings')
 
         const criticalErrors = [...pageErrors, ...consoleErrors].filter((entry) => {

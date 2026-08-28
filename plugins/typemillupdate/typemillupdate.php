@@ -4,6 +4,8 @@ namespace Plugins\typemillupdate;
 
 use Plugins\typemillupdate\Models\Environment;
 use Plugins\typemillupdate\Models\Installer;
+use Plugins\typemillupdate\Models\PluginInstaller;
+use Plugins\typemillupdate\Models\Registry;
 use Plugins\typemillupdate\Models\Release;
 use Plugins\typemillupdate\Models\Upload;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -53,6 +55,14 @@ class typemillupdate extends Plugin
                 'route' => '/api/v1/typemillupdate/run',
                 'name' => 'typemillupdate.run',
                 'class' => 'Plugins\typemillupdate\typemillupdate:runUpdate',
+                'resource' => 'user',
+                'privilege' => 'update',
+            ],
+            [
+                'httpMethod' => 'post',
+                'route' => '/api/v1/typemillupdate/plugin',
+                'name' => 'typemillupdate.plugin',
+                'class' => 'Plugins\typemillupdate\typemillupdate:runPluginUpdate',
                 'resource' => 'user',
                 'privilege' => 'update',
             ],
@@ -128,13 +138,28 @@ class typemillupdate extends Plugin
         $checkError = null;
         $checkErrorKey = null;
         $checkErrorParams = [];
+        $plugins = [];
+        $pluginCheckError = null;
+        $pluginCheckErrorKey = null;
+        $pluginCheckErrorParams = [];
         if (($request->getQueryParams()['check'] ?? '1') !== '0') {
             $remote = $release->latestVersion();
             $latest = $remote['version'];
             $checkError = $remote['error'];
             $checkErrorKey = $remote['error_key'] ?? null;
             $checkErrorParams = $remote['error_params'] ?? [];
+
+            $installedPlugins = $environment->installedPlugins();
+            $catalog = (new Registry($environment))->catalog(array_keys($installedPlugins));
+            $pluginCheckError = $catalog['error'];
+            $pluginCheckErrorKey = $catalog['error_key'] ?? null;
+            $pluginCheckErrorParams = $catalog['error_params'] ?? [];
+            if ($catalog['error'] === null) {
+                $plugins = Registry::present($installedPlugins, $catalog['plugins']);
+            }
         }
+
+        $zipOk = class_exists('ZipArchive');
 
         return $this->jsonResponse($response, [
             'root' => $environment->root(),
@@ -154,6 +179,14 @@ class typemillupdate extends Plugin
             'blocked' => Environment::isBlocked($checks),
             'php_version' => PHP_VERSION,
             'backups' => $this->presentBackups($installer->listBackups()),
+            'plugins' => $plugins,
+            'plugin_check_error' => $pluginCheckError,
+            'plugin_check_error_key' => $pluginCheckErrorKey,
+            'plugin_check_error_params' => $pluginCheckErrorParams,
+            // Core preflight can refuse a system rename while plugins/ is still
+            // writable - typical of the Docker bind mount - so plugin updates
+            // are gated separately.
+            'plugin_blocked' => !$zipOk || !$environment->pluginsAreWritable(),
         ]);
     }
 
@@ -388,6 +421,185 @@ class typemillupdate extends Plugin
             'backup' => basename((string) $swap['backup']),
             'log' => $log,
         ], 200);
+    }
+
+    /**
+     * Download, verify and swap one plugin from the Typemill directory.
+     *
+     * Only plugins the directory lists are accepted, and only if they are
+     * already installed. This plugin itself is never replaced while it is
+     * handling the request.
+     */
+    public function runPluginUpdate(Request $request, Response $response, $args)
+    {
+        $params = (array) $request->getParsedBody();
+        $slug = isset($params['plugin']) && is_string($params['plugin']) ? $params['plugin'] : '';
+        $force = !empty($params['force']);
+
+        if (!Environment::isPluginSlug($slug)) {
+            return $this->jsonResponse($response, [
+                'message' => 'That is not a valid plugin name.',
+                'message_key' => 'typemillupdate.err_plugin_slug',
+            ], 422);
+        }
+
+        if ($slug === 'typemillupdate') {
+            return $this->jsonResponse($response, [
+                'message' => 'Typemill Update cannot replace itself.',
+                'message_key' => 'typemillupdate.msg_plugin_self',
+            ], 409);
+        }
+
+        $environment = new Environment();
+        $installer = new Installer($environment);
+        $release = new Release($environment);
+        $registry = new Registry($environment);
+        $plugins = new PluginInstaller($environment, $installer);
+
+        $live = $plugins->livePath($slug);
+        if (!PluginInstaller::looksLikePlugin($live, $slug)) {
+            return $this->jsonResponse($response, [
+                'message' => 'The plugin ' . $slug . ' is not installed.',
+                'message_key' => 'typemillupdate.msg_plugin_not_installed',
+                'message_params' => ['slug' => $slug],
+            ], 404);
+        }
+
+        if (!class_exists('ZipArchive') || !$environment->pluginsAreWritable()) {
+            return $this->jsonResponse($response, [
+                'message' => 'This installation cannot update plugins. The plugins folder has to be writable and the PHP zip extension has to be available.',
+                'message_key' => 'typemillupdate.err_plugin_not_writable',
+            ], 409);
+        }
+
+        $catalog = $registry->catalog([$slug]);
+        if ($catalog['error'] !== null) {
+            return $this->failureResponse($response, $catalog, 502);
+        }
+
+        if (!isset($catalog['plugins'][$slug])) {
+            return $this->jsonResponse($response, [
+                'message' => 'The plugin ' . $slug . ' is not in the Typemill directory, so it cannot be updated from here.',
+                'message_key' => 'typemillupdate.msg_plugin_not_directory',
+                'message_params' => ['slug' => $slug],
+            ], 404);
+        }
+
+        $target = $catalog['plugins'][$slug]['version'];
+        $installed = Environment::parseVersionFromYaml(
+            (string) file_get_contents($live . DIRECTORY_SEPARATOR . $slug . '.yaml')
+        );
+
+        if (!$force && $installed !== null && version_compare($target, $installed, '<=')) {
+            return $this->jsonResponse($response, [
+                'message' => $slug . ' ' . $installed . ' is already installed.',
+                'message_key' => 'typemillupdate.msg_plugin_already',
+                'message_params' => ['slug' => $slug, 'version' => $installed],
+                'installed' => $installed,
+                'latest' => $target,
+            ], 409);
+        }
+
+        if (!$environment->ensureWorkPath() || !$environment->ensurePluginWorkPath()) {
+            return $this->jsonResponse($response, [
+                'message' => 'Could not create the working directory.',
+                'message_key' => 'typemillupdate.msg_workdir_failed',
+                'message_params' => ['path' => $environment->pluginWorkPath()],
+            ], 500);
+        }
+
+        if (!$installer->acquireLock()) {
+            return $this->jsonResponse($response, ['message' => 'Another update is already running.'], 409);
+        }
+
+        $log = [];
+        $url = Registry::downloadUrl($slug);
+        $archive = $installer->downloadTarget();
+        $downloaded = $release->download($url, $archive);
+        if (!$downloaded['ok']) {
+            $installer->cleanup();
+            $plugins->cleanup($slug);
+
+            return $this->failureResponse($response, $downloaded, 502, ['log' => $log]);
+        }
+        $log[] = 'Downloaded ' . Environment::formatBytes((int) $downloaded['bytes']) . ' from ' . $url;
+
+        $meta = $registry->inspectArchive($archive, $slug);
+        if (!$meta['ok']) {
+            $installer->cleanup();
+            $plugins->cleanup($slug);
+
+            return $this->failureResponse($response, $meta, 422, ['log' => $log]);
+        }
+        $log[] = 'Archive verified: ' . $slug . ' ' . $meta['version'] . '.';
+
+        if ($meta['version'] !== $target) {
+            $installer->cleanup();
+            $plugins->cleanup($slug);
+
+            return $this->jsonResponse($response, [
+                'message' => 'The archive contains ' . $slug . ' ' . $meta['version'] . ', but ' . $target . ' was requested.',
+                'message_key' => 'typemillupdate.msg_plugin_archive_version_mismatch',
+                'message_params' => ['slug' => $slug, 'found' => $meta['version'], 'requested' => $target],
+                'log' => $log,
+            ], 422);
+        }
+
+        $needed = Environment::requiredForCore((int) ($meta['plugin_bytes'] ?? 0));
+        if ($needed > 0 && !$environment->probeSpace($needed)['ok']) {
+            $installer->cleanup();
+            $plugins->cleanup($slug);
+
+            return $this->jsonResponse($response, [
+                'message' => $slug . ' ' . $meta['version'] . ' needs ' . Environment::formatBytes($needed)
+                    . ' to unpack, and that much could not be written.',
+                'message_key' => 'typemillupdate.msg_plugin_not_enough_space',
+                'message_params' => ['slug' => $slug, 'version' => $meta['version'], 'needed' => Environment::formatBytes($needed)],
+                'log' => $log,
+            ], 507);
+        }
+
+        $staged = $plugins->stage($archive, $slug, (string) ($meta['prefix'] ?? ''));
+        if (!$staged['ok']) {
+            $installer->cleanup();
+            $plugins->cleanup($slug);
+
+            return $this->failureResponse($response, $staged, 500, ['log' => $log]);
+        }
+        $log[] = 'Staged ' . $slug . '.';
+
+        $swap = $plugins->install($slug, $staged['path']);
+        if (!$swap['ok']) {
+            $installer->cleanup();
+            $plugins->cleanup($slug);
+            $log[] = $swap['error'];
+
+            return $this->failureResponse($response, $swap, 500, ['log' => $log]);
+        }
+        $log[] = 'Replaced plugins/' . $slug . ' with version ' . $meta['version'] . '.';
+
+        if ($installer->clearTwigCache()) {
+            $log[] = 'Cleared the compiled Twig cache.';
+        }
+
+        $installer->cleanup();
+        $plugins->cleanup($slug);
+        $log[] = 'Cleaned up staging data.';
+
+        return $this->jsonResponse($response, [
+            'ok' => true,
+            'message' => $slug . ' was updated from ' . ($installed ?? 'unknown') . ' to ' . $meta['version'] . '.',
+            'message_key' => 'typemillupdate.msg_plugin_updated',
+            'message_params' => [
+                'slug' => $slug,
+                'from' => $installed ?? 'unknown',
+                'to' => $meta['version'],
+            ],
+            'plugin' => $slug,
+            'previous' => $installed,
+            'installed' => $meta['version'],
+            'log' => $log,
+        ]);
     }
 
     /**

@@ -1,5 +1,5 @@
 TYPEMILLUPDATE_TITLE: Typemill Update
-TYPEMILLUPDATE_SUBTITLE: Update Typemill itself. Only the system folder is replaced.
+TYPEMILLUPDATE_SUBTITLE: Update Typemill itself, and plugins from the Typemill directory.
 TYPEMILLUPDATE_INSTALLED: Installed version
 TYPEMILLUPDATE_LATEST: Latest release
 TYPEMILLUPDATE_UNKNOWN: Unknown
@@ -112,3 +112,35 @@ TYPEMILLUPDATE_ERR_UPLOAD_TOO_LARGE: "The uploaded file is larger than {limit}."
 TYPEMILLUPDATE_ERR_UPLOAD_WRITE: The uploaded file could not be written.
 TYPEMILLUPDATE_ERR_UPLOAD_EMPTY: The uploaded file is empty.
 TYPEMILLUPDATE_ADMIN_ONLY: Only an administrator can install or restore a version.
+TYPEMILLUPDATE_PLUGINS: Plugins
+TYPEMILLUPDATE_PLUGINS_HELP: Only plugins from the official directory (https://plugins.typemill.net) can be updated.
+TYPEMILLUPDATE_PLUGINS_NONE: No plugins from the Typemill directory are installed.
+TYPEMILLUPDATE_PLUGIN_BLOCKED: Plugins cannot be updated. The plugins folder has to be writable and the PHP zip extension has to be available.
+TYPEMILLUPDATE_PLUGIN_UPDATE: Update
+TYPEMILLUPDATE_PLUGIN_UP_TO_DATE: Up to date
+TYPEMILLUPDATE_PLUGIN_CONFIRM_TITLE: Update this plugin?
+TYPEMILLUPDATE_PLUGIN_CONFIRM_TEXT: The plugin folder will be replaced with the zip from the Typemill directory. Settings for the plugin stay in place.
+THE_PLUGIN_UPDATE_FAILED: The plugin update failed.
+TYPEMILLUPDATE_MSG_PLUGIN_SELF: Typemill Update cannot replace itself.
+TYPEMILLUPDATE_MSG_PLUGIN_NOT_INSTALLED: "The plugin {slug} is not installed."
+TYPEMILLUPDATE_MSG_PLUGIN_NOT_DIRECTORY: "The plugin {slug} is not in the Typemill directory, so it cannot be updated from here."
+TYPEMILLUPDATE_MSG_PLUGIN_ALREADY: "{slug} {version} is already installed."
+TYPEMILLUPDATE_MSG_PLUGIN_ARCHIVE_VERSION_MISMATCH: "The archive contains {slug} {found}, but {requested} was requested."
+TYPEMILLUPDATE_MSG_PLUGIN_NOT_ENOUGH_SPACE: "{slug} {version} needs {needed} to unpack, and that much could not be written."
+TYPEMILLUPDATE_MSG_PLUGIN_UPDATED: "{slug} was updated from {from} to {to}."
+TYPEMILLUPDATE_ERR_PLUGIN_SLUG: That is not a valid plugin name.
+TYPEMILLUPDATE_ERR_PLUGIN_CHECK_OFFLINE: plugins.typemill.net could not be reached. Check whether this server is allowed to make outgoing connections.
+TYPEMILLUPDATE_ERR_PLUGIN_CHECK_HTTP: "plugins.typemill.net answered with HTTP {status}."
+TYPEMILLUPDATE_ERR_PLUGIN_CHECK_FORMAT: plugins.typemill.net returned an unexpected catalog.
+TYPEMILLUPDATE_ERR_PLUGIN_ARCHIVE_NO_PLUGIN: "The archive does not contain the plugin {slug}."
+TYPEMILLUPDATE_ERR_PLUGIN_ARCHIVE_WRONG_SLUG: "The archive contains files outside the plugin {slug}."
+TYPEMILLUPDATE_ERR_PLUGIN_ARCHIVE_MISSING_ENTRY: "The archive is missing {entry}, so it is not a complete plugin."
+TYPEMILLUPDATE_ERR_PLUGIN_STAGE_FAILED: The new plugin could not be unpacked.
+TYPEMILLUPDATE_ERR_PLUGIN_INCOMPLETE: The plugin is incomplete, so it was not replaced.
+TYPEMILLUPDATE_ERR_PLUGIN_SYMLINK: That plugin is a symlink; replacing it is not supported.
+TYPEMILLUPDATE_ERR_PLUGIN_WORKDIR: Could not create the working directory for plugin updates.
+TYPEMILLUPDATE_ERR_PLUGIN_BACKUP: Could not create a backup of the installed plugin.
+TYPEMILLUPDATE_ERR_PLUGIN_RENAME_UNSUPPORTED: This filesystem does not allow the plugin directory to be renamed, so the update was stopped before anything was changed.
+TYPEMILLUPDATE_ERR_PLUGIN_INSTALL_MOVE_FAILED: The new plugin could not be moved into place. The previous version was restored.
+TYPEMILLUPDATE_ERR_PLUGIN_INSTALL_STRANDED: "The new plugin could not be moved into place and the previous version could not be restored. It is at {path}."
+TYPEMILLUPDATE_ERR_PLUGIN_NOT_WRITABLE: This installation cannot update plugins. The plugins folder has to be writable and the PHP zip extension has to be available.

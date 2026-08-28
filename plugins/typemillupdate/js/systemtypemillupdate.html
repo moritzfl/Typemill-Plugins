@@ -54,6 +54,38 @@
             </div>
         </section>
 
+        <section v-if="!loading" class="tm-cu-panel tm-cu-plugins bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-600 shadow-sm">
+            <h2 class="tm-cu-heading">{{ $filters.translate('typemillupdate.plugins') }}</h2>
+            <p class="tm-cu-note">{{ $filters.translate('typemillupdate.plugins_help') }}</p>
+
+            <p v-if="status.plugin_check_error" class="tm-cu-note tm-cu-note--warn">{{ pluginCheckErrorText() }}</p>
+            <p v-else-if="status.plugin_blocked" class="tm-cu-note tm-cu-note--error">{{ $filters.translate('typemillupdate.plugin_blocked') }}</p>
+            <p v-else-if="!status.plugins || status.plugins.length === 0" class="tm-cu-note">
+                {{ $filters.translate('typemillupdate.plugins_none') }}
+            </p>
+
+            <ul v-if="status.plugins && status.plugins.length" class="tm-cu-plugin-list">
+                <li v-for="plugin in status.plugins" :key="plugin.slug" class="tm-cu-plugin">
+                    <div class="tm-cu-plugin__text">
+                        <span class="tm-cu-plugin__name">{{ plugin.name }}</span>
+                        <span class="tm-cu-plugin__versions">{{ plugin.installed || $filters.translate('typemillupdate.unknown') }} → {{ plugin.latest }}</span>
+                        <span v-if="plugin.update_available" class="tm-cu-plugin__flag">{{ $filters.translate('typemillupdate.available') }}</span>
+                        <span v-else class="tm-cu-plugin__flag tm-cu-plugin__flag--ok">{{ $filters.translate('typemillupdate.plugin_up_to_date') }}</span>
+                    </div>
+                    <button
+                        v-if="status.can_update"
+                        type="button"
+                        class="tm-cu-btn tm-cu-btn--small"
+                        :class="{ 'tm-cu-btn--primary': plugin.update_available }"
+                        :disabled="busy || status.plugin_blocked || !plugin.update_available"
+                        @click.prevent="confirmPlugin = plugin"
+                    >
+                        {{ $filters.translate('typemillupdate.plugin_update') }}
+                    </button>
+                </li>
+            </ul>
+        </section>
+
         <section v-if="!loading && status.can_update" class="tm-cu-panel bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-600 shadow-sm">
             <h2 class="tm-cu-heading">{{ $filters.translate('typemillupdate.upload_title') }}</h2>
             <p class="tm-cu-note">{{ $filters.translate('typemillupdate.upload_help') }}</p>
@@ -113,6 +145,26 @@
                 <li v-for="(entry, index) in log" :key="index">{{ entry }}</li>
             </ol>
         </section>
+
+        <div v-if="confirmPlugin" class="tm-cu-overlay" @click.self="confirmPlugin = null">
+            <div class="tm-cu-dialog bg-white dark:bg-stone-800"
+                 role="dialog" aria-modal="true" aria-labelledby="tm-cu-plugin-title">
+                <h3 class="tm-cu-dialog__title" id="tm-cu-plugin-title">{{ $filters.translate('typemillupdate.plugin_confirm_title') }}</h3>
+                <p class="tm-cu-dialog__text">
+                    {{ $filters.translate('typemillupdate.plugin_confirm_text') }}
+                    <strong>{{ confirmPlugin.name }}</strong>
+                    ({{ confirmPlugin.installed }} → {{ confirmPlugin.latest }})
+                </p>
+                <div class="tm-cu-dialog__actions">
+                    <button type="button" class="tm-cu-btn" @click.prevent="confirmPlugin = null">
+                        {{ $filters.translate('typemillupdate.cancel') }}
+                    </button>
+                    <button type="button" class="tm-cu-btn tm-cu-btn--primary" @click.prevent="runPluginUpdate">
+                        {{ $filters.translate('typemillupdate.confirm') }}
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <div v-if="confirmUpdate" class="tm-cu-overlay" @click.self="confirmUpdate = false">
             <div class="tm-cu-dialog bg-white dark:bg-stone-800"
