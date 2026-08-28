@@ -16,7 +16,7 @@ class MarkdownPreviewRenderer
     ) {
     }
 
-    public function renderMarkdown(string $markdown): string
+    public function renderMarkdown(string $markdown, bool $dropLeadingTitle = true): string
     {
         $markdown = trim($markdown);
         if ($markdown === '') {
@@ -31,9 +31,14 @@ class MarkdownPreviewRenderer
                 return '';
             }
 
-            array_shift($markdownArray);
-            if (count($markdownArray) === 0) {
-                return '';
+            // Typemill pages store the title as the first markdown block. A
+            // file in media/files is not a page: dropping the first block
+            // empties a one-heading readme.
+            if ($dropLeadingTitle) {
+                array_shift($markdownArray);
+                if (count($markdownArray) === 0) {
+                    return '';
+                }
             }
 
             $body = $content->markdownArrayToText($markdownArray);
@@ -67,10 +72,9 @@ class MarkdownPreviewRenderer
 
         if ($previewKind === 'text') {
             if ($this->support->isMarkdownPath($filename)) {
-                $payload['rendered_html'] = $this->renderMarkdown($markdown);
-            } elseif ($this->support->isHtmlPath($filename)) {
-                $payload['rendered_html'] = $markdown;
+                $payload['rendered_html'] = $this->renderMarkdown($markdown, false);
             } else {
+                // HTML files must not go through v-html on the admin origin.
                 $payload['rendered_html'] = '';
             }
 

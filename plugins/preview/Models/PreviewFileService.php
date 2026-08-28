@@ -41,11 +41,18 @@ class PreviewFileService
 
         $base = rtrim($this->storage->getFolderPath('fileFolder'), DIRECTORY_SEPARATOR);
         $absolute = $base . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
-        if (!is_file($absolute)) {
+        $resolved = realpath($absolute);
+        $rootReal = realpath($base);
+        if ($resolved === false || $rootReal === false || !is_file($resolved)) {
             return null;
         }
 
-        return $absolute;
+        $rootPrefix = $rootReal . DIRECTORY_SEPARATOR;
+        if ($resolved !== $rootReal && !str_starts_with($resolved, $rootPrefix)) {
+            return null;
+        }
+
+        return $resolved;
     }
 
     /**
