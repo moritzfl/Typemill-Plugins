@@ -58,8 +58,8 @@ The file list also shows an **Uploaded by** column when upload metadata is avail
 Uploads are validated on the server when stored (direct upload and chunked finalize):
 
 1. **Paths** — Relative paths are normalized; `..`, `.tmp`, and hidden names (leading `.`) are rejected. Writes stay inside `media/files/`.
-2. **Filename** — Only the base name is kept (`basename`). Paths with `..`, null bytes, or directory separators are rejected.
-3. **Extension blocklist** — Script and executable extensions are rejected.
+2. **Filename** — Only the base name is kept (`basename`). Paths with `..`, null bytes, directory separators, or a leading `.` are rejected.
+3. **Extension blocklist** — Script, executable, and HTML extensions are rejected.
 4. **MIME sniffing** — When PHP `fileinfo` is available, content is inspected with `finfo`. Blocked MIME types and extension mismatches are rejected.
 
 The maximum upload size follows Typemill's global `maxfileuploads` setting.

@@ -14,7 +14,13 @@ class files extends Plugin
         'php', 'php3', 'php4', 'php5', 'php7', 'php8', 'phtml', 'phar',
         'asp', 'aspx', 'jsp', 'jspx', 'cgi', 'pl', 'exe', 'bat', 'cmd', 'com', 'scr',
         'vbs', 'ps1', 'sh', 'bash', 'zsh', 'htaccess', 'htpasswd',
+        'html', 'htm', 'xhtml', 'shtml',
     ];
+
+    /** Rejects a single oversized chunk before it is decoded. */
+    private const MAX_CHUNK_BYTES = 4194304; // 4 MB
+
+    private const MAX_CHUNKS = 4096;
 
     /** MIME types that must never be stored in media/files. */
     private const BLOCKED_MIME_TYPES = [
@@ -201,7 +207,9 @@ class files extends Plugin
         $total    = isset($params['total']) ? (int)$params['total'] : 0;
         $data     = $params['data'] ?? '';
 
-        if (!$uploadId || $index < 0 || $total < 1 || !is_string($data) || $data === '') {
+        $safeId = $this->sanitizeUploadId($uploadId);
+        if ($safeId === null || $index < 0 || $index >= self::MAX_CHUNKS || $total < 1 || $total > self::MAX_CHUNKS
+            || !is_string($data) || $data === '' || strlen($data) > self::MAX_CHUNK_BYTES) {
             return $this->jsonResponse($response, [
                 'message' => 'files.msg_upload_failed',
             ], 400);
@@ -212,7 +220,7 @@ class files extends Plugin
             mkdir($tmpDir, 0755, true);
         }
 
-        $chunkPath = $tmpDir . '/' . $this->sanitizeUploadId($uploadId) . '.' . $index;
+        $chunkPath = $tmpDir . '/' . $safeId . '.' . $index;
         $decoded = base64_decode($data, true);
         if ($decoded === false) {
             return $this->jsonResponse($response, [
@@ -235,15 +243,18 @@ class files extends Plugin
         $filename = $params['filename'] ?? '';
         $total    = isset($params['total']) ? (int)$params['total'] : 0;
 
-        if (!$uploadId || !$filename || $total < 1) {
+        if (!$uploadId || !$filename || $total < 1 || $total > self::MAX_CHUNKS) {
             return $this->jsonResponse($response, [
                 'message' => 'files.msg_upload_failed',
             ], 400);
         }
 
+        $safeId = $this->sanitizeUploadId($uploadId);
         $safeFilename = $this->sanitizeFilename($filename);
-        if ($safeFilename === null) {
-            $this->cleanupChunks($uploadId, $total);
+        if ($safeId === null || $safeFilename === null) {
+            if ($safeId !== null) {
+                $this->cleanupChunks($safeId, $total);
+            }
             return $this->jsonResponse($response, [
                 'message' => 'files.msg_filename_missing',
             ], 400);
@@ -253,7 +264,6 @@ class files extends Plugin
         $maxSize = isset($settings['maxfileuploads']) ? (int)$settings['maxfileuploads'] * 1024 * 1024 : 0;
 
         $tmpDir = $this->getTmpDir();
-        $safeId = $this->sanitizeUploadId($uploadId);
         $tmpFile = $tmpDir . '/' . $safeId . '.final';
 
         $out = fopen($tmpFile, 'wb');
@@ -637,23 +647,16 @@ class files extends Plugin
             ->withHeader('Content-Disposition', 'attachment; filename="' . str_replace(['\\', '"'], ['\\\\', '\"'], $download['filename']) . '"');
     }
 
-    private function sanitizeUploadId(string $id): string
+    private function sanitizeUploadId(string $id): ?string
     {
-        return preg_replace('/[^a-zA-Z0-9_-]/', '', $id);
+        return preg_match('/^[A-Za-z0-9_-]{1,64}$/', $id) === 1 ? $id : null;
     }
 
     private function sanitizeFilename(string $filename): ?string
     {
         $basename = basename(str_replace('\\', '/', trim($filename)));
-        if ($basename === '' || $basename === '.' || $basename === '..') {
-            return null;
-        }
 
-        if (preg_match('/\.\.|[\x00-\x1f]/', $basename)) {
-            return null;
-        }
-
-        return $basename;
+        return $this->getManager()->sanitizeEntryName($basename);
     }
 
     private function validateUploadedFile(string $path, string $filename): ?string
@@ -738,6 +741,9 @@ class files extends Plugin
     {
         $tmpDir = $this->getTmpDir();
         $safeId = $this->sanitizeUploadId($uploadId);
+        if ($safeId === null) {
+            return;
+        }
         for ($i = 0; $i < $total; $i++) {
             $path = $tmpDir . '/' . $safeId . '.' . $i;
             if (file_exists($path)) {

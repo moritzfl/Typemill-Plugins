@@ -59,6 +59,16 @@ class FileManagerTransferTest extends TestCase
         $this->assertSame('files.msg_transfer_into_self', $manager->transferEntry('bundle', 'bundle/sub', false));
     }
 
+    public function testSanitizeEntryNameRejectsHiddenAndTraversal(): void
+    {
+        $manager = $this->makeManager();
+
+        $this->assertNull($manager->sanitizeEntryName('.user.ini'));
+        $this->assertNull($manager->sanitizeEntryName('.env'));
+        $this->assertNull($manager->sanitizeEntryName('..'));
+        $this->assertSame('readme.txt', $manager->sanitizeEntryName('readme.txt'));
+    }
+
     public function testRejectsExistingDestinationName(): void
     {
         $manager = $this->makeManager();
