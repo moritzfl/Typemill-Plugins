@@ -81,6 +81,14 @@ Grouped in **System → Themes → Lucid**:
 - **Colors** — accent colour and Custom CSS
 - **Footer** — up to three Markdown columns and a custom copyright line
 
+## The menu
+
+On the wide bar a section opens the way the apple.com nav does: one shared slab below the bar
+grows to that section's own height on `cubic-bezier(0.4, 0, 0.6, 1)`, and the links ride in behind
+it on a stagger of 20ms per link, starting 80ms in. Moving straight from one section to the next
+resizes the slab instead of crossing two panels, and the rate scales with the panel height
+(`min(480ms, max(240ms, height/2))`), so a short list and a long one move at the same speed.
+
 ## The menu on a narrow screen
 
 The bar becomes a full-height drawer. The button's two bars fold into a cross, the rows arrive one

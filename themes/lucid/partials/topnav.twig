@@ -9,6 +9,12 @@
 <header class="lc-nav" data-nav>
   <div class="lc-nav__inner">
 
+    {# The desktop slab the section panels grow on - the panels themselves
+       carry only the links; the background, the border and the height
+       animation all live here, so switching sections resizes one box instead
+       of crossing two. Height and rate come from the nav script. #}
+    <div class="lc-nav__panel" aria-hidden="true" style="height: var(--lc-panel-height, 0)"></div>
+
     <a href="{{ base_url }}" class="lc-nav__brand">
       {% if logo %}
         <img src="{{ base_url }}/{{ logo }}" alt="{{ settings.title|e('html_attr') }}" />
@@ -49,7 +55,7 @@
                   <p class="lc-mega__eyebrow">{{ element.name|e }}</p>
                   <ul class="lc-mega__list">
                     {% for child in children %}
-                      <li>
+                      <li style="--lc-item: {{ loop.index0 }}">
                         <a href="{{ child.urlRel }}"{% if child.active %} aria-current="page"{% endif %}>
                           {{ child.name|e }}
                         </a>

@@ -207,6 +207,62 @@ a:hover {
     overflow: hidden;
 }
 
+/*
+ * The growing slab the desktop panels stand on. Its height is set from JS to
+ * the open panel's measured height, so every section opens at the same speed,
+ * scaled by its own size, rather than a fixed duration for all.
+ */
+.lc-nav__panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 0;
+    overflow: hidden;
+    /*
+     * Opaque rather than translucent. A backdrop-filter here would sample the
+     * header's already-filtered backdrop rather than the page, so the panel
+     * would stay see-through and the content behind it would read through the
+     * links.
+     */
+    background: var(--lc-bg);
+    border-bottom: 1px solid transparent;
+    box-shadow: none;
+    visibility: hidden;
+}
+
+/* The border must not add a pixel during the height animation. */
+.lc-nav:has(.lc-nav__item.is-open) .lc-nav__panel {
+    visibility: visible;
+    border-bottom-color: var(--lc-border-subtle);
+    box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.15);
+}
+
+/*
+ * cubic-bezier(0.4, 0, 0.6, 1) is Apple's nav curve: it eases in more gently
+ * than ease-out and settles sooner, which is what reads as "smooth" there.
+ * Closing gives the visibility change 120ms so the links' reverse stagger is
+ * actually seen rather than clipped with the lid dropping at once.
+ */
+.lc-nav--motion .lc-nav__panel {
+    transition: height var(--lc-panel-rate, 0.24s) cubic-bezier(0.4, 0, 0.6, 1),
+        border-color 0.24s ease,
+        visibility 0.24s linear 0.12s;
+}
+
+/*
+ * reduced-motion keeps the slab and the links from animating, but the open
+ * state itself must still show - only the movement goes away.
+ */
+@media (prefers-reduced-motion: reduce) {
+    .lc-nav--motion .lc-nav__panel,
+    .lc-nav--motion .lc-mega,
+    .lc-nav--motion .lc-mega__eyebrow,
+    .lc-nav--motion .lc-mega__list li {
+        transition: none;
+    }
+}
+
 .lc-nav__link {
     color: var(--lc-text);
     opacity: 0.88;
@@ -241,22 +297,14 @@ a:hover {
 /*
  * The panel is absolutely positioned against the header rather than its list
  * item, so it spans the full width of the bar. The item deliberately has no
- * position of its own for that reason.
+ * position of its own for that reason. Background, border and shadow sit on
+ * the shared .lc-nav__panel slab; the panel itself only carries the links.
  */
 .lc-mega {
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-    /*
-     * Opaque rather than translucent. A backdrop-filter here would sample the
-     * header's already-filtered backdrop rather than the page, so the panel
-     * would stay see-through and the content behind it would read through the
-     * links.
-     */
-    background: var(--lc-bg);
-    border-bottom: 1px solid var(--lc-border-subtle);
-    box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.15);
     opacity: 0;
     visibility: hidden;
     transform: translateY(-8px);
@@ -269,6 +317,47 @@ a:hover {
     visibility: visible;
     transform: translateY(0);
     pointer-events: auto;
+}
+
+/*
+ * Content reveal in the style of apple.com's flyout: the header and each link
+ * fall in a 4px from above on a stagger of 20ms per row, starting 80ms in so
+ * the slab has visibly begun to grow before any text moves. Closing runs the
+ * same wave back to front, so the last link in is the first one out.
+ */
+.lc-nav--motion .lc-mega__eyebrow,
+.lc-nav--motion .lc-mega__list li {
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity min(0.16s + var(--lc-item, 0) * 20ms, 0.24s) cubic-bezier(0.4, 0, 0.6, 1),
+        transform min(0.16s + var(--lc-item, 0) * 20ms, 0.24s) cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+.lc-nav--motion .lc-mega {
+    opacity: 1;
+    transform: none;
+    /* Holds the links' reverse stagger: the panel must outlast them. */
+    transition: visibility 0s linear 0.36s;
+}
+
+.lc-nav--motion .lc-nav__item--has-menu.is-open .lc-mega {
+    transition: visibility 0s;
+}
+
+.lc-nav--motion .lc-nav__item--has-menu.is-open .lc-mega__eyebrow,
+.lc-nav--motion .lc-nav__item--has-menu.is-open .lc-mega__list li {
+    opacity: 1;
+    transform: none;
+    transition-duration: 0.32s;
+    transition-delay: calc(var(--lc-item, 0) * 20ms + 80ms);
+}
+
+/*
+ * The eyebrow precedes the list, so it leads the wave rather than riding on
+ * the first link's delay.
+ */
+.lc-nav--motion .lc-mega__eyebrow {
+    --lc-item: -1;
 }
 
 .lc-mega__inner {
@@ -420,6 +509,11 @@ a:hover {
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
+    /* The desktop panel slab and hover reveal are off in the drawer. */
+    .lc-nav__panel {
+        display: none;
+    }
+
     /* An element with a backdrop-filter becomes the containing block for its
        position:fixed descendants, which would size the drawer to the 44px bar
        instead of the viewport. The open bar is opaque anyway, so drop it. */
@@ -476,7 +570,8 @@ a:hover {
     }
 
     /* In the drawer the same panel becomes an accordion rather than an overlay. */
-    .lc-nav--open .lc-mega {
+    .lc-nav--open .lc-mega,
+    .lc-nav--motion .lc-mega {
         position: static;
         opacity: 1;
         visibility: visible;
@@ -491,11 +586,20 @@ a:hover {
         /* Animating the row rather than a max-height guess: the panel opens to
            exactly its own height, so the easing does not stall on the way. */
         grid-template-rows: 0fr;
-        transition: grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: visibility 0s, grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .lc-nav--open .lc-mega > * {
         overflow: hidden;
+    }
+
+    /* The hover stagger is a desktop behavior; the drawer has its own row
+       animation and its own grid-row expansion to lead. */
+    .lc-nav--open .lc-mega__eyebrow,
+    .lc-nav--open .lc-mega__list li {
+        opacity: 1;
+        transform: none;
+        transition: none;
     }
 
     .lc-nav--open .lc-nav__item.is-open .lc-mega {

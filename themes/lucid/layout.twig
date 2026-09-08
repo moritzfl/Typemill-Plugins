@@ -66,21 +66,83 @@
       var closeTimer = null;
       var restoringFocus = false;
 
+      // The panel grows as one slab whose height matches the section it shows,
+      // the way apple.com's nav does it: the height animation lives on the
+      // shared container, and the links ride in on a stagger behind it. The
+      // rate scales with the panel's size so a short list and a long one move
+      // at the same speed instead of the same duration.
+
+      // Apple's own recipe: clamped to a floor of 240ms and a ceiling of
+      // 480ms, with the panel height halved in between.
+      function rateForHeight(height) {
+        return Math.min(480, Math.max(240, Math.round(height / 2)));
+      }
+
+      function setPanelVars(item) {
+        var panel = item.querySelector('.lc-mega');
+        if (!panel) return;
+        var height = Math.max(panel.offsetHeight, 1);
+        nav.style.setProperty('--lc-panel-height', height + 'px');
+        nav.style.setProperty('--lc-panel-rate', rateForHeight(height) + 'ms');
+      }
+
+      nav.classList.add('lc-nav--motion');
+
       // Hover menus only make sense on a wide viewport with a real pointer.
       function pointerMenus() {
         return wide.matches && hoverCapable.matches;
       }
 
       function setItemOpen(item, open) {
+        if (open && wide.matches && !item.classList.contains('is-open')) {
+          setPanelVars(item);
+        }
         item.classList.toggle('is-open', open);
         var link = item.querySelector('[data-nav-parent]');
         if (link) link.setAttribute('aria-expanded', open ? 'true' : 'false');
       }
 
+      // Opening one section while another is up reuses the measured heights:
+      // the slab glides to the new size, with the links of one section already
+      // fading out as those of the next stagger in.
+      function openFromHover(item) {
+        var current = items.filter(function (entry) {
+          return entry !== item && entry.classList.contains('is-open');
+        })[0];
+        if (!current) {
+          setItemOpen(item, true);
+          return;
+        }
+        var currentPanel = current.querySelector('.lc-mega');
+        var nextPanel = item.querySelector('.lc-mega');
+        if (!currentPanel || !nextPanel) {
+          setItemOpen(item, true);
+          return;
+        }
+        var fromHeight = Math.max(currentPanel.offsetHeight, 1);
+        var toHeight = Math.max(nextPanel.offsetHeight, 1);
+        var deltaMs = Math.max(rateForHeight(Math.abs(toHeight - fromHeight)), 120);
+        nav.style.setProperty('--lc-panel-height', fromHeight + 'px');
+        nav.style.setProperty('--lc-panel-rate', deltaMs + 'ms');
+        // The class flips in the class's next frame with a style flush between
+        // them, so the container animates old height -> new height.
+        requestAnimationFrame(function () {
+          closeAll(item);
+          setItemOpen(item, true);
+          nav.style.setProperty('--lc-panel-height', toHeight + 'px');
+        });
+      }
+
+      items.forEach(function (item) { /* indices come from Twig as --lc-item */ });
+
       function closeAll(except) {
         items.forEach(function (item) {
           if (item !== except) setItemOpen(item, false);
         });
+        // The slab collapses back to the bar once nothing is open.
+        if (!items.some(function (item) { return item.classList.contains('is-open'); })) {
+          nav.style.setProperty('--lc-panel-height', '0px');
+        }
       }
 
       function cancelClose() {
@@ -161,8 +223,7 @@
         item.addEventListener('mouseenter', function () {
           if (!pointerMenus()) return;
           cancelClose();
-          closeAll(item);
-          setItemOpen(item, true);
+          openFromHover(item);
         });
 
         link.addEventListener('click', function (e) {
