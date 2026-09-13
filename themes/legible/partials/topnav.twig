@@ -50,7 +50,7 @@
             </a>
 
             {% if children|length > 0 %}
-              <div class="lg-dropdown" id="{{ panelId }}">
+              <div class="lg-dropdown" id="{{ panelId }}" data-nav-panel inert>
                 <ul class="lg-dropdown__list">
                   {% for child in children %}
                     <li>

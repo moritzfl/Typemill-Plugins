@@ -77,6 +77,7 @@
 }
 
 :root[data-contrast="dark"] {
+    color-scheme: dark;
     --lg-text: #f2f2f2;
     --lg-text-secondary: #b8b8b8;
     --lg-bg: #121212;
@@ -88,6 +89,11 @@
     --lg-focus: #9ec5ff;
     --lg-focus-contrast: #121212;
     --lg-mark: #5a4b00;
+}
+
+:root[data-contrast="light"],
+:root[data-contrast="high"] {
+    color-scheme: light;
 }
 
 /* Maximum contrast: pure black on pure white, 21:1. Links stay distinct
@@ -558,8 +564,16 @@ main {
     visibility: visible;
 }
 
-.lg-reader__reset {
+.lg-reader__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
     margin-top: 16px;
+}
+
+.lg-reader__reset {
     background: none;
     border: 0;
     padding: 8px 0;
@@ -1078,7 +1092,9 @@ main {
     *::before,
     *::after {
         transition-duration: 0.01ms !important;
+        transition-delay: 0s !important;
         animation-duration: 0.01ms !important;
+        animation-delay: 0s !important;
     }
 }
 

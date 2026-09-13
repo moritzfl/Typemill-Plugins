@@ -91,9 +91,14 @@
       </fieldset>
     </div>
 
-    <button type="button" class="lg-reader__reset" data-reader-reset>
-      {{ theme.readerResetLabel|default(translate('Reset to defaults'))|e }}
-    </button>
+    <div class="lg-reader__actions">
+      <button type="button" class="lg-reader__reset" data-reader-reset>
+        {{ theme.readerResetLabel|default(translate('Reset to defaults'))|e }}
+      </button>
+      <button type="button" class="lg-reader__button" data-reader-close>
+        {{ translate('Close')|e }}
+      </button>
+    </div>
 
     {# Changes are announced, because the buttons stay put while the page changes. #}
     <p class="lg-reader__status" data-reader-status role="status" aria-live="polite"

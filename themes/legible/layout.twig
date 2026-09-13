@@ -39,6 +39,9 @@
           // `auto` is the absence of a choice, so it carries no attribute.
           if (key === 'data-contrast' && value === 'auto') continue;
           root.setAttribute(key, value);
+          if (key === 'data-contrast') {
+            root.setAttribute('data-code-tokens', value === 'dark' ? 'dark' : 'light');
+          }
         }
       } catch (e) {
         /* Private browsing can refuse localStorage; the defaults still apply. */
@@ -108,9 +111,16 @@
       }
 
       function setItemOpen(item, open) {
-        item.classList.toggle('is-open', open);
         var link = item.querySelector('[data-nav-parent]');
+        var panel = item.querySelector('[data-nav-panel]');
+        if (!open && panel && panel.contains(document.activeElement) && link) {
+          restoringFocus = true;
+          link.focus();
+          restoringFocus = false;
+        }
+        item.classList.toggle('is-open', open);
         if (link) link.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (panel) panel.inert = !open;
       }
 
       function closeAll(except) {
@@ -225,9 +235,42 @@
       });
 
       var onChange = function () {
-        if (wide.matches) { setDrawer(false); closeAll(); }
+        var activeBefore = document.activeElement;
+        if (activeBefore === document.body || activeBefore === document.documentElement) {
+          activeBefore = lastNavFocus;
+        }
+        cancelClose();
+        setDrawer(false);
+        if (activeBefore && (nav.contains(activeBefore) || activeBefore === toggle) &&
+            (activeBefore.closest('[inert]') || activeBefore.getClientRects().length === 0 ||
+             getComputedStyle(activeBefore).visibility !== 'visible' ||
+             getComputedStyle(activeBefore).display === 'none')) {
+          var target = wide.matches
+            ? nav.querySelector('.lg-nav__link') || document.querySelector('.lg-brand')
+            : toggle;
+          restoringFocus = true;
+          if (target) target.focus();
+          restoringFocus = false;
+        }
       };
-      wide.addEventListener ? wide.addEventListener('change', onChange) : wide.addListener(onChange);
+      var lastWide = wide.matches;
+      var lastNavFocus = null;
+      document.addEventListener('focusin', function () {
+        var active = document.activeElement;
+        if (active && (nav.contains(active) || active === toggle)) lastNavFocus = active;
+      });
+      function syncBreakpoint() {
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            if (wide.matches === lastWide) return;
+            lastWide = wide.matches;
+            onChange();
+          });
+        });
+      }
+      wide.addEventListener ? wide.addEventListener('change', syncBreakpoint) : wide.addListener(syncBreakpoint);
+      window.addEventListener('resize', syncBreakpoint);
+      onChange();
     })();
 
     /* Reader controls: text size, spacing and contrast, kept in localStorage. */
@@ -269,8 +312,12 @@
 
         if (name === 'contrast' && value === 'auto') {
           root.removeAttribute(config.attribute);
+          root.removeAttribute('data-code-tokens');
         } else {
           root.setAttribute(config.attribute, value);
+          if (name === 'contrast') {
+            root.setAttribute('data-code-tokens', value === 'dark' ? 'dark' : 'light');
+          }
         }
         store(name, value);
 
@@ -289,19 +336,15 @@
 
       function currentValue(name) {
         var config = SETTINGS[name];
-        try {
-          var stored = localStorage.getItem('legible:' + name);
-          if (stored) return stored;
-        } catch (e) {
-          /* fall through to the attribute */
-        }
         if (name === 'contrast') return root.getAttribute(config.attribute) || 'auto';
         return root.getAttribute(config.attribute) || config.fallback;
       }
 
       function setPanel(open) {
+        var restoreFocus = !open && panel.contains(document.activeElement);
         panel.hidden = !open;
         button.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (restoreFocus) button.focus();
       }
 
       // Reflect the state the head script already applied.
@@ -316,6 +359,10 @@
       });
 
       reader.addEventListener('click', function (e) {
+        if (e.target.closest('[data-reader-close]')) {
+          setPanel(false);
+          return;
+        }
         var option = e.target.closest('[data-reader-value]');
         if (option) {
           var group = option.closest('[data-reader-group]');
@@ -334,8 +381,15 @@
         if (!panel.hidden && !reader.contains(e.target)) setPanel(false);
       });
 
+      // Nonmodal: let Tab leave, then uncover its destination without moving it.
+      panel.addEventListener('focusout', function (e) {
+        if (e.relatedTarget && !panel.contains(e.relatedTarget)) setPanel(false);
+      });
+
       reader.addEventListener('keydown', function (e) {
         if (e.key !== 'Escape' || panel.hidden) return;
+        e.preventDefault();
+        e.stopPropagation();
         setPanel(false);
         button.focus();
       });
