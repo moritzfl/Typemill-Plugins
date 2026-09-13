@@ -30,6 +30,8 @@
     --lc-border-subtle: #e8e8ed;
     --lc-accent: #0071e3;
     --lc-accent-hover: #0077ed;
+    --lc-btn: #0071e3;
+    --lc-btn-hover: #0066cc;
     --lc-nav-bg: rgba(255, 255, 255, 0.72);
     --lc-code-bg: #f5f5f7;
 
@@ -56,6 +58,8 @@
         --lc-border-subtle: #333336;
         --lc-accent: #2997ff;
         --lc-accent-hover: #4aa8ff;
+        --lc-btn: #0071e3;
+        --lc-btn-hover: #0066cc;
         --lc-nav-bg: rgba(0, 0, 0, 0.72);
         --lc-code-bg: #1d1d1f;
     }
@@ -234,6 +238,7 @@ a:hover {
 /* The border must not add a pixel during the height animation. */
 .lc-nav:has(.lc-nav__item.is-open) .lc-nav__panel {
     visibility: visible;
+    height: min(var(--lc-panel-height, 0px), calc(100dvh - var(--lc-nav-height)));
     border-bottom-color: var(--lc-border-subtle);
     box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.15);
 }
@@ -247,7 +252,15 @@ a:hover {
 .lc-nav--motion .lc-nav__panel {
     transition: height var(--lc-panel-rate, 0.24s) cubic-bezier(0.4, 0, 0.6, 1),
         border-color 0.24s ease,
-        visibility 0.24s linear 0.12s;
+        box-shadow 0.24s ease,
+        visibility 0s linear 0.36s;
+}
+
+.lc-nav--motion:has(.lc-nav__item.is-open) .lc-nav__panel {
+    transition: height var(--lc-panel-rate, 0.24s) cubic-bezier(0.4, 0, 0.6, 1),
+        border-color 0.24s ease,
+        box-shadow 0.24s ease,
+        visibility 0s;
 }
 
 /*
@@ -267,6 +280,9 @@ a:hover {
     color: var(--lc-text);
     opacity: 0.88;
     white-space: nowrap;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
     transition: opacity 0.2s ease;
 }
 
@@ -305,6 +321,9 @@ a:hover {
     top: 100%;
     left: 0;
     right: 0;
+    max-height: calc(100dvh - var(--lc-nav-height));
+    overflow-y: auto;
+    overscroll-behavior: contain;
     opacity: 0;
     visibility: hidden;
     transform: translateY(-8px);
@@ -476,9 +495,14 @@ a:hover {
 
 .lc-nav__toggle {
     display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
     background: none;
     border: 0;
-    padding: 6px;
+    padding: 0;
     cursor: pointer;
     color: var(--lc-text);
     line-height: 0;
@@ -563,6 +587,8 @@ a:hover {
         min-height: 48px;
         padding: 13px 0;
         border-bottom: 1px solid var(--lc-border-subtle);
+        white-space: normal;
+        overflow-wrap: anywhere;
     }
 
     .lc-nav--open .lc-nav__item.is-open > .lc-nav__link .lc-nav__caret {
@@ -573,6 +599,8 @@ a:hover {
     .lc-nav--open .lc-mega,
     .lc-nav--motion .lc-mega {
         position: static;
+        max-height: none;
+        overflow: visible;
         opacity: 1;
         visibility: visible;
         transform: none;
@@ -684,6 +712,7 @@ a:hover {
     font-weight: 600;
     letter-spacing: -0.022em;
     margin: 0;
+    overflow-wrap: anywhere;
 }
 
 .lc-hero__subtitle {
@@ -726,7 +755,7 @@ a:hover {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: var(--lc-accent);
+    background: var(--lc-btn);
     color: #fff;
     font-size: 17px;
     line-height: 1.17648;
@@ -737,11 +766,12 @@ a:hover {
     border-radius: var(--lc-radius-pill);
     cursor: pointer;
     transition: background-color 0.2s ease;
-    white-space: nowrap;
+    white-space: normal;
+    text-align: center;
 }
 
 .lc-btn:hover {
-    background: var(--lc-accent-hover);
+    background: var(--lc-btn-hover);
     text-decoration: none;
 }
 
@@ -752,7 +782,7 @@ a:hover {
 }
 
 .lc-btn--secondary:hover {
-    background: var(--lc-accent);
+    background: var(--lc-btn);
     color: #fff;
 }
 
@@ -782,7 +812,7 @@ a:hover {
 
 .lc-tiles {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
     gap: 20px;
     margin: 0;
     padding: 0;
@@ -904,6 +934,7 @@ a:hover {
     font-weight: 600;
     letter-spacing: -0.022em;
     margin: 0;
+    overflow-wrap: anywhere;
 }
 
 .lc-article__lead {
@@ -933,6 +964,7 @@ a:hover {
 .lc-prose {
     font-size: 17px;
     line-height: 1.6;
+    overflow-wrap: anywhere;
 }
 
 /* The browser's own block margins are cleared first, so every gap below is a
@@ -1094,11 +1126,28 @@ a:hover {
 }
 
 .lc-prose a {
-    text-decoration: none;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
 }
 
 .lc-prose a:hover {
-    text-decoration: underline;
+    text-decoration-thickness: 2px;
+}
+
+.lc-prose :where(input, select, textarea) {
+    font: inherit;
+    color: inherit;
+    background: var(--lc-bg-elevated);
+    border: 1px solid var(--lc-border);
+    border-radius: var(--lc-radius-md);
+    padding: 10px 12px;
+    max-width: 100%;
+}
+
+.lc-prose textarea {
+    width: 100%;
+    min-height: 8em;
 }
 
 /* ── Post list ────────────────────────────────────────────────────── */
@@ -1115,6 +1164,7 @@ a:hover {
 }
 
 .lc-post {
+    position: relative;
     background: var(--lc-bg-alt);
     border-radius: var(--lc-radius-lg);
     overflow: hidden;
@@ -1162,6 +1212,18 @@ a:hover {
 
 .lc-post__title a {
     color: var(--lc-text);
+    overflow-wrap: anywhere;
+}
+
+.lc-post__link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+}
+
+.lc-post:focus-within {
+    outline: 3px solid var(--lc-accent);
+    outline-offset: 3px;
 }
 
 .lc-post__title a:hover {
@@ -1285,7 +1347,7 @@ a:hover {
     position: fixed;
     right: 0;
     top: var(--lc-nav-height);
-    z-index: 60;
+    z-index: 40;
     background: var(--lc-accent);
     color: #fff;
     font-size: 11px;
@@ -1335,10 +1397,9 @@ a:hover {
     *::before,
     *::after {
         transition-duration: 0.01ms !important;
+        transition-delay: 0s !important;
         animation-duration: 0.01ms !important;
-        /* Without this the staggered rows would still arrive late, one after
-           another, having merely stopped moving on the way. */
-        animation-delay: 0.01ms !important;
+        animation-delay: 0s !important;
     }
 }
 

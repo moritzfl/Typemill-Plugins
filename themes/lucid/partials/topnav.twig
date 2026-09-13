@@ -24,7 +24,7 @@
     </a>
 
     <nav aria-label="{{ settings.themes.lucid.navLabel|default(translate('Main'))|e('html_attr') }}">
-      <ul class="lc-nav__links">
+      <ul class="lc-nav__links" id="lc-nav-links">
         {% for element in navigation %}
           {# A posts folder is one destination in the menu, not a menu of every
              article it holds: a news section grows without limit. #}
@@ -50,7 +50,7 @@
             {% endif %}</a>
 
             {% if children|length > 0 %}
-              <div class="lc-mega" id="{{ panelId }}" data-nav-panel>
+              <div class="lc-mega" id="{{ panelId }}" data-nav-panel inert>
                 <div class="lc-mega__inner">
                   <p class="lc-mega__eyebrow">{{ element.name|e }}</p>
                   <ul class="lc-mega__list">
@@ -80,6 +80,7 @@
             class="lc-nav__toggle"
             data-nav-toggle
             aria-expanded="false"
+            aria-controls="lc-nav-links"
             aria-label="{{ settings.themes.lucid.menuLabel|default(translate('Menu'))|e('html_attr') }}">
       <span class="lc-burger" aria-hidden="true"><span></span><span></span></span>
     </button>

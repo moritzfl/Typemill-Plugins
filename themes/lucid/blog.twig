@@ -40,9 +40,14 @@
 
     {% if pagelist.contains == 'posts' %}
 
-      {% include 'partials/posts.twig' with {
-        postitems: pagelist.folderContent|slice(offset, pagesize)
-      } %}
+      {% set postitems = pagelist.folderContent|slice(offset, pagesize) %}
+      {% if postitems|length > 0 %}
+        {% include 'partials/posts.twig' with { postitems: postitems } %}
+      {% else %}
+        <p class="lc-section__lead">
+          {{ theme.blogEmptyText|default(translate('No posts yet.'))|e }}
+        </p>
+      {% endif %}
 
       {% include 'partials/pagination.twig' with {
         page: blogpage,

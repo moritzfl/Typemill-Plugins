@@ -1,4 +1,27 @@
 {% set theme = settings.themes.lucid %}
+{% set isHomepage = item.urlRel == '/' %}
+{% set canonicalBase = isHomepage ? base_url : item.urlAbs %}
+{% set validCurrentPage = currentpage and currentpage matches '/^[1-9][0-9]*$/' %}
+{% set themeCurrentPage = validCurrentPage ? currentpage : 1 %}
+{% set canonicalPage = themeCurrentPage %}
+{% set pageOutOfRange = currentpage and not validCurrentPage %}
+{% set canonicalPages = 0 %}
+{% if isHomepage and theme.blog %}
+  {% set canonicalList = getPageList(navigation, theme.blogfolder, base_url) %}
+  {% set canonicalPageSize = theme.blogpagesize|default(9) %}
+  {% set canonicalPageSize = canonicalPageSize > 0 ? canonicalPageSize : 9 %}
+  {% set canonicalPages = (canonicalList.folderContent|default([])|length / canonicalPageSize)|round(0, 'ceil') %}
+{% elseif item.elementType == 'folder' and item.contains == 'posts' %}
+  {% set canonicalPageSize = theme.blogpagesize|default(9) %}
+  {% set canonicalPageSize = canonicalPageSize > 0 ? canonicalPageSize : 9 %}
+  {% set canonicalPages = (item.folderContent|length / canonicalPageSize)|round(0, 'ceil') %}
+{% endif %}
+{% set canonicalLastPage = canonicalPages > 0 ? canonicalPages : 1 %}
+{% if currentpage and canonicalPage > canonicalLastPage %}
+  {% set canonicalPage = canonicalLastPage %}
+  {% set pageOutOfRange = true %}
+{% endif %}
+{% set canonicalSuffix = canonicalPage > 1 ? '/p/' ~ canonicalPage : (isHomepage ? '/' : '') %}
 <!DOCTYPE html>
 <html lang="{{ settings.langattr | default('en') }}">
 <head>
@@ -9,7 +32,8 @@
   <meta name="description" content="{{ metatabs.meta.description|e('html_attr') }}" />
   <meta name="author" content="{{ metatabs.meta.author|default(settings.author)|e('html_attr') }}" />
   <meta name="generator" content="TYPEMILL" />
-  <link rel="canonical" href="{{ item.urlAbs }}" />
+  <link rel="canonical" href="{{ canonicalBase }}{{ canonicalSuffix }}" />
+  {% if pageOutOfRange %}<meta name="robots" content="noindex,follow" />{% endif %}
 
   {{ assets.renderMeta() }}
 
@@ -53,7 +77,9 @@
       if (!nav) return;
 
       var toggle = nav.querySelector('[data-nav-toggle]');
+      var drawer = nav.querySelector('.lc-nav__links');
       var items = Array.prototype.slice.call(nav.querySelectorAll('[data-nav-item]'));
+      var hoverOpenRaf = null;
       var outside = [
         document.querySelector('main'),
         document.querySelector('.lc-footer'),
@@ -94,21 +120,36 @@
       }
 
       function setItemOpen(item, open) {
+        var link = item.querySelector('[data-nav-parent]');
+        var panel = item.querySelector('[data-nav-panel]');
         if (open && wide.matches && !item.classList.contains('is-open')) {
           setPanelVars(item);
         }
+        if (!open && panel && panel.contains(document.activeElement) && link) {
+          restoringFocus = true;
+          link.focus();
+          restoringFocus = false;
+        }
         item.classList.toggle('is-open', open);
-        var link = item.querySelector('[data-nav-parent]');
         if (link) link.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (panel) panel.inert = !open;
       }
 
       // Opening one section while another is up reuses the measured heights:
       // the slab glides to the new size, with the links of one section already
       // fading out as those of the next stagger in.
+      function cancelHoverOpen() {
+        if (hoverOpenRaf !== null) {
+          cancelAnimationFrame(hoverOpenRaf);
+          hoverOpenRaf = null;
+        }
+      }
+
       function openFromHover(item) {
         var current = items.filter(function (entry) {
           return entry !== item && entry.classList.contains('is-open');
         })[0];
+        cancelHoverOpen();
         if (!current) {
           setItemOpen(item, true);
           return;
@@ -126,7 +167,8 @@
         nav.style.setProperty('--lc-panel-rate', deltaMs + 'ms');
         // The class flips in the class's next frame with a style flush between
         // them, so the container animates old height -> new height.
-        requestAnimationFrame(function () {
+        hoverOpenRaf = requestAnimationFrame(function () {
+          hoverOpenRaf = null;
           closeAll(item);
           setItemOpen(item, true);
           nav.style.setProperty('--lc-panel-height', toHeight + 'px');
@@ -136,6 +178,7 @@
       items.forEach(function (item) { /* indices come from Twig as --lc-item */ });
 
       function closeAll(except) {
+        cancelHoverOpen();
         items.forEach(function (item) {
           if (item !== except) setItemOpen(item, false);
         });
@@ -164,7 +207,10 @@
       function drawerFocusables() {
         return Array.prototype.slice.call(nav.querySelectorAll(
           'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
-        )).filter(function (element) { return element.getClientRects().length > 0; });
+        )).filter(function (element) {
+          return element.tabIndex >= 0 && !element.matches(':disabled') && !element.closest('[inert]') &&
+            element.getClientRects().length > 0 && getComputedStyle(element).visibility === 'visible';
+        });
       }
 
       // The open drawer covers the page, so what it covers must not be
@@ -184,9 +230,11 @@
 
       function setDrawer(open, restoreFocus) {
         var wasOpen = nav.classList.contains('lc-nav--open');
+        var hadFocus = nav.contains(document.activeElement);
         restoreFocus = restoreFocus !== false;
 
         nav.classList.toggle('lc-nav--open', open);
+        if (drawer) drawer.inert = !open && !wide.matches;
         if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
         if (open && !wasOpen) {
           previousOverflow = document.body.style.overflow;
@@ -205,7 +253,7 @@
         if (open && !wasOpen) {
           var first = nav.querySelector('.lc-nav__link');
           if (first) first.focus();
-        } else if (!open && wasOpen && restoreFocus && toggle && nav.contains(document.activeElement)) {
+        } else if (!open && wasOpen && restoreFocus && toggle && hadFocus) {
           toggle.focus();
         }
       }
@@ -257,7 +305,11 @@
 
         item.addEventListener('focusout', function (e) {
           if (!wide.matches) return;
-          if (!item.contains(e.relatedTarget)) setItemOpen(item, false);
+          if (item.contains(e.relatedTarget)) return;
+          setItemOpen(item, false);
+          if (!items.some(function (entry) { return entry.classList.contains('is-open'); })) {
+            nav.style.setProperty('--lc-panel-height', '0px');
+          }
         });
       });
 
@@ -311,26 +363,50 @@
         }
       });
 
-      // Leaving the mobile breakpoint must not strand the drawer open.
+      // Either breakpoint can hide a focused link, panel or menu button.
       var onChange = function () {
-        if (wide.matches) {
-          var activeBefore = document.activeElement;
-          setDrawer(false, false);
-          closeAll();
-          // Only when the breakpoint hid what had focus: the menu button.
-          if (activeBefore && nav.contains(activeBefore) && activeBefore.getClientRects().length === 0) {
-            var desktopTarget = nav.querySelector('.lc-nav__link') || nav.querySelector('.lc-nav__brand');
-            if (desktopTarget) desktopTarget.focus();
-          }
+        var activeBefore = document.activeElement;
+        if (activeBefore === document.body || activeBefore === document.documentElement) {
+          activeBefore = lastNavFocus;
+        }
+        cancelClose();
+        setDrawer(false, false);
+        if (activeBefore && (nav.contains(activeBefore) || activeBefore === toggle) &&
+            (activeBefore.closest('[inert]') || activeBefore.getClientRects().length === 0 ||
+             getComputedStyle(activeBefore).visibility !== 'visible' ||
+             getComputedStyle(activeBefore).display === 'none')) {
+          var target = wide.matches
+            ? nav.querySelector('.lc-nav__link') || nav.querySelector('.lc-nav__brand')
+            : toggle;
+          restoringFocus = true;
+          if (target) target.focus();
+          restoringFocus = false;
         }
       };
-      wide.addEventListener ? wide.addEventListener('change', onChange) : wide.addListener(onChange);
+      var lastWide = wide.matches;
+      var lastNavFocus = null;
+      document.addEventListener('focusin', function () {
+        var active = document.activeElement;
+        if (active && (nav.contains(active) || active === toggle)) lastNavFocus = active;
+      });
+      function syncBreakpoint() {
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            if (wide.matches === lastWide) return;
+            lastWide = wide.matches;
+            onChange();
+          });
+        });
+      }
+      wide.addEventListener ? wide.addEventListener('change', syncBreakpoint) : wide.addListener(syncBreakpoint);
+      window.addEventListener('resize', syncBreakpoint);
+      onChange();
     })();
 
     (function () {
       // Only black, white and transparent count as monochrome.
       var ALLOWED = /^(none|transparent|currentcolor|inherit|black|white|#000|#000000|#fff|#ffffff|rgb\(\s*0\s*,\s*0\s*,\s*0\s*\)|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\))$/i;
-      var COLOR_RE = /(?:fill|stroke|stop-color|color)\s*[=:]\s*["']?\s*([^"'\s;,><\/]+)/gi;
+      var COLOR_RE = /(?:fill|stroke|stop-color|color)\s*[=:]\s*["']?\s*([^"';><]+)/gi;
 
       function isMonochrome(text) {
         var match;

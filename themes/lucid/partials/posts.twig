@@ -37,15 +37,15 @@
           {% endif %}
 
           <h3 class="lc-post__title">
-            <a href="{{ element.urlRel }}">{{ post.meta.title|default(element.name)|e }}</a>
+            <a class="lc-post__link" href="{{ element.urlRel }}">{{ post.meta.title|default(element.name)|e }}</a>
           </h3>
 
           {% if post.meta.description %}
             <p class="lc-post__excerpt">{{ post.meta.description|e }}</p>
           {% endif %}
 
-          <div>
-            <a class="lc-link" href="{{ element.urlRel }}">{{ theme.readMore|default(translate('Read more'))|e }}</a>
+          <div aria-hidden="true">
+            <span class="lc-link">{{ theme.readMore|default(translate('Read more'))|e }}</span>
           </div>
         </div>
 

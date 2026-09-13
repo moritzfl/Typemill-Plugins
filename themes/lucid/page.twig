@@ -40,7 +40,7 @@
       {% if heroImage %}
         <div class="lc-article__hero">
           <img src="{{ base_url }}/{{ heroImage }}"
-               alt="{{ metatabs.meta.heroimagealt|default(title)|e('html_attr') }}" />
+               alt="{{ (metatabs.meta.heroimagealt is defined ? metatabs.meta.heroimagealt : title)|e('html_attr') }}" />
         </div>
       {% endif %}
 
