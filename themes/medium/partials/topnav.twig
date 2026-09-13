@@ -18,7 +18,7 @@
     </a>
 
     <nav aria-label="{{ settings.themes.medium.navLabel|default(translate('Main'))|e('html_attr') }}">
-      <ul class="md-nav__links">
+      <ul class="md-nav__links" id="md-nav-links">
         {% for element in navigation %}
           {# A posts folder is one destination in the menu, not a menu of every
              article it holds. #}
@@ -39,7 +39,7 @@
                {% endif %}>{{ element.name|e }}</a>
 
             {% if children|length > 0 %}
-              <div class="md-dropdown" id="{{ panelId }}" data-nav-panel>
+              <div class="md-dropdown" id="{{ panelId }}" data-nav-panel inert>
                 <ul class="md-dropdown__list">
                   {% for child in children %}
                     <li>
@@ -64,6 +64,7 @@
             class="md-nav__toggle"
             data-nav-toggle
             aria-expanded="false"
+            aria-controls="md-nav-links"
             aria-label="{{ settings.themes.medium.menuLabel|default(translate('Menu'))|e('html_attr') }}">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
         <path stroke-linecap="round" d="M3 6h18M3 12h18M3 18h18" />

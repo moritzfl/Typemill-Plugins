@@ -208,8 +208,12 @@ a {
 }
 
 .md-nav__link {
+    display: inline-flex;
+    align-items: center;
+    min-width: 44px;
+    min-height: 44px;
     color: var(--md-text-secondary);
-    white-space: nowrap;
+    overflow-wrap: anywhere;
     transition: color 0.15s ease;
 }
 
@@ -223,6 +227,11 @@ a {
 
 .md-nav__toggle {
     display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
     background: none;
     border: 0;
     padding: 6px;
@@ -238,6 +247,8 @@ a {
     left: 50%;
     transform: translate(-50%, -6px);
     min-width: 220px;
+    width: max-content;
+    max-width: min(320px, calc(100vw - 32px));
     padding: 8px 0;
     background: var(--md-bg);
     border: 1px solid var(--md-border);
@@ -267,6 +278,12 @@ a {
  * sections when a site has more than one language.
  */
 @media (min-width: 821px) {
+    .md-dropdown__list {
+        max-height: calc(100dvh - var(--md-nav-height) - 32px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
     .md-nav__item--has-menu:not(:has(~ .md-nav__item--has-menu)) .md-dropdown {
         left: auto;
         right: 0;
@@ -286,10 +303,11 @@ a {
 
 .md-dropdown__list a {
     display: block;
+    min-height: 44px;
     padding: 8px 18px;
     font-size: 14px;
     color: var(--md-text-secondary);
-    white-space: nowrap;
+    overflow-wrap: anywhere;
     transition: color 0.12s ease, background-color 0.12s ease;
 }
 
@@ -307,6 +325,7 @@ a {
     display: inline-block;
     width: 5px;
     height: 5px;
+    flex-shrink: 0;
     margin-left: 6px;
     vertical-align: 2px;
     border-right: 1.4px solid currentColor;
@@ -361,6 +380,8 @@ a {
         visibility: visible;
         pointer-events: auto;
         min-width: 0;
+        width: auto;
+        max-width: none;
         padding: 0 0 0 16px;
         border: 0;
         box-shadow: none;
@@ -387,6 +408,7 @@ a {
 
     .md-nav--open .md-nav__link[data-nav-parent] {
         position: relative;
+        padding-right: 24px;
     }
 
     .md-nav--open .md-nav__link[data-nav-parent]::after {
@@ -700,10 +722,18 @@ a {
     margin: 0 auto;
     padding-block: 32px 64px;
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     justify-content: space-between;
     gap: 24px;
     border-top: 1px solid var(--md-border);
     padding-top: 28px;
+}
+
+.md-pager .md-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 6px 10px;
 }
 
 .md-pager__item--next {
@@ -983,7 +1013,9 @@ a {
     *::before,
     *::after {
         transition-duration: 0.01ms !important;
+        transition-delay: 0s !important;
         animation-duration: 0.01ms !important;
+        animation-delay: 0s !important;
     }
 }
 

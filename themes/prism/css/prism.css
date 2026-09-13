@@ -253,6 +253,11 @@ a:hover {
 }
 
 .pr-nav__link {
+    display: inline-flex;
+    align-items: center;
+    min-width: 44px;
+    min-height: 44px;
+    overflow-wrap: anywhere;
     color: var(--pr-text);
     transition: opacity 0.15s ease;
 }
@@ -285,6 +290,8 @@ a:hover {
     left: 50%;
     transform: translate(-50%, -6px);
     min-width: 260px;
+    width: max-content;
+    max-width: min(360px, calc(100vw - 32px));
     padding: 10px;
     /* Always the light surface: over the gradient hero a translucent panel
        would leave the links unreadable. */
@@ -326,6 +333,12 @@ a:hover {
  * sections when a site has more than one language.
  */
 @media (min-width: 861px) {
+    .pr-dropdown__list {
+        max-height: calc(100dvh - var(--pr-nav-height) - 48px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
     .pr-nav__item--has-menu:not(:has(~ .pr-nav__item--has-menu)) .pr-dropdown {
         left: auto;
         right: 0;
@@ -345,12 +358,13 @@ a:hover {
 
 .pr-dropdown__list a {
     display: block;
+    min-height: 44px;
     padding: 10px 14px;
     border-radius: var(--pr-radius-md);
     color: var(--pr-text);
     font-size: 15px;
     font-weight: 600;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
     transition: background-color 0.12s ease, color 0.12s ease;
 }
 
@@ -370,6 +384,7 @@ a:hover {
     display: inline-block;
     width: 5px;
     height: 5px;
+    flex-shrink: 0;
     margin-left: 6px;
     vertical-align: 2px;
     border-right: 1.5px solid currentColor;
@@ -385,6 +400,11 @@ a:hover {
 
 .pr-nav__toggle {
     display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
     background: none;
     border: 0;
     padding: 6px;
@@ -465,6 +485,8 @@ a:hover {
         visibility: visible;
         pointer-events: auto;
         min-width: 0;
+        width: auto;
+        max-width: none;
         padding: 0 0 0 14px;
         background: none;
         border-radius: 0;
@@ -505,6 +527,7 @@ a:hover {
     /* The caret sits at the end of the row in the drawer. */
     .pr-nav--open .pr-nav__link[data-nav-parent] {
         position: relative;
+        padding-right: 24px;
     }
 
     .pr-nav--open .pr-nav__link[data-nav-parent]::after {
@@ -1163,8 +1186,9 @@ a:hover {
     *::before,
     *::after {
         transition-duration: 0.01ms !important;
+        transition-delay: 0s !important;
         animation-duration: 0.01ms !important;
-        animation-delay: 0.01ms !important;
+        animation-delay: 0s !important;
     }
 }
 

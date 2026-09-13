@@ -23,7 +23,7 @@
     </a>
 
     <nav aria-label="{{ settings.themes.prism.navLabel|default(translate('Main'))|e('html_attr') }}">
-      <ul class="pr-nav__links">
+      <ul class="pr-nav__links" id="pr-nav-links">
         {% for element in navigation %}
           {# A posts folder is one destination in the menu, not a menu of every
              article it holds. #}
@@ -44,7 +44,7 @@
                {% endif %}>{{ element.name|e }}</a>
 
             {% if children|length > 0 %}
-              <div class="pr-dropdown" id="{{ panelId }}" data-nav-panel>
+              <div class="pr-dropdown" id="{{ panelId }}" data-nav-panel inert>
                 <ul class="pr-dropdown__list">
                   {% for child in children %}
                     <li>
@@ -71,6 +71,7 @@
             class="pr-nav__toggle"
             data-nav-toggle
             aria-expanded="false"
+            aria-controls="pr-nav-links"
             aria-label="{{ settings.themes.prism.menuLabel|default(translate('Menu'))|e('html_attr') }}">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <path stroke-linecap="round" d="M3 6h18M3 12h18M3 18h18" />
