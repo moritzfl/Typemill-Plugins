@@ -176,6 +176,11 @@ async function assertBlogHomepage(page, theme) {
     const second = await fetchStatus(page, pager.resolved)
     assert(second === 200, `${theme}: ${pager.resolved} answered with HTTP ${second}`)
 
+    const postsOnPageTwo = await page.evaluate(() =>
+        document.querySelectorAll('main a[href*="/news/"]:not([href*="/p/"])').length
+    )
+    assert(postsOnPageTwo > 0, `${theme}: page two rendered no posts from the blog folder`)
+
     if (theme === 'court') {
         const postsOnPageTwo = await page.evaluate(() => document.querySelectorAll('.ct-post').length)
         assert(postsOnPageTwo === 1, `court: page two rendered ${postsOnPageTwo} posts, expected 1`)

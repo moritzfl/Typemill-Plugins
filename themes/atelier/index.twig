@@ -11,9 +11,10 @@
     carry, so it must not ask for the floating bar: pale type over a pale
     surface, with nothing behind it to read against.
   #}
-  {% set hasHero = home and atelier.blog
+  {% set homepage = item.urlRel == '/' %}
+  {% set hasHero = homepage and atelier.blog
       ? ''
-      : (home
+      : (homepage
           ? (atelier.heroImage|default('') ?: metatabs.meta.heroimage|default(''))
           : ((atelier.pageHero ?? true) ? metatabs.meta.heroimage|default('') : '')) %}
 
@@ -22,9 +23,11 @@
 
 {% block content %}
 
-  {% if home and settings.themes.atelier.blog %}
+  {% set homepage = item.urlRel == '/' %}
+
+  {% if homepage and settings.themes.atelier.blog %}
     {% include 'blog.twig' %}
-  {% elseif home %}
+  {% elseif homepage %}
     {% include 'home.twig' %}
   {% else %}
     {% include 'page.twig' %}

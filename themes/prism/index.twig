@@ -4,9 +4,11 @@
 
 {% block content %}
 
-  {% if home and settings.themes.prism.blog %}
+  {% set homepage = item.urlRel == '/' %}
+
+  {% if homepage and settings.themes.prism.blog %}
     {% include 'blog.twig' %}
-  {% elseif home %}
+  {% elseif homepage %}
     {% include 'home.twig' %}
   {% else %}
     {% include 'page.twig' %}

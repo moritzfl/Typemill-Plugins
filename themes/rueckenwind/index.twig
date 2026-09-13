@@ -5,9 +5,11 @@
 
 {% block content %}
 
-  {% if home and settings.themes.rueckenwind.blog %}
+  {% set homepage = item.urlRel == '/' %}
+
+  {% if homepage and settings.themes.rueckenwind.blog %}
     {% include 'blog.twig' %}
-  {% elseif home %}
+  {% elseif homepage %}
     {% include 'home.twig' %}
   {% else %}
     {% include 'page.twig' %}
