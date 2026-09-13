@@ -38,7 +38,7 @@
                {% endif %}>{{ element.name|e }}</a>
 
             {% if children|length > 0 %}
-              <div class="at-dropdown" id="{{ panelId }}" data-nav-panel>
+              <div class="at-dropdown" id="{{ panelId }}" data-nav-panel inert>
                 <ul class="at-dropdown__list">
                   {% for child in children %}
                     <li>

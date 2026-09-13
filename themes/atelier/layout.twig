@@ -50,10 +50,9 @@
 
   {% include 'partials/footer.twig' %}
 
-  {# The lightbox markup is inert until a picture is opened. #}
-  <div class="at-lightbox" data-lightbox role="dialog" aria-modal="true"
-       aria-label="{{ theme.lightboxLabel|default(translate('Image viewer'))|e('html_attr') }}" hidden>
-    <button type="button" class="at-lightbox__btn at-lightbox__btn--close" data-lightbox-close
+  <dialog class="at-lightbox" data-lightbox
+          aria-label="{{ theme.lightboxLabel|default(translate('Image viewer'))|e('html_attr') }}">
+    <button type="button" class="at-lightbox__btn at-lightbox__btn--close" data-lightbox-close autofocus
             aria-label="{{ theme.closeLabel|default(translate('Close'))|e('html_attr') }}">&times;</button>
     <button type="button" class="at-lightbox__btn at-lightbox__btn--prev" data-lightbox-prev
             aria-label="{{ theme.previous|default(translate('Previous'))|e('html_attr') }}">&#8249;</button>
@@ -64,7 +63,7 @@
     <button type="button" class="at-lightbox__btn at-lightbox__btn--next" data-lightbox-next
             aria-label="{{ theme.next|default(translate('Next'))|e('html_attr') }}">&#8250;</button>
     <p class="at-lightbox__count" data-lightbox-count></p>
-  </div>
+  </dialog>
 
   {% block javascripts %}
   {{ assets.renderCSS() }}
@@ -75,6 +74,7 @@
       if (!nav) return;
 
       var toggle = nav.querySelector('[data-nav-toggle]');
+      var drawer = nav.querySelector('.at-nav__links');
       var items = Array.prototype.slice.call(nav.querySelectorAll('[data-nav-item]'));
       var outside = [
         document.querySelector('main'),
@@ -93,9 +93,16 @@
       }
 
       function setItemOpen(item, open) {
-        item.classList.toggle('is-open', open);
         var link = item.querySelector('[data-nav-parent]');
+        var panel = item.querySelector('[data-nav-panel]');
+        if (!open && panel && panel.contains(document.activeElement) && link) {
+          restoringFocus = true;
+          link.focus();
+          restoringFocus = false;
+        }
+        item.classList.toggle('is-open', open);
         if (link) link.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (panel) panel.inert = !open;
       }
 
       function closeAll(except) {
@@ -121,7 +128,10 @@
       function drawerFocusables() {
         return Array.prototype.slice.call(nav.querySelectorAll(
           'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
-        )).filter(function (element) { return element.getClientRects().length > 0; });
+        )).filter(function (element) {
+          return !element.closest('[inert]') && element.getClientRects().length > 0
+            && getComputedStyle(element).visibility !== 'hidden';
+        });
       }
 
       // The open drawer covers the page, so what it covers must not be
@@ -141,9 +151,11 @@
 
       function setDrawer(open, restoreFocus) {
         var wasOpen = nav.classList.contains('at-nav--open');
+        var hadFocus = nav.contains(document.activeElement);
         restoreFocus = restoreFocus !== false;
 
         nav.classList.toggle('at-nav--open', open);
+        if (drawer) drawer.inert = !open && !wide.matches;
         if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
         if (open && !wasOpen) {
           previousOverflow = document.body.style.overflow;
@@ -162,7 +174,7 @@
         if (open && !wasOpen) {
           var first = nav.querySelector('.at-nav__link');
           if (first) first.focus();
-        } else if (!open && wasOpen && restoreFocus && toggle && nav.contains(document.activeElement)) {
+        } else if (!open && wasOpen && restoreFocus && toggle && hadFocus) {
           toggle.focus();
         }
       }
@@ -219,6 +231,7 @@
       });
 
       document.addEventListener('keydown', function (e) {
+        if (document.querySelector('[data-lightbox][open]')) return;
         var drawerOpen = nav.classList.contains('at-nav--open');
 
         // Tab must not walk out of an open drawer into the page behind it.
@@ -252,19 +265,46 @@
         }
       });
 
+      var lastWide = wide.matches;
+      var lastNavFocus = null;
+      document.addEventListener('focusin', function () {
+        var active = document.activeElement;
+        if (active && (nav.contains(active) || active === toggle)) lastNavFocus = active;
+      });
       var onChange = function () {
-        if (wide.matches) {
-          var activeBefore = document.activeElement;
-          setDrawer(false, false);
-          closeAll();
-          // Only when the breakpoint hid what had focus: the menu button.
-          if (activeBefore && nav.contains(activeBefore) && activeBefore.getClientRects().length === 0) {
-            var desktopTarget = nav.querySelector('.at-nav__link') || nav.querySelector('.at-nav__brand');
-            if (desktopTarget) desktopTarget.focus();
+        var activeBefore = document.activeElement;
+        if (activeBefore === document.body || activeBefore === document.documentElement) {
+          activeBefore = lastNavFocus;
+        }
+        cancelClose();
+        setDrawer(false, false);
+        // Either breakpoint can hide the focused link, submenu or menu button.
+        if (activeBefore && (nav.contains(activeBefore) || activeBefore === toggle) && (activeBefore.closest('[inert]')
+            || activeBefore.getClientRects().length === 0 || getComputedStyle(activeBefore).visibility === 'hidden'
+            || getComputedStyle(activeBefore).display === 'none')) {
+          var item = activeBefore.closest('[data-nav-item]');
+          var target = wide.matches
+            ? (item && item.querySelector('[data-nav-parent]')) || nav.querySelector('.at-nav__link') || nav.querySelector('.at-nav__brand')
+            : toggle;
+          if (target) {
+            restoringFocus = true;
+            target.focus();
+            restoringFocus = false;
           }
         }
       };
-      wide.addEventListener ? wide.addEventListener('change', onChange) : wide.addListener(onChange);
+      function syncBreakpoint() {
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            if (wide.matches === lastWide) return;
+            lastWide = wide.matches;
+            onChange();
+          });
+        });
+      }
+      wide.addEventListener ? wide.addEventListener('change', syncBreakpoint) : wide.addListener(syncBreakpoint);
+      window.addEventListener('resize', syncBreakpoint);
+      onChange();
     })();
 
     /* A bar that floats on a picture has to go solid as soon as the picture is
@@ -309,6 +349,8 @@
       var sources = [];
       var index = 0;
       var lastFocused = null;
+      var previousOverflow = '';
+      var previousOverflowPriority = '';
 
       function collect() {
         sources = [];
@@ -346,21 +388,27 @@
       }
 
       function open(i) {
-        lastFocused = document.activeElement;
-        box.hidden = false;
-        box.classList.add('is-open');
-        document.body.style.overflow = 'hidden';
+        if (box.open || !sources.length) return;
+        lastFocused = sources[i].node;
+        previousOverflow = document.body.style.overflow;
+        previousOverflowPriority = document.body.style.getPropertyPriority('overflow');
         show(i);
-        box.querySelector('[data-lightbox-close]').focus();
+        // A modal dialog makes the rest of the document inert without changing
+        // anyone else's inert attributes, and supplies Escape and Tab handling.
+        box.showModal();
+        document.body.style.overflow = 'hidden';
       }
 
       function close() {
-        box.classList.remove('is-open');
-        box.hidden = true;
-        document.body.style.overflow = '';
-        // Send focus back to the picture that was opened, not to the top.
-        if (lastFocused && lastFocused.focus) lastFocused.focus();
+        box.close();
       }
+
+      box.addEventListener('close', function () {
+        document.body.style.setProperty('overflow', previousOverflow, previousOverflowPriority);
+        // Send focus back to the picture that was opened, not to the top.
+        if (lastFocused && lastFocused.isConnected) lastFocused.focus({ preventScroll: true });
+        lastFocused = null;
+      });
 
       collect();
       sources.forEach(function (entry, i) {
@@ -390,18 +438,10 @@
         if (e.target === box) close();
       });
 
-      document.addEventListener('keydown', function (e) {
-        if (box.hidden) return;
-        if (e.key === 'Escape') { close(); return; }
-        if (e.key === 'ArrowLeft') show(index - 1);
-        if (e.key === 'ArrowRight') show(index + 1);
-        // Keep the tab ring inside the dialog while it is open.
-        if (e.key === 'Tab') {
-          var focusables = box.querySelectorAll('button');
-          var first = focusables[0];
-          var last = focusables[focusables.length - 1];
-          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      box.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          show(index + (e.key === 'ArrowLeft' ? -1 : 1));
         }
       });
     })();

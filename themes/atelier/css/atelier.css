@@ -283,7 +283,8 @@ a {
 
 .at-nav__link {
     color: var(--at-text-secondary);
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
     transition: color 0.15s ease;
 }
 
@@ -294,6 +295,11 @@ a {
 
 .at-nav__toggle {
     display: none;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-width: 44px;
+    min-height: 44px;
     background: none;
     border: 0;
     padding: 6px;
@@ -308,6 +314,10 @@ a {
     left: 50%;
     transform: translate(-50%, -6px);
     min-width: 220px;
+    width: max-content;
+    max-width: min(24rem, calc(100vw - 2 * var(--at-gutter)));
+    max-height: calc(100dvh - var(--at-nav-height) - 16px);
+    overflow-y: auto;
     padding: 10px 0;
     /* Always the light surface: over a photograph a translucent panel would
        leave the links unreadable. */
@@ -357,7 +367,8 @@ a {
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--at-text-secondary);
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .at-dropdown__list a:hover,
@@ -400,7 +411,8 @@ a {
     }
 
     .at-nav--open .at-nav__brand,
-    .at-nav--open .at-nav__link {
+    .at-nav--open .at-nav__link,
+    .at-nav--open .at-nav__toggle {
         color: var(--at-text);
     }
 
@@ -435,6 +447,8 @@ a {
         visibility: visible;
         pointer-events: auto;
         min-width: 0;
+        width: auto;
+        max-width: none;
         padding: 0 0 0 16px;
         border: 0;
         box-shadow: none;
@@ -457,6 +471,7 @@ a {
 
     .at-nav--open .at-nav__link[data-nav-parent] {
         position: relative;
+        padding-right: 20px;
     }
 
     .at-nav--open .at-nav__link[data-nav-parent]::after {
@@ -682,6 +697,21 @@ a {
     color: rgba(246, 246, 244, 0.8);
 }
 
+/* Touch readers cannot hover to discover a picture's destination. */
+@media (hover: none), (pointer: coarse) {
+    .at-gallery--overlay .at-tile__body {
+        position: static;
+        padding: 12px 0 0;
+        background: none;
+        color: var(--at-text);
+        opacity: 1;
+    }
+
+    .at-gallery--overlay .at-tile__meta {
+        color: var(--at-text-tertiary);
+    }
+}
+
 /* ── Sections ─────────────────────────────────────────────────────── */
 
 .at-section {
@@ -893,6 +923,13 @@ a {
     position: fixed;
     inset: 0;
     z-index: 200;
+    margin: 0;
+    border: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    color-scheme: dark;
     background: var(--at-overlay);
     display: none;
     align-items: center;
@@ -900,8 +937,16 @@ a {
     padding: 40px;
 }
 
-.at-lightbox.is-open {
+.at-lightbox[open] {
     display: flex;
+}
+
+.at-lightbox::backdrop {
+    background: transparent;
+}
+
+.at-lightbox :focus-visible {
+    outline-color: var(--at-on-dark);
 }
 
 .at-lightbox__figure {
@@ -941,7 +986,8 @@ a {
     opacity: 0.75;
 }
 
-.at-lightbox__btn:hover {
+.at-lightbox__btn:hover,
+.at-lightbox__btn:focus-visible {
     opacity: 1;
 }
 
@@ -1101,7 +1147,9 @@ body[data-surface="dark"] .svg-bw-invert {
     *::before,
     *::after {
         transition-duration: 0.01ms !important;
+        transition-delay: 0s !important;
         animation-duration: 0.01ms !important;
+        animation-delay: 0s !important;
     }
 
     .at-tile:hover .at-tile__media img {
