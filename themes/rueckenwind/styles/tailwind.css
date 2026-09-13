@@ -77,6 +77,7 @@
 @layer components {
   .prose {
     @apply max-w-none text-[1.03rem]/8 text-gray-700 dark:text-gray-300;
+    overflow-wrap: anywhere;
   }
 
   .prose > :first-child {
@@ -171,7 +172,12 @@
   }
 
   .prose table {
-    @apply my-6 w-full border-collapse text-sm;
+    @apply my-6 block w-full max-w-full overflow-x-auto border-collapse text-sm;
+  }
+
+  .prose th,
+  .prose td {
+    min-width: 8rem;
   }
 
   .prose th {
@@ -418,15 +424,59 @@
 }
 
 @media print {
+  html,
+  body,
+  .page-shell,
+  .content-scroll,
+  .content-scroll > div {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
   #topbar,
   #sidebar,
+  #mobile-backdrop,
   #breadcrumb,
   #prevnext,
+  .skip-link,
+  [data-print-page],
   footer {
     display: none !important;
   }
 
   .prose {
     max-width: none;
+  }
+
+  .prose table {
+    display: table;
+    table-layout: fixed;
+    overflow: visible;
+  }
+
+  .prose th,
+  .prose td {
+    min-width: 0;
+  }
+
+  .prose pre {
+    white-space: pre-wrap;
+    overflow: visible;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
   }
 }

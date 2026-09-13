@@ -78,15 +78,12 @@
       {% block mobile_nav_toggle %}
       <button id="mobile-menu-btn"
               type="button"
-              aria-label="Toggle navigation"
+              aria-label="{{ translate('Open navigation')|e('html_attr') }}"
               aria-expanded="false"
               aria-controls="sidebar"
-              class="rounded-full border border-gray-200 bg-white/80 p-2 text-gray-500 shadow-sm shadow-gray-950/5 transition-colors hover:text-gray-900 dark:border-gray-800 dark:bg-gray-900/80 dark:text-gray-400 dark:hover:text-white lg:hidden">
-        <svg id="menu-icon-open" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white/80 p-2 text-gray-500 shadow-sm shadow-gray-950/5 transition-colors hover:text-gray-900 dark:border-gray-800 dark:bg-gray-900/80 dark:text-gray-400 dark:hover:text-white lg:hidden">
+        <svg id="menu-icon-open" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
-        </svg>
-        <svg id="menu-icon-close" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
         </svg>
       </button>
       {% endblock %}
@@ -95,7 +92,7 @@
   </header>
 
   {# ── Page content ──────────────────────────────────────────────── #}
-  <div class="flex min-h-0 w-full flex-1 overflow-hidden">
+  <div class="page-shell flex min-h-0 w-full flex-1 overflow-hidden">
 
     {# ── Sidebar ───────────────────────────────────────────────────── #}
     {% block sidebar_wrapper %}
@@ -103,8 +100,18 @@
     <aside id="sidebar"
            class="hidden {{ topnav ? '' : 'lg:flex' }} w-72 shrink-0 flex-col border-r border-gray-200/70 bg-white/72 backdrop-blur-sm dark:border-gray-800/80 dark:bg-gray-950/70 xl:w-80">
 
+      <div class="flex shrink-0 justify-end border-b border-gray-200/80 px-3 py-2 dark:border-gray-800/80 sm:px-4 lg:hidden">
+        <button type="button" data-sidebar-close
+                aria-label="{{ translate('Close navigation')|e('html_attr') }}"
+                class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white/80 text-gray-500 shadow-sm transition-colors hover:text-gray-900 dark:border-gray-800 dark:bg-gray-900/80 dark:text-gray-400 dark:hover:text-white">
+          <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
       {# Scrollable nav area #}
-      <div class="sidebar-scroll flex-1 overflow-y-auto px-3 py-6 sm:px-4">
+      <div class="sidebar-scroll min-h-0 flex-1 overflow-y-auto px-3 py-6 sm:px-4">
 
         {% if multilang is defined and multilang %}
           <div class="mb-5 flex flex-wrap gap-1.5 border-b border-gray-200/80 pb-4 dark:border-gray-700/80">
@@ -241,8 +248,7 @@
       const btn       = document.getElementById('mobile-menu-btn');
       const sidebar   = document.getElementById('sidebar');
       const backdrop  = document.getElementById('mobile-backdrop');
-      const iconOpen  = document.getElementById('menu-icon-open');
-      const iconClose = document.getElementById('menu-icon-close');
+      const closeBtn  = document.querySelector('[data-sidebar-close]');
 
       const MOBILE_OPEN  = ['fixed', 'top-14', 'right-0', 'bottom-0', 'z-30', 'flex', 'border-l', 'border-gray-200', 'bg-white/95', 'backdrop-blur-xl', 'shadow-2xl', 'shadow-gray-950/20', 'dark:border-gray-800', 'dark:bg-gray-950/95'];
       const DESKTOP_MEDIA = window.matchMedia('(min-width: 1024px)');
@@ -272,54 +278,74 @@
       }
 
       function openMobileMenu() {
+        if (DESKTOP_MEDIA.matches || btn.getAttribute('aria-expanded') === 'true') return;
         MOBILE_OPEN.forEach(function (c) { sidebar.classList.add(c); });
         sidebar.classList.remove('hidden');
         backdrop.classList.remove('hidden');
         btn.setAttribute('aria-expanded', 'true');
-        iconOpen.classList.add('hidden');
-        iconClose.classList.remove('hidden');
+        // The inert topbar cannot close the drawer; its close control lives inside.
+        btn.classList.add('invisible');
         setOutsideInert(true);
 
-        // The button sits before the drawer, so without this the next Tab
-        // walks past the menu that was just opened.
-        const first = sidebarFocusables()[0];
+        // Keep the first link as the entry point, even with Close before it.
+        const focusables = sidebarFocusables();
+        const first = focusables.find(function (element) { return element.matches('a[href]'); }) || focusables[0];
         if (first) first.focus();
       }
 
       function closeMobileMenu(restoreFocus) {
-        const wasOpen = !sidebar.classList.contains('hidden');
+        const wasOpen = btn.getAttribute('aria-expanded') === 'true';
+        const focusInDrawer = sidebar.contains(document.activeElement);
         sidebar.classList.add('hidden');
         MOBILE_OPEN.forEach(function (c) { sidebar.classList.remove(c); });
         backdrop.classList.add('hidden');
         btn.setAttribute('aria-expanded', 'false');
-        iconOpen.classList.remove('hidden');
-        iconClose.classList.add('hidden');
+        btn.classList.remove('invisible');
         setOutsideInert(false);
 
         // Focus would otherwise be left on a link the drawer just hid.
-        if (wasOpen && restoreFocus !== false && sidebar.contains(document.activeElement)) {
+        if (wasOpen && restoreFocus !== false && focusInDrawer) {
           btn.focus();
         }
       }
 
+      let lastMenuFocus = null;
+      document.addEventListener('focusin', function () {
+        const active = document.activeElement;
+        if (active && (sidebar.contains(active) || active === btn)) lastMenuFocus = active;
+      });
+
       function syncMenuToViewport() {
+        let active = document.activeElement;
+        if (active === document.body || active === document.documentElement) active = lastMenuFocus;
+        const focusInMenu = active && (sidebar.contains(active) || active === btn);
         if (DESKTOP_MEDIA.matches) {
           closeMobileMenu(false);
+          if (focusInMenu && (!active.getClientRects().length || getComputedStyle(active).display === 'none')) {
+            const links = Array.from(document.querySelectorAll('#sidebar a[href], #topbar a[href]'))
+              .filter(function (link) { return link.getClientRects().length && getComputedStyle(link).visibility !== 'hidden'; });
+            const target = links.find(function (link) { return link.getAttribute('href') === active.getAttribute('href'); }) || links[0];
+            if (target) target.focus();
+          }
+        } else if (focusInMenu && (!active.getClientRects().length || getComputedStyle(active).display === 'none')) {
+          btn.focus();
         }
       }
 
-      if (btn && sidebar && backdrop && iconOpen && iconClose) {
+      if (btn && sidebar && backdrop && closeBtn) {
         btn.addEventListener('click', function () {
           sidebar.classList.contains('hidden') ? openMobileMenu() : closeMobileMenu();
         });
 
         backdrop.addEventListener('click', closeMobileMenu);
+        closeBtn.addEventListener('click', closeMobileMenu);
 
         document.addEventListener('keydown', function (e) {
           const open = !sidebar.classList.contains('hidden') && !DESKTOP_MEDIA.matches;
           if (!open) return;
 
           if (e.key === 'Escape') {
+            e.preventDefault();
             closeMobileMenu();
             return;
           }
@@ -371,18 +397,22 @@
       });
     });
 
-    // ── Topnav dropdowns: first tap opens, second tap navigates ─────
+    // Topnav visibility and aria-expanded share one state, including hover.
     (function () {
-      var parents = document.querySelectorAll('[data-topnav-parent]');
-      if (!parents.length) return;
+      var nav = document.querySelector('[data-topnav]');
+      if (!nav) return;
+      var parents = nav.querySelectorAll('[data-topnav-parent]');
       var HIDDEN = ['invisible', 'opacity-0'];
       var HOVER = window.matchMedia('(hover: hover)');
+      var DESKTOP = window.matchMedia('(min-width: 1024px)');
 
       function setOpen(link, open) {
         var ul = document.getElementById(link.getAttribute('aria-controls'));
         if (!ul) return;
+        var focusInSubmenu = ul.contains(document.activeElement);
         HIDDEN.forEach(function (c) { ul.classList.toggle(c, !open); });
         link.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (!open && focusInSubmenu) link.focus();
       }
 
       function closeAll(except) {
@@ -392,10 +422,38 @@
       }
 
       parents.forEach(function (link) {
+        var item = link.parentElement;
+        item.addEventListener('pointerenter', function (e) {
+          if (!DESKTOP.matches || !HOVER.matches || e.pointerType === 'touch') return;
+          closeAll(link);
+          setOpen(link, true);
+        });
+        item.addEventListener('pointerleave', function () {
+          if (!item.contains(document.activeElement)) setOpen(link, false);
+        });
+        item.addEventListener('focusin', function (e) {
+          // Ignore pointer focus and focus returned by Escape within this item.
+          if (!DESKTOP.matches || item.contains(e.relatedTarget) || !e.target.matches(':focus-visible')) return;
+          closeAll(link);
+          setOpen(link, true);
+        });
+        item.addEventListener('focusout', function (e) {
+          if (!item.contains(e.relatedTarget)) setOpen(link, false);
+        });
+        link.addEventListener('keydown', function (e) {
+          if (e.key !== 'ArrowDown' && e.key !== ' ') return;
+          e.preventDefault();
+          closeAll(link);
+          setOpen(link, true);
+          if (e.key === 'ArrowDown') {
+            var first = document.getElementById(link.getAttribute('aria-controls')).querySelector('a[href]');
+            if (first) first.focus();
+          }
+        });
         link.addEventListener('click', function (e) {
           // Already open (previous tap or JS): let the click navigate.
           if (link.getAttribute('aria-expanded') === 'true') return;
-          // Mouse users see the dropdown via :hover; their click should navigate.
+          // Mouse users open it on pointer entry; their click should navigate.
           var touchLike = e.pointerType === 'touch' || !HOVER.matches;
           if (!touchLike) return;
           e.preventDefault();
@@ -407,7 +465,22 @@
 
       document.addEventListener('click', function () { closeAll(); });
       document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeAll();
+        if (e.key !== 'Escape') return;
+        var focusedParent = Array.from(parents).find(function (link) {
+          return link.getAttribute('aria-expanded') === 'true' && link.parentElement.contains(document.activeElement);
+        });
+        closeAll();
+        if (focusedParent) {
+          e.preventDefault();
+          focusedParent.focus();
+        }
+      });
+      DESKTOP.addEventListener('change', function () {
+        if (DESKTOP.matches) return;
+        var focusInNav = nav.contains(document.activeElement);
+        closeAll();
+        var toggle = document.getElementById('mobile-menu-btn') || document.querySelector('#topbar a[href]');
+        if (focusInNav && toggle) toggle.focus();
       });
     })();
 

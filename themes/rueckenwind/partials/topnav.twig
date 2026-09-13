@@ -1,13 +1,13 @@
 {# Horizontal top navigation (desktop only) — used when theme.navposition == 'top'.
    Small screens keep the drawer from partials/navigation.twig. #}
-<nav aria-label="Site navigation" class="hidden min-w-0 flex-1 items-center justify-end gap-1 lg:flex">
+<nav data-topnav aria-label="Site navigation" class="hidden min-w-0 flex-1 items-center justify-end gap-1 lg:flex">
 
   {# ponytail: no overflow handling — sites with too many top-level pages should use sidebar mode #}
   <ul class="flex min-w-0 items-center gap-1">
     {% for element in navigation %}
       {% set hasChildren = element.elementType == 'folder' and element.folderContent|length > 0 and element.contains == 'pages' %}
       {% set submenuId = 'topnav-sub-' ~ (element.keyPathArray|join('-')) %}
-      <li class="group relative shrink-0">
+      <li class="relative shrink-0">
         <a href="{{ element.urlRel }}"
            {% if hasChildren %}data-topnav-parent aria-haspopup="true" aria-expanded="false" aria-controls="{{ submenuId }}"{% endif %}
            class="flex items-center gap-1 rounded-full px-3 py-1.5 text-sm transition-colors
@@ -24,9 +24,9 @@
         </a>
 
         {%- if hasChildren -%}
-          {# Dropdown: hover/focus opens via CSS; on touch the first tap opens (JS), the second tap navigates #}
+          {# JS owns hover, focus and touch so Escape can keep the dropdown closed. #}
           <ul id="{{ submenuId }}"
-              class="invisible absolute right-0 top-full z-50 min-w-48 rounded-xl border border-gray-200/80 bg-white/95 p-1.5 opacity-0 shadow-lg shadow-gray-950/10 backdrop-blur-xl transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 dark:border-gray-800 dark:bg-gray-950/95">
+              class="invisible absolute right-0 top-full z-50 min-w-48 rounded-xl border border-gray-200/80 bg-white/95 p-1.5 opacity-0 shadow-lg shadow-gray-950/10 backdrop-blur-xl transition-opacity dark:border-gray-800 dark:bg-gray-950/95">
             {% for child in element.folderContent %}
               <li>
                 <a href="{{ child.urlRel }}"
