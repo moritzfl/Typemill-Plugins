@@ -36,7 +36,7 @@ class siteblocks extends Plugin
                 'class' => 'Typemill\Controllers\ControllerWebSystem:blankSystemPage', 'resource' => 'siteblocks', 'privilege' => 'read']];
         foreach (['state' => ['get', 'siteblocks', 'read'], 'save' => ['post', 'siteblocks', 'update'],
             'action' => ['post', 'siteblocks', 'read'], 'placement' => ['post', 'siteblocks', 'publish'],
-            'preview' => ['post', 'siteblocks', 'read'], 'parse' => ['post', 'siteblocks', 'read'],
+            'preview' => ['post', 'siteblocks', 'read'], 'parse' => ['post', 'siteblocks', 'read'], 'edit' => ['post', 'siteblocks', 'update'],
             'catalog' => ['get', 'mycontent', 'create'], 'export' => ['get', 'siteblocks', 'read'],
             'import' => ['post', 'siteblocks', 'publish']] as $method => [$verb, $resource, $privilege]) {
             $routes[] = ['httpMethod' => $verb, 'route' => '/api/v1/siteblocks/' . $method, 'name' => 'siteblocks.' . $method,
@@ -64,10 +64,22 @@ class siteblocks extends Plugin
             $navi['Siteblocks']['active'] = true;
             $this->addCSS('/siteblocks/assets/editor.css');
             $this->addCSS('/siteblocks/assets/library.css');
+            $base = $this->urlinfo()['baseurl'];
+            $this->addJS($base . '/system/typemill/author/js/sortable.min.js');
+            $this->addJS($base . '/system/typemill/author/js/vuedraggable.umd.min.js');
+            // Load the installed editor unchanged, with document-scoped data, transport and events.
+            $native = '';
+            foreach (['vue-blox-config.js', 'vue-blox.js', 'vue-blox-components.js'] as $file) {
+                $native .= file_get_contents(dirname(__DIR__, 2) . '/system/typemill/author/js/' . $file) . ";\n";
+            }
+            $this->addInlineJS('function createSiteBlocksNativeEditor(data, tmaxios, eventBus) {' . $native
+                . file_get_contents(__DIR__ . '/assets/editor.js') . ";\n"
+                . 'activeFormats.siteblock = {label: "▦", title: sbT("Site layout"), component: "siteblock-component"};'
+                . 'const original = determiner.shortcode; determiner.shortcode = (block, ...args) => block.startsWith("[:siteblock ") ? "siteblock-component" : original(block, ...args);'
+                . 'return bloxeditor; }');
             $this->addInlineJS('const siteBlocksTemplate = ' . json_encode(file_get_contents(__DIR__ . '/assets/library.html')) . ';'
                 . file_get_contents(__DIR__ . '/assets/library.js') . ";\n"
-                . file_get_contents(dirname(__DIR__, 2) . '/system/typemill/author/js/vue-blox-components.js') . ";\n"
-                . file_get_contents(__DIR__ . '/assets/editor.js'));
+                . file_get_contents(__DIR__ . '/assets/native-editor.js'));
         }
         $event->setData($navi);
     }
@@ -191,7 +203,7 @@ class siteblocks extends Plugin
     {
         try {
             $params = array_merge($request->getQueryParams(), (array) $request->getParsedBody());
-            foreach (['scope', 'id', 'revision', 'title', 'markdown', 'action', 'history', 'footer', 'path'] as $field) {
+            foreach (['scope', 'id', 'revision', 'title', 'markdown', 'action', 'history', 'footer', 'path', 'source', 'operation'] as $field) {
                 if (isset($params[$field]) && !is_string($params[$field])) { throw new \InvalidArgumentException('SB_BAD_INPUT'); }
             }
             $scope = $params['scope'] ?? '';
@@ -241,8 +253,54 @@ class siteblocks extends Plugin
     {
         return $this->api($request, $response, function ($p, $scope) {
             $markdown = (string) ($p['markdown'] ?? ''); Library::validateMarkdown($markdown);
-            $content = new Content($this->urlinfo()['baseurl'], $this->getSettings(), $this->container->get('dispatcher'));
-            return ['parts' => trim($markdown) === '' ? [] : array_values($content->markdownTextToArray($markdown)), 'html' => $this->renderMarkdown($markdown, $scope)];
+            $parts = $this->markdownParts($markdown);
+            return ['parts' => $parts, 'content' => $this->editorContent($parts, $scope), 'html' => $this->renderMarkdown($markdown, $scope)];
+        });
+    }
+
+    private function markdownParts(string $markdown): array
+    {
+        Library::validateMarkdown($markdown);
+        if (trim($markdown) === '') { return []; }
+        $content = new Content($this->urlinfo()['baseurl'], $this->getSettings(), $this->container->get('dispatcher'));
+        return array_values($content->markdownTextToArray($markdown));
+    }
+
+    private function editorContent(array $parts, string $scope): array
+    {
+        // Blox reserves index zero for a page title. A library name is not page content.
+        $rows = [['id' => 0, 'markdown' => '', 'html' => '']];
+        foreach ($parts as $index => $markdown) {
+            $rows[] = ['id' => $index + 1, 'markdown' => $markdown, 'html' => $this->renderMarkdown($markdown, $scope)];
+        }
+        return $rows;
+    }
+
+    public function edit(Request $request, Response $response, $args)
+    {
+        return $this->api($request, $response, function ($p, $scope) {
+            $parts = $this->markdownParts($p['source'] ?? '');
+            $operation = $p['operation'] ?? '';
+            $index = $p['block_id'] ?? null;
+            if (!is_int($index) || $index < 1) { throw new \InvalidArgumentException('SB_BAD_INPUT'); }
+            if ($operation === 'insert') {
+                if ($index !== 999999 && $index > count($parts) + 1) { throw new \InvalidArgumentException('SB_BAD_INPUT'); }
+                array_splice($parts, $index === 999999 ? count($parts) : $index - 1, 0, $this->markdownParts($p['markdown'] ?? ''));
+            } else {
+                if (!array_key_exists($index - 1, $parts)) { throw new \InvalidArgumentException('SB_BAD_INPUT'); }
+                if ($operation === 'update') { array_splice($parts, $index - 1, 1, $this->markdownParts($p['markdown'] ?? '')); }
+                elseif ($operation === 'delete') { array_splice($parts, $index - 1, 1); }
+                elseif ($operation === 'move') {
+                    $target = $p['index_new'] ?? null;
+                    if (!is_int($target) || $target < 1 || $target > count($parts)) { throw new \InvalidArgumentException('SB_BAD_INPUT'); }
+                    $moved = array_splice($parts, $index - 1, 1); array_splice($parts, $target - 1, 0, $moved);
+                } else { throw new \InvalidArgumentException('SB_BAD_ACTION'); }
+            }
+            $source = implode("\n\n", $parts);
+            Library::validateMarkdown($source);
+            $content = $this->editorContent($parts, $scope);
+            $row = $this->library()->save($p['id'] ?? '', $scope, $p['revision'] ?? '', $p['title'] ?? '', $source);
+            return ['block' => $row, 'content' => $content];
         });
     }
 

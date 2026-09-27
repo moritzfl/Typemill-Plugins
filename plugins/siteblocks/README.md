@@ -7,9 +7,12 @@ or external services required.
 ## Content library
 
 Create named blocks in the library. Names are internal; headings belong in the
-content. The visual editor reuses Typemill's heading, text, list and quote inputs,
-native media selection and Site Blocks layouts. Markdown mode supports larger
-documents. Saving creates a private draft; **Publish** updates all linked uses.
+content. The visual editor is Typemill's installed **Blox editor**: click a preview
+to edit, save or cancel individual blocks, insert between blocks, and drag to
+reorder. Its configured content types, formatting tools and media components are
+available alongside Site Blocks layouts. Markdown mode supports larger documents.
+Saving an individual block immediately saves a private library draft;
+**Publish** updates all linked uses.
 Creating a block does not place it anywhere automatically.
 
 - Search and filter by draft, published, unpublished changes or archived status.
@@ -118,6 +121,13 @@ Linked library content uses `[:siteblock-ref id="sb_…" :]`. Sources live under
 Atomic YAML writes and a shared lock protect library revisions and placements.
 References resolve on each render; published source updates do not depend on a
 shared HTML cache. Nested library references are rejected.
+
+The admin loads the installed `vue-blox-config.js`, `vue-blox.js` and
+`vue-blox-components.js` unchanged. A scoped transport adapter sends block edits
+to the library API, with the same revision checks as Markdown saves. Its event
+bus and Vue instance are disposed when leaving the editor. No core files are
+patched and no editor fork is bundled. Blox's reserved page-title slot is hidden
+and excluded from stored content; the library name remains internal.
 
 The payload is UTF-8 JSON encoded with URL-safe Base64, without padding:
 

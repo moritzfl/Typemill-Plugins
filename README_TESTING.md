@@ -98,6 +98,12 @@ revision conflicts, project/role isolation, JSON restore, footer placement and
 German/mobile/dark layouts. Set `LIBRARY_SHOTS` for screenshots. The PHPUnit export
 round-trip also verifies restoration of library IDs, drafts, published content,
 page references, footer assignments and media from the complete site archive.
+
+The library suite also exercises the installed Blox editor itself: click-to-edit,
+inline formatting, block-level draft saves, cancellation, inserting before the
+first block, deletion, pointer drag-and-drop, native media selection and stale
+write recovery without losing the active input. Switching editors must not discard
+even a one-character pending edit.
 The suites restore their settings and content fixtures. Run browser suites
 serially: theme/settings fixtures share one Typemill instance.
 

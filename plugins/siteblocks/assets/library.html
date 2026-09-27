@@ -5,7 +5,7 @@
     <p v-if="error" class="sbl__error" role="alert">{{ error }}</p>
     <p v-if="message" class="sbl__notice" role="status">{{ message }}</p>
     <p v-if="busy" role="status">{{ t('Loading…') }}</p>
-    <nav class="sbl__bar" :aria-label="t('Content blocks')"><button type="button" :aria-pressed="tab === 'library'" @click="tab = 'library'">{{ t('Library') }}</button><button type="button" :aria-pressed="tab === 'areas'" @click="tab = 'areas'">{{ t('Website areas') }}</button></nav>
+    <nav class="sbl__bar" :aria-label="t('Content blocks')"><button type="button" :aria-pressed="tab === 'library'" @click="changeTab('library')">{{ t('Library') }}</button><button type="button" :aria-pressed="tab === 'areas'" @click="changeTab('areas')">{{ t('Website areas') }}</button></nav>
     <section v-if="tab === 'library'">
         <template v-if="!selected">
         <div class="sbl__bar sbl__filters"><label>{{ t('Search') }}<input type="search" v-model="search"></label><label>{{ t('Status') }}<select v-model="filter"><option value="">{{ t('All') }}</option><option v-for="status in ['Draft','Published','Unpublished changes','Archived']" :value="status">{{ t(status) }}</option></select></label><button class="sbl__primary" type="button" @click="open()" :disabled="busy || !permissions.update">{{ t('Create block') }}</button></div>
@@ -22,14 +22,8 @@
             <div class="sbl__bar"><button type="button" :disabled="busy" :aria-pressed="mode === 'visual'" @click="setMode('visual')">{{ t('Visual') }}</button><button type="button" :disabled="busy" :aria-pressed="mode === 'raw'" @click="setMode('raw')">Markdown</button></div>
             <fieldset :disabled="busy || !permissions.update">
                 <label v-if="mode === 'raw'">Markdown<textarea id="sb-markdown" class="sbl__raw" v-model="markdown"></textarea></label>
-                <template v-else>
-                    <ol class="sbl__parts"><li v-for="(part,index) in parts" :key="index">
-                        <div class="sbl__bar"><button type="button" @click="active = active === index ? -1 : index">{{ t('Edit') }} {{ index + 1 }}</button><button type="button" @click="move(index,-1)" :disabled="index === 0">{{ t('Move up') }}</button><button type="button" @click="move(index,1)" :disabled="index === parts.length - 1">{{ t('Move down') }}</button><button type="button" @click="remove(index)">{{ t('Remove') }}</button></div>
-                        <component v-if="active === index" :is="component" :key="selected.id + ':' + index + ':' + component" :markdown="part" :index="index" :library="true" :disabled="busy || !permissions.update" @updateMarkdownEvent="parts[index] = $event"></component>
-                        <library-preview v-else :markdown="part" :scope="scope"></library-preview>
-                    </li></ol>
-                    <div class="sbl__bar"><button v-for="(label,type) in {paragraph:'Text',heading:'Heading',list:'List',quote:'Quote',layout:'Site layout'}" type="button" @click="add(type)">+ {{ t(label) }}</button><button type="button" @click="media">+ {{ t('Image') }}</button></div>
-                </template>
+                <library-native-editor v-else-if="permissions.update" :content="nativeContent" :source="markdown" :entry="selected" :title="title" :scope="scope" @saved="nativeSaved" @busy="busy = $event" @dirty="editorDirty = $event" @error="error = $event"></library-native-editor>
+                <div v-else class="sbl__preview"><div v-for="part in nativeContent.slice(1)" v-html="part.html"></div></div>
             </fieldset>
             <div class="sbl__bar sbl__save"><button type="button" @click="save" :disabled="busy || !dirty || !permissions.update">{{ t('Save draft') }}</button><button class="sbl__primary" type="button" @click="action('publish')" :disabled="busy || !selected.id || !permissions.publish || selected.archived">{{ t('Publish') }}</button><button type="button" @click="action('discard')" :disabled="busy || !selected.id || !permissions.update">{{ t('Discard draft') }}</button></div>
             <details><summary>{{ t('Preview') }}</summary><p>{{ t('SB_PREVIEW_HELP') }}</p><label>{{ t('Page path') }}<input v-model="previewPath" placeholder="/"></label><button type="button" @click="preview" :disabled="busy">{{ t('Preview draft') }}</button><a v-if="previewUrl" :href="previewUrl" target="_blank" rel="noopener">{{ t('Open private page preview') }} ↗</a><div class="sbl__preview" v-if="previewHtml" v-html="previewHtml"></div></details>
@@ -38,5 +32,4 @@
         <details><summary>{{ t('Export and restore') }}</summary><p>{{ t('SB_EXPORT_HELP') }}</p><button type="button" @click="exportLibrary" :disabled="busy">{{ t('Export library') }}</button><label v-if="permissions.publish">{{ t('Import library') }}<input type="file" accept="application/json,.json" @change="importLibrary" :disabled="busy"></label></details>
     </section>
     <section v-else><h2>{{ t('Footer') }}</h2><p>{{ t('SB_FOOTER_HELP') }}</p><p>{{ t(footerSupported ? 'Supported by the active theme' : 'Not supported by the active theme') }}</p><label>{{ t('Content block') }}<select v-model="footer" :disabled="busy || !permissions.publish"><option value="">{{ t('None') }}</option><option v-if="placement.footer && !available.some(row => row.id === placement.footer)" :value="placement.footer">{{ blocks.find(row => row.id === placement.footer)?.title }} ({{ t('Archived') }})</option><option v-for="row in available" :value="row.id">{{ row.title }}</option></select></label><button class="sbl__primary" type="button" @click="place" :disabled="busy || !permissions.publish || footer === placement.footer">{{ t('Apply placement') }}</button></section>
-    <dialog v-if="mediaOpen" ref="media" class="sbl__media" :aria-label="t('Choose from media')" @close="mediaOpen = false" @keydown.esc.stop.prevent="$refs.media.close()"><button type="button" @click="$refs.media.close()">{{ t('Close library') }}</button><medialib parentcomponent="images" @addFromMedialibEvent="selectMedia"></medialib></dialog>
 </div>
