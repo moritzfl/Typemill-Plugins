@@ -43,7 +43,7 @@ const TM_PASSWORD = 'Test1234!'
 
 // Plugins the automated tests need switched on.
 const TEST_PLUGINS = [
-    'versions', 'preview', 'files', 'typemillupdate', 'gitupdate', 'linkbuttons', 'readmemd', 'syntax',
+    'versions', 'preview', 'files', 'typemillupdate', 'gitupdate', 'linkbuttons', 'readmemd', 'syntax', 'siteblocks', 'designpanel',
 ]
 
 // Stock Highlight fights our Syntax plugin for the same blocks.

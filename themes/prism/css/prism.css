@@ -111,7 +111,7 @@ body {
     background: var(--pr-bg);
     color: var(--pr-text);
     font-family: var(--pr-font);
-    font-size: 17px;
+    font-size: calc(17px * var(--tm-type-scale, 1));
     line-height: 1.6;
     letter-spacing: -0.01em;
     -webkit-font-smoothing: antialiased;
@@ -922,7 +922,7 @@ a:hover {
 }
 
 .pr-prose {
-    font-size: 17px;
+    font-size: calc(17px * var(--tm-type-scale, 1));
     line-height: 1.7;
     margin-top: 32px;
 }

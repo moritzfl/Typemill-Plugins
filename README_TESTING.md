@@ -2,7 +2,7 @@
 
 ## Automated Tests
 
-The repo includes two complementary test layers, both driven by the Docker container.
+The repo includes PHP, API and real-browser test layers.
 
 ### PHP Unit Tests
 
@@ -72,13 +72,21 @@ Watch mode for development:
 npm run test:api:watch
 ```
 
-Browser smoke test (Puppeteer inside Docker — Files + Recycle Bin):
+Browser suite (Puppeteer inside Docker — admin flows, maintained themes and site-building features):
 
 ```bash
 npm run test:browser
 ```
 
-### Run Everything
+`site-builder.mjs` exercises native block creation, drafts and publishing,
+portable layouts, shared footers, public-JSON restrictions and private design
+previews. `gitupdate-packages.mjs` installs, pins and removes real fixture packages
+through the dashboard using a temporary local HTTPS repository. It installs a
+temporary test CA in the disposable Docker container and removes it in `finally`.
+Both suites restore their settings and content fixtures. Run browser suites
+serially: theme/settings fixtures share one Typemill instance.
+
+### Run PHP and API Tests
 
 ```bash
 npm test

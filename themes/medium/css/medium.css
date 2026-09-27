@@ -78,7 +78,7 @@ body {
     background: var(--md-bg);
     color: var(--md-text);
     font-family: var(--md-sans);
-    font-size: 16px;
+    font-size: calc(16px * var(--tm-type-scale, 1));
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -528,7 +528,7 @@ a {
 
 .md-prose {
     font-family: var(--md-serif);
-    font-size: 21px;
+    font-size: calc(21px * var(--tm-type-scale, 1));
     line-height: 1.58;
     letter-spacing: -0.003em;
     color: var(--md-text);

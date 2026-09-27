@@ -87,7 +87,7 @@ body {
     background: var(--ct-bg);
     color: var(--ct-text);
     font-family: var(--ct-font);
-    font-size: 17px;
+    font-size: calc(17px * var(--tm-type-scale, 1));
     line-height: 1.55;
     letter-spacing: -0.01em;
     font-weight: 400;

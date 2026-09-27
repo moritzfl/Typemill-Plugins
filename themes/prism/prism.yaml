@@ -6,6 +6,7 @@ homepage: https://github.com/moritzfl/Typemill-Plugins
 license: GPL-2.0
 
 settings:
+  typeScale: 100
   heroEyebrow: ''
   heroTitle: ''
   heroSubtitle: ''
@@ -130,6 +131,11 @@ readymades:
 
 forms:
   fields:
+    typeScale:
+      type: number
+      label: 'Type scale (%) — Design Panel'
+      min: 85
+      max: 125
 
     fieldsetHero:
       type: fieldset

@@ -167,7 +167,7 @@ body {
     background: var(--lg-bg);
     color: var(--lg-text);
     font-family: var(--lg-reading);
-    font-size: var(--lg-base-size);
+    font-size: calc(var(--lg-base-size) * var(--tm-type-scale, 1));
     line-height: var(--lg-line-height);
     letter-spacing: var(--lg-letter-spacing);
     word-spacing: var(--lg-word-spacing);

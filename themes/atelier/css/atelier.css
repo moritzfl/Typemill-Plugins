@@ -107,7 +107,7 @@ body {
     background: var(--at-bg);
     color: var(--at-text);
     font-family: var(--at-sans);
-    font-size: 15px;
+    font-size: calc(15px * var(--tm-type-scale, 1));
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -813,7 +813,7 @@ a {
 }
 
 .at-prose {
-    font-size: 17px;
+    font-size: calc(17px * var(--tm-type-scale, 1));
     line-height: 1.72;
     color: var(--at-text);
 }

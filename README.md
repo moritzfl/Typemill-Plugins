@@ -120,11 +120,28 @@ express. Includes a CSP setting to whitelist external domains used by embedded c
 
 ### `gitupdate` — Git Update
 
-Updates plugins and themes from this git repository that are already installed on the server. Every commit on the
-configured branch is a release. A server that only has a subset is only offered that subset — nothing missing is
-installed, and content, media, settings and the Typemill core are never touched.
+Updates installed plugins and themes from the configured git repository; every commit is a release.
+Also browses missing packages for explicit installation, pins packages to commits and removes inactive packages
+with settings retained for reinstallation. Bulk updates stay installed-only; content, media and Typemill core stay intact.
 
 → See [`plugins/gitupdate/README.md`](plugins/gitupdate/README.md) for full documentation.
+
+### `siteblocks` — Site Blocks
+
+Native visual-editor forms for portable hero/CTA bands, columns, galleries,
+slideshows, masonry and tagged page collections. Includes focal-point crops,
+accessible lightboxes, shared footer fields across maintained themes and an
+optional public page-JSON endpoint. Uses Typemill's normal draft/publish flow.
+
+→ See [`plugins/siteblocks/README.md`](plugins/siteblocks/README.md) for the block schema and theme contract.
+
+### `designpanel` — Design Panel
+
+Live desktop/mobile previews of maintained themes' native options and readymades:
+colors, base text scale, hero copy, homepage presentation and footer settings.
+Previews stay private to the editor's session until explicitly saved.
+
+→ See [`plugins/designpanel/README.md`](plugins/designpanel/README.md) for setup and scope.
 
 ---
 

@@ -84,7 +84,7 @@ body {
     background: var(--lc-bg);
     color: var(--lc-text);
     font-family: var(--lc-font);
-    font-size: 17px;
+    font-size: calc(17px * var(--tm-type-scale, 1));
     line-height: 1.47059;
     letter-spacing: -0.022em;
     font-weight: 400;
@@ -988,7 +988,7 @@ a.lc-link {
 }
 
 .lc-prose {
-    font-size: 17px;
+    font-size: calc(17px * var(--tm-type-scale, 1));
     line-height: 1.6;
     overflow-wrap: anywhere;
 }

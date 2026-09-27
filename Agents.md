@@ -57,7 +57,7 @@ npm run test:browser    # Puppeteer browser smoke tests in Docker (required for 
 
 API tests live in `tests/api/` and use `tests/api/helpers/auth.js` for session login with the correct `Referer` and `X-Session-Auth` headers.
 
-`test:setup` also ensures **`versions`**, **`preview`**, **`files`**, **`typemillupdate`**, **`gitupdate`**, **`linkbuttons`**, **`readmemd`**, and **`syntax`** are active in settings (required for trash, file-manager, preview, core-update API tests, the theme prose layout test, the readme meta-field test, and the syntax-colour half of the contrast test). On a fresh instance it creates minimal `settings.yaml`; on an existing instance it only toggles those plugins and refreshes the test user. Stock **Highlight** is forced off when present — it fights Syntax for the same blocks.
+`test:setup` also ensures **`versions`**, **`preview`**, **`files`**, **`typemillupdate`**, **`gitupdate`**, **`linkbuttons`**, **`readmemd`**, **`syntax`**, **`siteblocks`**, and **`designpanel`** are active in settings (required for the API and browser suites). On a fresh instance it creates minimal `settings.yaml`; on an existing instance it only toggles those plugins and refreshes the test user. Stock **Highlight** is forced off when present — it fights Syntax for the same blocks.
 
 The setup script builds a local Typemill image with PHP **`zip`** baked in (exports and folder ZIP downloads). If you use an older container without it, setup installs `zip` at runtime and reloads Apache.
 
@@ -90,6 +90,8 @@ Browser tests live in `tests/browser/`:
 | `court-homepage.mjs` | Court's club homepage: crest/photo modes, working default CTAs, bounded published news, German labels, responsive light/dark layouts, empty content and real admin theme settings. |
 | `theme-scale.mjs` | Builds a folder of 200 posts and holds every own theme to the same contract: the folder page shows one page of posts, `/p/2` moves the list, the pager stays bounded, and no article becomes a menu link. |
 | `plugin-readmemd.mjs` | Points a page at a repository and then takes GitHub away: the stored copy has to carry the page. Also checks placement, a page naming no repository, the live fetch (tolerantly), and that the admin screens load. |
+| `site-builder.mjs` | Portable layouts across all maintained themes, focal crops, lightbox focus, native block editing/drafts, restricted-page JSON, shared footers, private design previews and saving. |
+| `gitupdate-packages.mjs` | Real dashboard install/pin/remove against a temporary HTTPS repository; verifies active-package guards and settings restoration after reinstall. |
 
 These write their own fixture page and settings and restore both in a `finally` block. Faults of this kind are invisible to the API and PHPUnit suites, which never render a theme: a negative margin only shows once an element paints a background, and contrast is decided by a stack of palettes, surfaces, gradients and scrims that no single declaration reveals.
 

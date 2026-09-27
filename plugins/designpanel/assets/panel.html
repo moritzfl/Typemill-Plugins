@@ -1,0 +1,31 @@
+<div class="dp">
+    <header><h1>{{ $filters.translate('Design panel') }}</h1><p>{{ state.theme }} · {{ dirty ? 'Unsaved preview' : 'Saved settings' }}</p></header>
+    <p v-if="message" role="status">{{ message }}</p>
+    <div v-if="state.theme" class="dp__toolbar">
+        <button type="button" :disabled="busy || !dirty" @click="save">Save design</button>
+        <button type="button" :disabled="busy || !dirty" @click="reset">Discard changes</button>
+        <a :href="base + '/tm/content/visual' + (path === '/' ? '' : path)">Edit page content</a>
+        <label>Preview width<select v-model="width"><option value="100%">Desktop</option><option value="390px">Mobile</option><option value="768px">Tablet</option></select></label>
+        <label>Page path<input v-model="path" @change="preview" placeholder="/"></label>
+        <label>Readymade<select @change="preset($event.target.value)"><option value="">Choose…</option><option v-for="(preset,key) in state.presets" :value="key">{{ preset.name }}</option></select></label>
+    </div>
+    <div v-if="state.theme" class="dp__workspace">
+        <form class="dp__fields" @submit.prevent="save" @input="changed" @change="changed">
+            <details v-for="group in groups" :key="group" :open="group === groups[0]">
+                <summary>{{ group || 'General' }}</summary>
+                <div v-for="field in state.fields.filter(field => field.group === group)" :key="field.key" class="dp__field">
+                    <label :for="'dp-' + field.key">{{ field.label || field.key }}</label>
+                    <input v-if="field.type === 'checkbox'" :id="'dp-' + field.key" type="checkbox" v-model="values[field.key]">
+                    <div v-else-if="field.type === 'checkboxlist'" class="dp__checks" role="group" :aria-label="field.label"><label v-for="(label,key) in field.options"><input type="checkbox" :value="key" v-model="values[field.key]"> {{ label }}</label></div>
+                    <select v-else-if="['select','radio'].includes(field.type)" :id="'dp-' + field.key" v-model="values[field.key]"><option v-for="(label,key) in field.options" :value="key">{{ label }}</option></select>
+                    <textarea v-else-if="field.type === 'textarea'" :id="'dp-' + field.key" v-model="values[field.key]" :maxlength="field.maxlength || 20000"></textarea>
+                    <input v-else-if="field.type === 'number'" :id="'dp-' + field.key" type="number" v-model.number="values[field.key]" :min="field.min || 0" :max="field.max || 10000">
+                    <div v-else-if="field.key.toLowerCase().includes('color')" class="dp__color"><input type="color" :aria-label="field.label + ' picker'" :value="/^#[a-f0-9]{6}$/i.test(values[field.key] || '') ? values[field.key] : '#000000'" @input="values[field.key] = $event.target.value"><input :id="'dp-' + field.key" type="text" v-model="values[field.key]" placeholder="Theme default"></div>
+                    <input v-else :id="'dp-' + field.key" type="text" v-model="values[field.key]" :placeholder="field.placeholder || ''" :maxlength="field.maxlength || 20000">
+                    <small v-if="field.description">{{ field.description }}</small>
+                </div>
+            </details>
+        </form>
+        <div class="dp__canvas"><iframe v-if="previewUrl" :src="previewUrl" :style="{width}" title="Private design preview" ref="preview"></iframe></div>
+    </div>
+</div>
