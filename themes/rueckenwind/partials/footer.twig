@@ -23,6 +23,8 @@
     <div>
 {% endif %}
 
+      {{ siteblocks_shared|default('')|raw }}
+
       {# Copyright line #}
       {% if theme.copyrightline %}
         <div class="text-xs text-gray-500 dark:text-gray-400">

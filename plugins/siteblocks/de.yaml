@@ -1,0 +1,16 @@
+SITE_BLOCKS: Seitenbausteine
+SITEBLOCKS: Seitenbausteine
+COLLECTION_TAGS: Sammlungs-Schlagwörter
+PUBLIC_PAGE_JSON: Öffentliches Seiten-JSON
+SHARED_COLUMN_1_HEADING: Gemeinsame Spalte 1 — Überschrift
+SHARED_COLUMN_1_TEXT: Gemeinsame Spalte 1 — Text
+SHARED_COLUMN_1_LINK_LABEL: Gemeinsame Spalte 1 — Linktext
+SHARED_COLUMN_1_LINK: Gemeinsame Spalte 1 — Link
+SHARED_COLUMN_2_HEADING: Gemeinsame Spalte 2 — Überschrift
+SHARED_COLUMN_2_TEXT: Gemeinsame Spalte 2 — Text
+SHARED_COLUMN_2_LINK_LABEL: Gemeinsame Spalte 2 — Linktext
+SHARED_COLUMN_2_LINK: Gemeinsame Spalte 2 — Link
+SHARED_COLUMN_3_HEADING: Gemeinsame Spalte 3 — Überschrift
+SHARED_COLUMN_3_TEXT: Gemeinsame Spalte 3 — Text
+SHARED_COLUMN_3_LINK_LABEL: Gemeinsame Spalte 3 — Linktext
+SHARED_COLUMN_3_LINK: Gemeinsame Spalte 3 — Link

@@ -2,6 +2,7 @@
 
 <footer class="pr-footer">
   <div class="pr-container">
+    {{ siteblocks_shared|default('')|raw }}
 
     {% if theme.footercolumns is not empty %}
       <div class="pr-footer__cols">

@@ -2,6 +2,7 @@
 
 <footer class="lg-footer">
   <div class="lg-container">
+    {{ siteblocks_shared|default('')|raw }}
 
     {% if theme.footercolumns is not empty %}
       <div class="lg-footer__cols">

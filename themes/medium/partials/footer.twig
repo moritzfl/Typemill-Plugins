@@ -2,6 +2,7 @@
 
 <footer class="md-footer">
   <div class="md-container">
+    {{ siteblocks_shared|default('')|raw }}
 
     {% if theme.footercolumns is not empty %}
       <div class="md-footer__cols">

@@ -1,0 +1,57 @@
+name: Site Blocks
+version: 1.0.0
+description: 'Portable layout blocks, media galleries, tagged collections and shared footer fields. Native visual-editor integration with no theme dependency.'
+author: Moritz
+homepage: https://github.com/moritzfl/Typemill-Plugins
+license: GPL-2.0
+settings:
+  expose_json: false
+forms:
+  fields:
+    expose_json:
+      type: checkbox
+      label: Public page JSON
+      checkboxlabel: 'Enable /siteblocks.json?url=/page for public, visible pages'
+    shared_title1:
+      type: text
+      label: Shared column 1 heading
+    shared_text1:
+      type: textarea
+      label: Shared column 1 text
+    shared_label1:
+      type: text
+      label: Shared column 1 link label
+    shared_url1:
+      type: text
+      label: Shared column 1 link
+    shared_title2:
+      type: text
+      label: Shared column 2 heading
+    shared_text2:
+      type: textarea
+      label: Shared column 2 text
+    shared_label2:
+      type: text
+      label: Shared column 2 link label
+    shared_url2:
+      type: text
+      label: Shared column 2 link
+    shared_title3:
+      type: text
+      label: Shared column 3 heading
+    shared_text3:
+      type: textarea
+      label: Shared column 3 text
+    shared_label3:
+      type: text
+      label: Shared column 3 link label
+    shared_url3:
+      type: text
+      label: Shared column 3 link
+metatabs:
+  siteblocks:
+    fields:
+      tags:
+        type: text
+        label: Collection tags
+        description: 'Comma-separated tags, for example news, youth, portfolio. Collections match a whole tag, ignoring case.'

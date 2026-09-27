@@ -2,6 +2,7 @@
 
 <footer class="ct-footer">
   <div class="ct-container">
+    {{ siteblocks_shared|default('')|raw }}
 
     <div class="ct-footer__identity">
       <a class="ct-footer__brand" href="{{ base_url }}">{{ settings.title|e }}{% include 'partials/icon.twig' %}</a>
