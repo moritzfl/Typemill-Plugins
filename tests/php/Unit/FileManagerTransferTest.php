@@ -67,6 +67,19 @@ class FileManagerTransferTest extends TestCase
         $this->assertNull($manager->sanitizeEntryName('.env'));
         $this->assertNull($manager->sanitizeEntryName('..'));
         $this->assertSame('readme.txt', $manager->sanitizeEntryName('readme.txt'));
+        $this->assertSame('index.html', $manager->sanitizeEntryName('index.html.'));
+        $this->assertNull($manager->sanitizeEntryName('...'));
+    }
+
+    public function testPrivateStateIsNotUnderThePublicFilesFolder(): void
+    {
+        $manager = $this->makeManager();
+        $manager->recordUpload('readme.txt', 'admin');
+
+        $public = $this->root . '/media/files';
+        $this->assertStringStartsWith($this->root . '/data/files', $manager->getTmpDir());
+        $this->assertFileDoesNotExist($public . '/.meta/uploaders.json');
+        $this->assertFileExists($this->root . '/data/files/.meta/uploaders.json');
     }
 
     public function testRejectsExistingDestinationName(): void

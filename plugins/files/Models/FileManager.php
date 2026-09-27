@@ -9,16 +9,28 @@ class FileManager
 
     private string $rootPath;
 
+    private string $privateRoot;
+
     private FileUploadMetaStore $uploadMeta;
 
     public function __construct(string $projectRoot)
     {
-        $this->rootPath = rtrim($projectRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'media' . DIRECTORY_SEPARATOR . 'files';
+        $projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
+        $this->rootPath = $projectRoot . DIRECTORY_SEPARATOR . 'media' . DIRECTORY_SEPARATOR . 'files';
         if (!is_dir($this->rootPath)) {
             mkdir($this->rootPath, 0755, true);
         }
 
-        $this->uploadMeta = new FileUploadMetaStore($this->rootPath);
+        // media/files is published by Typemill's download route. Chunks and the
+        // uploader list are not files a visitor should be able to fetch.
+        $this->privateRoot = $projectRoot . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . 'files';
+        if (!is_dir($this->privateRoot)) {
+            mkdir($this->privateRoot, 0755, true);
+        }
+
+        $this->moveAsideIfPresent(self::TMP_DIR_NAME);
+        $this->moveAsideIfPresent('.meta');
+        $this->uploadMeta = new FileUploadMetaStore($this->privateRoot);
     }
 
     public function getRootPath(): string
@@ -28,7 +40,22 @@ class FileManager
 
     public function getTmpDir(): string
     {
-        return $this->rootPath . DIRECTORY_SEPARATOR . self::TMP_DIR_NAME;
+        return $this->privateRoot . DIRECTORY_SEPARATOR . self::TMP_DIR_NAME;
+    }
+
+    /**
+     * One-time move of state that used to live under media/files.
+     * A failed rename leaves the old directory in place rather than deleting it.
+     */
+    private function moveAsideIfPresent(string $name): void
+    {
+        $from = $this->rootPath . DIRECTORY_SEPARATOR . $name;
+        $to = $this->privateRoot . DIRECTORY_SEPARATOR . $name;
+        if (!is_dir($from) || is_dir($to) || $from === $to) {
+            return;
+        }
+
+        @rename($from, $to);
     }
 
     public function normalizeRelativePath(?string $path): ?string
@@ -52,7 +79,9 @@ class FileManager
 
     public function sanitizeEntryName(string $name): ?string
     {
-        $name = trim($name);
+        // A trailing dot is not part of the extension pathinfo sees, so
+        // index.html. would skip the HTML block and still be stored.
+        $name = rtrim(trim($name), ". \t");
         if ($name === '' || $this->isReservedName($name)) {
             return null;
         }

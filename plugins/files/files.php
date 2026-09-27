@@ -36,6 +36,8 @@ class files extends Plugin
         'application/x-sh',
         'application/x-csh',
         'application/java-archive',
+        'text/html',
+        'application/xhtml+xml',
     ];
 
     /** Substrings that indicate a blocked MIME type (checked on the full MIME string). */
