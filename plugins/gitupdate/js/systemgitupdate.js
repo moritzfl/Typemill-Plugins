@@ -57,6 +57,7 @@ const app = Vue.createApp({
             messageClass: '',
             confirmAll: false,
             confirmItem: null,
+            search: '',
             status: { items: [], absent: [], head: null, can_update: false, blocked: false, error: null },
         };
     },
@@ -81,6 +82,22 @@ const app = Vue.createApp({
         this.load();
     },
     methods: {
+        async manage(action, item) {
+            if (action === 'remove' && !window.confirm(this.$filters.translate('gitupdate.remove_confirm') + ' ' + item.slug + '?')) return;
+            this.busy = true;
+            try {
+                const response = await tmaxios.post('/api/v1/gitupdate/package', {
+                    action, kind: item.kind, slug: item.slug, sha: this.status.head?.sha,
+                }, { timeout: 600000 });
+                this.message = response.data.message;
+                this.messageClass = 'is-ok';
+                this.load();
+            } catch (error) {
+                this.fail(error);
+            } finally {
+                this.busy = false;
+            }
+        },
         load() {
             this.loading = true;
             tmaxios.get('/api/v1/gitupdate/status').then((response) => {

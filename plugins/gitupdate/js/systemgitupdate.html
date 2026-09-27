@@ -40,7 +40,7 @@
                                 <span class="tm-gu-item__name">{{ item.name }}</span>
                                 <span class="tm-gu-item__slug">{{ item.slug }}</span>
                                 <span class="tm-gu-item__side">
-                                    <span v-if="!item.update_available" class="tm-gu-flag tm-gu-flag--ok">{{ $filters.translate('gitupdate.current') }}</span>
+                                    <span v-if="!item.update_available" class="tm-gu-flag tm-gu-flag--ok">{{ $filters.translate(item.pinned ? 'gitupdate.pinned' : 'gitupdate.current') }}</span>
                                     <button v-else type="button" class="tm-gu-btn tm-gu-btn--small tm-gu-btn--primary" :disabled="busy || !status.can_update || status.blocked" @click.prevent="ask(item)">{{ $filters.translate('gitupdate.update') }}</button>
                                 </span>
                             </div>
@@ -49,12 +49,27 @@
                                 <span aria-hidden="true">→</span>
                                 {{ stamp(status.head.short, status.head.date) }}
                             </p>
+                            <p v-else-if="item.applied" class="tm-gu-item__diff">{{ stamp(item.applied, item.applied_date) }}</p>
+                            <div v-if="status.can_update" class="tm-gu-actions">
+                                <button class="tm-gu-btn tm-gu-btn--small" :disabled="busy || !item.applied" @click="manage(item.pinned ? 'unpin' : 'pin', item)">{{ $filters.translate(item.pinned ? 'gitupdate.unpin' : 'gitupdate.pin') }}</button>
+                                <button v-if="item.slug !== 'gitupdate'" class="tm-gu-btn tm-gu-btn--small" :disabled="busy" @click="manage('remove', item)">{{ $filters.translate('gitupdate.remove') }}</button>
+                            </div>
                         </li>
                     </ul>
                 </section>
                 <p v-if="!loading && groups.length === 0 && !status.error" class="tm-gu-note">{{ $filters.translate('gitupdate.none') }}</p>
 
-                <p v-if="status.absent && status.absent.length" class="tm-gu-note">{{ $filters.translate('gitupdate.not_installed') }} {{ status.absent.join(', ') }}</p>
+                <section v-if="status.absent && status.absent.length" class="tm-gu-group">
+                    <h2 class="tm-gu-group__title">{{ $filters.translate('gitupdate.browse') }}</h2>
+                    <p class="tm-gu-note">{{ $filters.translate('gitupdate.install_help') }}</p>
+                    <label>{{ $filters.translate('gitupdate.search') }} <input v-model="search" type="search" class="tm-gu-btn"></label>
+                    <ul class="tm-gu-list">
+                        <li v-for="name in status.absent.filter(name => name.toLowerCase().includes(search.toLowerCase()))" :key="name" class="tm-gu-item tm-gu-item__row">
+                            <span>{{ name }}</span>
+                            <button class="tm-gu-btn tm-gu-btn--small" :disabled="busy || !status.can_update || status.blocked" @click="manage('install', {kind: name.split('/')[0], slug: name.split('/')[1]})">{{ $filters.translate('gitupdate.install') }}</button>
+                        </li>
+                    </ul>
+                </section>
             </div>
         </section>
 

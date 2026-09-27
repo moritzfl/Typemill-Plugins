@@ -6,8 +6,8 @@ namespace Plugins\gitupdate\Models;
  * Which plugins and themes this server has, and which of those the repository
  * also contains.
  *
- * A server is expected to hold a subset. Nothing that is not already installed
- * is offered for installation.
+ * A server is expected to hold a subset. Bulk updates use only that subset;
+ * missing packages appear separately for explicit installation.
  */
 final class Catalog
 {

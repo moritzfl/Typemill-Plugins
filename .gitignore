@@ -14,6 +14,8 @@
 !plugins/
 !plugins/**
 plugins/.tm-update/
+plugins/.gitupdate/
+themes/.gitupdate/
 !README_TESTING.md
 !vitest.config.js
 !tests/

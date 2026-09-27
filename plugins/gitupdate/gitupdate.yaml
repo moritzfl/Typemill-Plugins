@@ -1,6 +1,6 @@
 name: Git Update
-version: 1.0.0
-description: "Update the plugins and themes from this repository that are already installed. Every commit is a release. Folders the server does not have are left alone."
+version: 1.1.0
+description: "Browse, install, pin and remove repository packages. Bulk updates only replace installed plugins and themes. Every commit is a release."
 author: Moritz
 homepage: https://github.com/moritzfl/Typemill-Plugins
 license: GPL-2.0

@@ -10,12 +10,13 @@ use Plugins\gitupdate\Models\Reference;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Typemill\Plugin;
+use Typemill\Models\Settings;
 use Typemill\Static\Translations;
 
 /**
  * Rolls installed plugins and themes forward to the latest commit of a git
- * repository. Every commit is a release. Folders the server does not have are
- * left alone.
+ * repository. Every commit is a release. Missing packages have a separate,
+ * explicit install action; they are never added by an update.
  */
 class gitupdate extends Plugin
 {
@@ -36,6 +37,14 @@ class gitupdate extends Plugin
     public static function addNewRoutes()
     {
         return [
+            [
+                'httpMethod' => 'post',
+                'route' => '/api/v1/gitupdate/package',
+                'name' => 'gitupdate.package',
+                'class' => 'Plugins\gitupdate\gitupdate:managePackage',
+                'resource' => 'user',
+                'privilege' => 'update',
+            ],
             [
                 'httpMethod' => 'get',
                 'route' => '/tm/gitupdate',
@@ -282,6 +291,98 @@ class gitupdate extends Plugin
         ]);
     }
 
+    public function managePackage(Request $request, Response $response, $args)
+    {
+        $params = (array) $request->getParsedBody();
+        $kind = Reference::kind(is_string($params['kind'] ?? null) ? $params['kind'] : null);
+        $slug = is_string($params['slug'] ?? null) ? $params['slug'] : '';
+        $action = $params['action'] ?? '';
+        if ($kind === null || !Reference::isSlug($slug) || !in_array($action, ['install', 'remove', 'pin', 'unpin'], true)) {
+            return $this->jsonResponse($response, ['message' => 'Invalid package action.'], 422);
+        }
+        $root = self::detectRoot();
+        if (!$this->acquireLock($root)) {
+            return $this->jsonResponse($response, ['message' => 'Another package operation is running.'], 409);
+        }
+        $archive = null;
+        $staged = null;
+        try {
+            $installer = new PackageInstaller($root);
+            $ledger = new Ledger($root);
+            $installed = isset(Catalog::installed($root, $kind)[$slug]);
+            if ($action !== 'install' && !$installed) {
+                return $this->jsonResponse($response, ['message' => 'Package is not installed.'], 404);
+            }
+            if ($action === 'pin' || $action === 'unpin') {
+                $ok = $ledger->pin($kind, $slug, $action === 'pin');
+                return $this->jsonResponse($response, ['message' => $ok ? 'Package pin updated.' : 'Sync this package before pinning its commit.'], $ok ? 200 : 409);
+            }
+            if ($action === 'remove') {
+                $settings = (new Settings())->getUserSettings();
+                $active = $kind === 'theme' ? ($settings['theme'] ?? '') === $slug : !empty($settings['plugins'][$slug]['active']);
+                if ($active || ($kind === 'plugin' && $slug === 'gitupdate')) {
+                    return $this->jsonResponse($response, ['message' => 'Deactivate the plugin or switch themes before removing it.'], 409);
+                }
+                // Typemill prunes absent plugin settings on its next request.
+                // Keep them outside that file and restore them on reinstallation.
+                $savedSettings = $settings[$kind === 'theme' ? 'themes' : 'plugins'][$slug] ?? [];
+                $snapshot = $root . '/data/gitupdate/removed-' . $kind . '-' . $slug . '.json';
+                if (@file_put_contents($snapshot, json_encode($savedSettings, JSON_THROW_ON_ERROR), LOCK_EX) === false) {
+                    return $this->jsonResponse($response, ['message' => 'Could not archive package settings.'], 500);
+                }
+                $result = $installer->remove($kind, $slug);
+                if ($result['ok'] && !$ledger->forget($kind, $slug)) {
+                    return $this->jsonResponse($response, ['message' => 'Package removed, but its commit record could not be cleared.'], 500);
+                }
+            } else {
+                if ($installed || file_exists($installer->livePath($kind, $slug)) || is_link($installer->livePath($kind, $slug))) {
+                    return $this->jsonResponse($response, ['message' => 'Package folder already exists.'], 409);
+                }
+                $settings = $this->configured();
+                $sha = Reference::sha(is_string($params['sha'] ?? null) ? $params['sha'] : null);
+                if (isset($settings['error']) || $sha === null) {
+                    return $this->jsonResponse($response, ['message' => 'Select a valid repository commit first.'], 422);
+                }
+                $github = new GitHub($settings['api'], $settings['repository'], $settings['token']);
+                $head = $github->head($sha);
+                $catalog = $head['ok'] ? $github->catalog($head['sha']) : $head;
+                if (!$catalog['ok']) {
+                    return $this->jsonResponse($response, ['message' => $catalog['error']], 502);
+                }
+                if (!in_array($slug, $catalog[$kind === 'theme' ? 'themes' : 'plugins'], true)) {
+                    return $this->jsonResponse($response, ['message' => 'Package is not in this repository commit.'], 404);
+                }
+                $archive = $root . '/data/gitupdate/install-' . $sha . '.zip';
+                $download = $github->download($sha, $archive);
+                if (!$download['ok']) {
+                    return $this->jsonResponse($response, ['message' => $download['error']], 502);
+                }
+                $staged = $installer->stage($archive, $kind, $slug);
+                $result = $staged['ok'] ? $installer->install($kind, $slug, $staged['path']) : $staged;
+                if ($result['ok'] && !$ledger->remember($kind, $slug, $sha, $head['date'] ?? null)) {
+                    return $this->jsonResponse($response, ['message' => 'Package installed, but its commit record could not be saved.'], 500);
+                }
+                $snapshot = $root . '/data/gitupdate/removed-' . $kind . '-' . $slug . '.json';
+                if ($result['ok'] && is_file($snapshot)) {
+                    $restored = json_decode((string) file_get_contents($snapshot), true);
+                    if (is_array($restored)) {
+                        if ($kind === 'plugin') { $restored['active'] = false; }
+                        if (!(new Settings())->updateSettings($restored, $kind === 'theme' ? 'themes' : 'plugins', $slug)) {
+                            return $this->jsonResponse($response, ['message' => 'Installed, but archived settings could not be restored.'], 500);
+                        }
+                    }
+                }
+            }
+            return $this->jsonResponse($response, ['message' => $result['ok']
+                ? ($action === 'install' ? 'Installed. Activate it in Plugins or Themes.' : 'Removed. Settings were archived for reinstallation; content was retained.')
+                : $result['error']], $result['ok'] ? 200 : 422);
+        } finally {
+            if ($archive !== null) { @unlink($archive); }
+            if (!empty($staged['staging'])) { PackageInstaller::deleteTree($staged['staging']); }
+            $this->releaseLock();
+        }
+    }
+
     /**
      * @return array{repository: string, branch: string, api: string, token: ?string}|array{error: string, error_key: string}
      */
@@ -359,7 +460,8 @@ class gitupdate extends Plugin
                 'name' => $row['name'],
                 'applied' => $appliedSha !== null ? substr($appliedSha, 0, 7) : null,
                 'applied_date' => $appliedDate,
-                'update_available' => $appliedSha !== $sha,
+                'pinned' => $ledger->pinned($row['kind'], $row['slug']),
+                'update_available' => !$ledger->pinned($row['kind'], $row['slug']) && $appliedSha !== $sha,
             ];
         }
 
@@ -374,7 +476,7 @@ class gitupdate extends Plugin
     {
         $wanted = [];
         foreach ($this->listItems($root, $catalog, $sha)['items'] as $item) {
-            if ($force || $item['update_available']) {
+            if (!$item['pinned'] && ($force || $item['update_available'])) {
                 $wanted[] = ['kind' => $item['kind'], 'slug' => $item['slug']];
             }
         }
@@ -388,6 +490,9 @@ class gitupdate extends Plugin
      */
     private function rejectOne(string $root, array $catalog, string $kind, string $slug, string $sha, bool $force): ?array
     {
+        if ((new Ledger($root))->pinned($kind, $slug)) {
+            return ['status' => 409, 'body' => ['message' => 'Unpin this package before updating it.']];
+        }
         $installed = Catalog::installed($root, $kind);
         if (!isset($installed[$slug])) {
             return [

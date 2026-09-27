@@ -53,8 +53,36 @@ final class Ledger
         $data[$kind][$slug] = [
             'sha' => $sha,
             'date' => Reference::commitDate($date),
+            'pinned' => $data[$kind][$slug]['pinned'] ?? false,
         ];
 
+        return $this->write($data);
+    }
+
+    public function pinned(string $kind, string $slug): bool
+    {
+        return !empty($this->read()[$kind][$slug]['pinned']);
+    }
+
+    public function pin(string $kind, string $slug, bool $pinned): bool
+    {
+        $data = $this->read();
+        if (!isset($data[$kind][$slug])) {
+            return false;
+        }
+        $data[$kind][$slug]['pinned'] = $pinned;
+        return $this->write($data);
+    }
+
+    public function forget(string $kind, string $slug): bool
+    {
+        $data = $this->read();
+        unset($data[$kind][$slug]);
+        return $this->write($data);
+    }
+
+    private function write(array $data): bool
+    {
         $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         if ($json === false) {
             return false;
@@ -105,7 +133,7 @@ final class Ledger
                     continue;
                 }
                 $date = is_array($row) ? Reference::commitDate($row['date'] ?? null) : null;
-                $empty[$kind][$slug] = ['sha' => $sha, 'date' => $date];
+                $empty[$kind][$slug] = ['sha' => $sha, 'date' => $date, 'pinned' => is_array($row) && !empty($row['pinned'])];
             }
         }
 

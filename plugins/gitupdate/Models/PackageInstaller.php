@@ -249,6 +249,45 @@ final class PackageInstaller
         return $this->root . DIRECTORY_SEPARATOR . Reference::folder($kind) . DIRECTORY_SEPARATOR . $slug;
     }
 
+    /** Explicit installation is separate from swap: updates never add folders. */
+    public function install(string $kind, string $slug, string $staged): array
+    {
+        if (Reference::kind($kind) === null || !Reference::isSlug($slug)) {
+            return self::problem('That is not a valid name.', 'err_slug');
+        }
+        $live = $this->livePath($kind, $slug);
+        if (file_exists($live) || is_link($live)) {
+            return self::problem('That folder already exists.', 'err_exists');
+        }
+        if (self::containsLink($staged) || !Catalog::looksInstalled($staged, $kind, $slug)
+            || ($kind === 'plugin' && !self::directoryParses($staged))) {
+            return self::problem('The staged package is incomplete.', 'err_incomplete');
+        }
+        if (!@rename($staged, $live)) {
+            return self::problem('Could not move the package into place.', 'err_move');
+        }
+        self::resetOpcache();
+        return ['ok' => true];
+    }
+
+    /** Keep one recoverable copy; settings and content belong to the site. */
+    public function remove(string $kind, string $slug): array
+    {
+        if (Reference::kind($kind) === null || !Reference::isSlug($slug)) {
+            return self::problem('That is not a valid name.', 'err_slug');
+        }
+        $live = $this->livePath($kind, $slug);
+        if (self::containsLink($live) || !Catalog::looksInstalled($live, $kind, $slug)) {
+            return self::problem('That package cannot be removed.', 'err_not_installed');
+        }
+        $backup = $this->workPath($kind) . '/removed-' . $slug . '-' . bin2hex(random_bytes(5));
+        if (!@rename($live, $backup)) {
+            return self::problem('Could not move the package out of the installation.', 'err_rename');
+        }
+        self::resetOpcache();
+        return ['ok' => true, 'backup' => $backup];
+    }
+
     public function workPath(string $kind): string
     {
         $work = $this->root . DIRECTORY_SEPARATOR . Reference::folder($kind) . DIRECTORY_SEPARATOR . self::WORK;

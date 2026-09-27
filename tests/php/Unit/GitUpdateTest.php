@@ -215,4 +215,33 @@ class GitUpdateTest extends TestCase
         }
         file_put_contents($path, $contents);
     }
+
+    public function testExplicitInstallDoesNotOverwriteAndRemovalKeepsARecoverableCopy(): void
+    {
+        $this->root = sys_get_temp_dir() . '/tm_gitupdate_' . uniqid('', true);
+        $staged = $this->root . '/themes/.gitupdate/staging-test/demo';
+        $this->write($staged . '/demo.yaml', "name: Demo\n");
+        $installer = new PackageInstaller($this->root);
+        self::assertTrue($installer->install('theme', 'demo', $staged)['ok']);
+        self::assertFalse($installer->install('theme', 'demo', $staged)['ok']);
+        $removed = $installer->remove('theme', 'demo');
+        self::assertTrue($removed['ok']);
+        self::assertFileExists($removed['backup'] . '/demo.yaml');
+        self::assertDirectoryDoesNotExist($this->root . '/themes/demo');
+        self::assertFalse($installer->remove('theme', '../demo')['ok']);
+    }
+
+    public function testCommitDateBackfillPreservesPinsAndRemovalClearsThem(): void
+    {
+        $this->root = sys_get_temp_dir() . '/tm_gitupdate_' . uniqid('', true);
+        $ledger = new Ledger($this->root);
+        self::assertFalse($ledger->pin('theme', 'court', true));
+        self::assertTrue($ledger->remember('theme', 'court', str_repeat('c', 40)));
+        self::assertTrue($ledger->pin('theme', 'court', true));
+        self::assertTrue($ledger->remember('theme', 'court', str_repeat('c', 40), '2026-09-27T00:00:00Z'));
+        self::assertTrue((new Ledger($this->root))->pinned('theme', 'court'));
+        self::assertTrue($ledger->forget('theme', 'court'));
+        self::assertNull($ledger->sha('theme', 'court'));
+        self::assertFalse($ledger->pinned('theme', 'court'));
+    }
 }

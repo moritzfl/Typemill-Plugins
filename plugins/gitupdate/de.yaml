@@ -21,3 +21,12 @@ GITUPDATE_CANCEL: Abbrechen
 GITUPDATE_CONFIRM: Ja, fortfahren
 GITUPDATE_BLOCKED: Die PHP-Zip-Erweiterung fehlt, daher kann ein Update nicht entpackt werden.
 GITUPDATE_ADMIN_ONLY: Nur ein Administrator kann ein Update ausführen.
+GITUPDATE_BROWSE: Pakete im Repository
+GITUPDATE_SEARCH: Pakete filtern
+GITUPDATE_INSTALL: Installieren
+GITUPDATE_INSTALL_HELP: Pakete stammen aus dem konfigurierten Repository beim angezeigten Commit. Installierte Pakete werden separat unter Plugins oder Themes aktiviert.
+GITUPDATE_PIN: Commit festhalten
+GITUPDATE_UNPIN: Freigeben
+GITUPDATE_PINNED: Festgehalten
+GITUPDATE_REMOVE: Entfernen
+GITUPDATE_REMOVE_CONFIRM: Paketdateien entfernen? Einstellungen und Inhalte bleiben erhalten.
