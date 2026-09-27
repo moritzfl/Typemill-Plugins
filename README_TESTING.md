@@ -83,8 +83,29 @@ portable layouts, shared footers, public-JSON restrictions and private design
 previews. `gitupdate-packages.mjs` installs, pins and removes real fixture packages
 through the dashboard using a temporary local HTTPS repository. It installs a
 temporary test CA in the disposable Docker container and removes it in `finally`.
-Both suites restore their settings and content fixtures. Run browser suites
+`designpanel-ux.mjs` covers settings search, preset application, private interior-page
+previews, scroll retention, validation, save/discard, failed requests, stale responses,
+native-editor handoff, 320–1440px layouts, mobile view switching, dark mode and German.
+`site-authoring-ux.mjs` covers title-based page selection (including duplicate titles,
+draft and restricted ancestors, folder permissions and keyboard operation), reciprocal
+footer links and native plugin saving, all eight block-layout explanations, the media
+dialog, draft-only saving, German and dark/mobile layouts. Set `AUTHORING_SHOTS` to
+a container directory to capture those screens, using the same pattern as `DESIGN_SHOTS`.
+The suites restore their settings and content fixtures. Run browser suites
 serially: theme/settings fixtures share one Typemill instance.
+
+To capture the Designer's visual states after browser dependencies are installed:
+
+```bash
+docker compose -f docker-compose.typemill.yml exec -T \
+  -e TM_BASE_URL=http://127.0.0.1 \
+  -e PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
+  -e DESIGN_SHOTS=/var/www/html/cache/ux-review \
+  -w /var/www/tests/browser typemill node designpanel-ux.mjs
+```
+
+If the runner installed a fallback Chromium, use that executable instead.
+Screenshots appear locally in `.docker/typemill/cache/ux-review/`.
 
 ### Run PHP and API Tests
 

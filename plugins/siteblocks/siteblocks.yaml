@@ -8,46 +8,73 @@ settings:
   expose_json: false
 forms:
   fields:
+    shared_footer_help:
+      type: paragraph
+      label: Shared footer
+      description: SB_SHARED_FOOTER_HELP
+      css: sb-shared-help
+    column1:
+      type: fieldset
+      legend: Shared column 1
+      fields:
+        shared_title1:
+          type: text
+          label: Heading
+        shared_text1:
+          type: textarea
+          label: Text
+        shared_label1:
+          type: text
+          label: Link label
+          css: lg:w-half
+        shared_url1:
+          type: text
+          label: Link
+          css: lg:w-half
+    column2:
+      type: fieldset
+      legend: Shared column 2
+      fields:
+        shared_title2:
+          type: text
+          label: Heading
+        shared_text2:
+          type: textarea
+          label: Text
+        shared_label2:
+          type: text
+          label: Link label
+          css: lg:w-half
+        shared_url2:
+          type: text
+          label: Link
+          css: lg:w-half
+    column3:
+      type: fieldset
+      legend: Shared column 3
+      fields:
+        shared_title3:
+          type: text
+          label: Heading
+        shared_text3:
+          type: textarea
+          label: Text
+        shared_label3:
+          type: text
+          label: Link label
+          css: lg:w-half
+        shared_url3:
+          type: text
+          label: Link
+          css: lg:w-half
+    developer_help:
+      type: paragraph
+      label: Developer access
+      description: 'Optional machine-readable page data. This does not change the footer.'
     expose_json:
       type: checkbox
       label: Public page JSON
       checkboxlabel: 'Enable /siteblocks.json?url=/page for public, visible pages'
-    shared_title1:
-      type: text
-      label: Shared column 1 heading
-    shared_text1:
-      type: textarea
-      label: Shared column 1 text
-    shared_label1:
-      type: text
-      label: Shared column 1 link label
-    shared_url1:
-      type: text
-      label: Shared column 1 link
-    shared_title2:
-      type: text
-      label: Shared column 2 heading
-    shared_text2:
-      type: textarea
-      label: Shared column 2 text
-    shared_label2:
-      type: text
-      label: Shared column 2 link label
-    shared_url2:
-      type: text
-      label: Shared column 2 link
-    shared_title3:
-      type: text
-      label: Shared column 3 heading
-    shared_text3:
-      type: textarea
-      label: Shared column 3 text
-    shared_label3:
-      type: text
-      label: Shared column 3 link label
-    shared_url3:
-      type: text
-      label: Shared column 3 link
 metatabs:
   siteblocks:
     fields:

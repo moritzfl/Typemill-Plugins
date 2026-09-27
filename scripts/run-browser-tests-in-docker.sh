@@ -56,5 +56,7 @@ docker compose -f "$COMPOSE_FILE" exec -T typemill sh -ec '
     node court-homepage.mjs
     node plugin-readmemd.mjs
     node site-builder.mjs
+    node designpanel-ux.mjs
+    node site-authoring-ux.mjs
     node gitupdate-packages.mjs
 '

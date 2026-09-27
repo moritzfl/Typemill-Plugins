@@ -8,6 +8,7 @@ use Plugins\siteblocks\Models\Renderer;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Typemill\Models\Content;
+use Typemill\Models\User;
 use Typemill\Plugin;
 
 class siteblocks extends Plugin
@@ -29,8 +30,14 @@ class siteblocks extends Plugin
     {
         $this->addCSS('/siteblocks/assets/blocks.css');
         if ($this->editorroute) {
+            $this->addCSS('/siteblocks/assets/editor.css');
             $this->addBloxConfigJS('/siteblocks/assets/config.js');
             $this->addJS('/siteblocks/assets/editor.js');
+            $user = (new User())->setUser((string) ($_SESSION['username'] ?? ''));
+            $canConfigure = $user && $this->container->get('acl')->isAllowed($user->getValue('userrole'), 'system', 'update');
+            $this->addInlineJS('const siteBlocksCanConfigure = ' . ($canConfigure ? 'true' : 'false') . ';');
+        } elseif (trim($this->route, '/') === 'tm/plugins') {
+            $this->addJS('/siteblocks/assets/settings.js');
         } elseif (!$this->adminroute) {
             $this->addJS('/siteblocks/assets/blocks.js', 'defer');
         }

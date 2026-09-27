@@ -7,6 +7,12 @@ normally. Existing layouts open by clicking their preview. Whole blocks use the
 editor's normal drag-and-drop; gallery and column items have keyboard-accessible
 Move up / Move down controls.
 
+The layout selector explains each layout before you fill it in. The editor uses
+Typemill-style form controls, supports admin dark mode and German, and explicitly
+distinguishes saving a block to a draft from publishing the page. The media picker
+is a modal dialog with keyboard focus containment and Escape/Close focus return.
+Text fields contain plain text; use ordinary text blocks for Markdown formatting.
+
 ## Blocks
 
 | Layout | Contents |
@@ -46,6 +52,13 @@ renders them in its footer; the Shared block can also place them in page content
 Existing theme-specific footer columns remain independent. Site title, logo and
 navigation already use Typemill's global settings/page tree; they are not copied
 into a second store.
+
+**Edit shared footer** in a Shared block opens the native plugin form directly,
+without leaving the page draft. Only users allowed to configure the system see
+that link; other editors see where an administrator can make the change. The
+form explains that saving shared values makes them live everywhere immediately.
+Its **Theme settings** link, plus **Open theme footer in Design panel** when that
+plugin is active, makes the distinction discoverable in both directions.
 
 ## Storage and theme contract
 
