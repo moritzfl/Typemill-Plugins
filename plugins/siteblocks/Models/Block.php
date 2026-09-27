@@ -7,7 +7,7 @@ use InvalidArgumentException;
 /** Versioned, theme-independent data. Never accept arbitrary HTML or CSS. */
 final class Block
 {
-    public const TYPES = ['hero', 'cta', 'columns', 'gallery', 'slideshow', 'masonry', 'collection', 'shared'];
+    public const TYPES = ['hero', 'cta', 'columns', 'gallery', 'slideshow', 'masonry', 'collection'];
 
     public static function decode(string $encoded): array
     {

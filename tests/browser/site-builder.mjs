@@ -4,6 +4,7 @@ import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, writeFileSync, readdirSync, rmSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
+import { createHash } from 'node:crypto'
 
 const root = process.env.TM_ROOT || '/var/www/html'
 const base = process.env.TM_BASE_URL || 'http://127.0.0.1'
@@ -48,10 +49,20 @@ async function field(page, label, value, scope) {
 }
 const original = readFileSync(settingsFile)
 const settings = parse(original)
+const libraryId = 'sb_1234567890abcdef12345678'
+const libraryFile = join(root, 'data/siteblocks/blocks', libraryId + '.yaml')
+const placementFile = join(root, 'data/siteblocks/placements', createHash('sha256').update('').digest('hex') + '.yaml')
+const originalPlacement = existsSync(placementFile) ? readFileSync(placementFile) : null
+assert(!existsSync(libraryFile), 'Library fixture exists')
 assert(!existsSync(folder) && !existsSync(fixture + '.md'), 'Fixture already exists')
 let browser
 try {
-    settings.plugins.siteblocks = { active: true, expose_json: true, shared_title1: 'Club contact', shared_text1: 'One shared address', shared_label1: 'Email us', shared_url1: 'mailto:club@example.test' }
+    settings.plugins.siteblocks = { active: true, expose_json: true }
+    mkdirSync(join(root, 'data/siteblocks/blocks'), { recursive: true })
+    mkdirSync(join(root, 'data/siteblocks/placements'), { recursive: true })
+    const footer = '## Club contact\n\nOne shared address\n\n[Email us](mailto:club@example.test)'
+    writeFileSync(libraryFile, yaml({ version: 1, id: libraryId, scope: '', title: 'Contact', draft: footer, published: footer, history: [], revision: 'fixture', archived: false }))
+    writeFileSync(placementFile, yaml({ scope: '', footer: libraryId, revision: 'fixture' }))
     settings.plugins.designpanel = { active: true }
     settings.theme = 'court'
     // Keep previews independent of optional imagery in the local site's gallery.
@@ -97,7 +108,7 @@ try {
                 return { overflow: scroller.scrollWidth - scroller.clientWidth,
                     overlaps: blocks.some((node, i) => i && box(node).top < box(blocks[i - 1]).bottom - 1),
                     collection: document.querySelector('.sb--collection').textContent,
-                    contact: document.querySelector('footer .sb--shared')?.textContent,
+                    contact: document.querySelector('footer .sb-reference')?.textContent,
                     images: [...document.querySelectorAll('.sb img')].every(image => image.complete && image.naturalWidth > 0),
                     focal: getComputedStyle(document.querySelector('.sb--gallery img')).objectPosition,
                 }
@@ -207,6 +218,9 @@ try {
 } finally {
     if (browser) await browser.close()
     writeFileSync(settingsFile, original)
+    rmSync(libraryFile, { force: true })
+    if (originalPlacement) writeFileSync(placementFile, originalPlacement)
+    else rmSync(placementFile, { force: true })
     for (const ext of ['md', 'yaml', 'txt']) rmSync(fixture + '.' + ext, { force: true })
     rmSync(folder, { force: true, recursive: true }); clear()
 }

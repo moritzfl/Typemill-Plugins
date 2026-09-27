@@ -10,18 +10,15 @@
         slideshow: ['Slideshow', 'A horizontal strip of images with previous and next controls. It does not play automatically.'],
         masonry: ['Masonry', 'An image wall with natural image proportions instead of crops of equal height.'],
         collection: ['Page collection', 'An automatically updated list of published pages. Choose a folder and optional tag to narrow the list.'],
-        shared: ['Shared footer', 'Reuse the shared footer columns on this page. Edit them once in Site Blocks settings to update every place they appear.'],
     };
     bloxeditor.component('siteblock-component', {
-        props: ['markdown', 'disabled', 'index'],
+        props: ['markdown', 'disabled', 'index', 'library'],
         emits: ['updateMarkdownEvent', 'saveBlockEvent'],
         data: () => ({ block: defaults(), error: '', mediaIndex: null, layouts }),
         components: { medialib },
         computed: {
             images() { return ['gallery', 'slideshow', 'masonry', 'hero'].includes(this.block.type); },
-            items() { return !['cta', 'collection', 'shared'].includes(this.block.type); },
-            canConfigure() { return typeof siteBlocksCanConfigure !== 'undefined' && siteBlocksCanConfigure; },
-            settingsUrl() { return tmaxios.defaults.baseURL.replace(/\/$/, '') + '/tm/plugins#siteblocks-footer'; },
+            items() { return !['cta', 'collection'].includes(this.block.type); },
         },
         mounted() {
             if (this.markdown) {
@@ -69,15 +66,13 @@
             <p v-if="error" role="alert">{{ t(error) }}</p>
             <fieldset :disabled="disabled || !!error" @input="update" @change="update">
                 <legend>{{ t('Site layout') }}</legend>
-                <p class="sb-editor__workflow">{{ t('Save this block to the page draft. Publish the page to make it public.') }}</p>
+                <p v-if="!library" class="sb-editor__workflow">{{ t('Save this block to the page draft. Publish the page to make it public.') }}</p>
                 <label>{{ t('Layout') }}<select v-model="block.type" :aria-describedby="'sb-guide-' + index"><option v-for="(layout,type) in layouts" :value="type">{{ t(layout[0]) }}</option></select></label>
                 <p class="sb-editor__guide" :id="'sb-guide-' + index">{{ t(layouts[block.type]?.[1] || '') }}</p>
-                <template v-if="block.type !== 'shared'">
-                    <label>{{ t('Heading') }}<input v-model="block.title" maxlength="4000"></label>
-                    <label>{{ t('Text') }}<textarea v-model="block.text" maxlength="4000" :aria-describedby="'sb-text-help-' + index"></textarea></label>
-                    <p class="sb-editor__hint" :id="'sb-text-help-' + index">{{ t('Plain text with line breaks. Use a text block for Markdown formatting.') }}</p>
-                    <label v-if="!['hero','cta','slideshow'].includes(block.type)">{{ t('Columns') }}<select v-model.number="block.columns"><option>2</option><option>3</option><option>4</option></select></label>
-                </template>
+                <label>{{ t('Heading') }}<input v-model="block.title" maxlength="4000"></label>
+                <label>{{ t('Text') }}<textarea v-model="block.text" maxlength="4000" :aria-describedby="'sb-text-help-' + index"></textarea></label>
+                <p class="sb-editor__hint" :id="'sb-text-help-' + index">{{ t('Plain text with line breaks. Use a text block for Markdown formatting.') }}</p>
+                <label v-if="!['hero','cta','slideshow'].includes(block.type)">{{ t('Columns') }}<select v-model.number="block.columns"><option>2</option><option>3</option><option>4</option></select></label>
                 <template v-if="['hero','cta'].includes(block.type)">
                     <label>{{ t('Button label') }}<input v-model="block.label"></label><label>{{ t('Button link') }}<input v-model="block.url" placeholder="/contact"></label>
                 </template>
@@ -88,11 +83,6 @@
                     <label>{{ t('Presentation') }}<select v-model="block.layout"><option value="cards">{{ t('Cards') }}</option><option value="list">{{ t('List') }}</option></select></label>
                     <p class="sb-editor__hint">{{ t('Only published, visible, unrestricted pages appear. Set collection tags in the Siteblocks tab of each page.') }}</p>
                 </template>
-                <div v-if="block.type === 'shared'" class="sb-editor__shared">
-                    <p>{{ t('These columns also appear in the site footer, in addition to any theme footer content.') }}</p>
-                    <a v-if="canConfigure" :href="settingsUrl" target="_blank" rel="noopener">{{ t('Edit shared footer') }} ↗<span class="sb-editor__sr-only">{{ t('(opens in a new tab)') }}</span></a>
-                    <p v-else>{{ t('Ask a site administrator to edit the shared footer in Plugins → Site Blocks.') }}</p>
-                </div>
                 <template v-if="items">
                     <fieldset v-for="(item, i) in (block.type === 'hero' ? block.items.slice(0,1) : block.items)" :key="i" class="sb-editor__item">
                         <legend>{{ t('Item') }} {{ i + 1 }}</legend>

@@ -60,14 +60,14 @@ have been redesigned in this change.
 
 ### Follow-up implemented
 
-- **Footer discovery:** the native Site Blocks settings form explains immediate
-  site-wide saving and links to Themes and, when active, Designer. Shared blocks
-  link to that form for users with system-update permission. The additional
-  Designer footer-help section was removed following user feedback.
+- **Footer management:** System → Content blocks now owns reusable content and
+  explicit footer placement. Drafts, publication and linked/copy insertion have
+  separate actions. The additional Designer footer-help section was removed
+  following user feedback.
 - **Settings scope:** Designer edits only the active theme's settings. Some affect
   the whole site, others only the homepage or particular page types. Selecting a
   preview page never switches to per-page settings; the UI now says so explicitly.
-- **Site Blocks guidance:** all eight layouts have a contextual explanation;
+- **Site Blocks guidance:** all seven local layouts have a contextual explanation;
   the draft → publish workflow and plain-text formatting are explicit. Controls
   now match the native admin palette, including dark mode and German. The media
   library uses a native modal dialog with focus containment/return. Native block

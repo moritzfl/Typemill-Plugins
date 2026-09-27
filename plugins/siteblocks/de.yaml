@@ -1,12 +1,6 @@
 SITE_BLOCKS: Seitenbausteine
-SITEBLOCKS: Seitenbausteine
+SITEBLOCKS: Bausteine
 SITE_LAYOUT: Seitenlayout
-SHARED_FOOTER: Gemeinsame Fußzeile
-SHARED_COLUMN_1: Gemeinsame Spalte 1
-SHARED_COLUMN_2: Gemeinsame Spalte 2
-SHARED_COLUMN_3: Gemeinsame Spalte 3
-SB_SHARED_FOOTER_HELP: 'Diese Spalten erscheinen in allen unterstützten Themes, zusätzlich zur jeweiligen Theme-Fußzeile. Blöcke vom Typ „Gemeinsame Fußzeile“ verwenden dieselben Werte. Speichern aktualisiert sofort alle Stellen, an denen sie erscheinen. Die Theme-eigene Fußzeile wird separat bearbeitet: <a class="underline" href="themes">Theme-Einstellungen</a>.'
-OPEN_THEME_FOOTER_IN_DESIGN_PANEL: Theme-Fußzeile im Design-Panel öffnen
 SAVE_THIS_BLOCK_TO_THE_PAGE_DRAFT_PUBLISH_THE_PAGE_TO_MAKE_IT_PUBLIC: 'Speichern übernimmt diesen Block in den Seitenentwurf. Veröffentlichen Sie die Seite, damit er öffentlich sichtbar wird.'
 HERO: Kopfbereich
 CALL_TO_ACTION: Handlungsaufforderung
@@ -22,7 +16,6 @@ A_REGULAR_GRID_OF_CROPPED_IMAGES_READERS_CAN_OPEN_EACH_IMAGE_AT_FULL_SIZE: 'Ein 
 A_HORIZONTAL_STRIP_OF_IMAGES_WITH_PREVIOUS_AND_NEXT_CONTROLS_IT_DOES_NOT_PLAY_AUTOMATICALLY: 'Eine horizontale Bildreihe mit Vor- und Zurück-Steuerung. Kein automatischer Bildwechsel.'
 AN_IMAGE_WALL_WITH_NATURAL_IMAGE_PROPORTIONS_INSTEAD_OF_CROPS_OF_EQUAL_HEIGHT: Eine Bilderwand mit natürlichen Bildproportionen statt gleich hoher Zuschnitte.
 AN_AUTOMATICALLY_UPDATED_LIST_OF_PUBLISHED_PAGES_CHOOSE_A_FOLDER_AND_OPTIONAL_TAG_TO_NARROW_THE_LIST: 'Eine automatisch aktualisierte Liste veröffentlichter Seiten. Wählen Sie einen Ordner und optional ein Schlagwort, um die Auswahl einzugrenzen.'
-REUSE_THE_SHARED_FOOTER_COLUMNS_ON_THIS_PAGE_EDIT_THEM_ONCE_IN_SITE_BLOCKS_SETTINGS_TO_UPDATE_EVERY_PLACE_THEY_APPEAR: 'Verwendet die gemeinsamen Fußzeilen-Spalten auf dieser Seite. Bearbeiten Sie diese einmal in den Site-Blocks-Einstellungen, um alle Vorkommen zu aktualisieren.'
 HEADING: Überschrift
 TEXT: Text
 PLAIN_TEXT_WITH_LINE_BREAKS_USE_A_TEXT_BLOCK_FOR_MARKDOWN_FORMATTING: 'Einfacher Text mit Zeilenumbrüchen. Für Markdown-Formatierung verwenden Sie einen Textblock.'
@@ -35,10 +28,7 @@ PRESENTATION: Darstellung
 CARDS: Karten
 LIST: Liste
 ONLY_PUBLISHED_VISIBLE_UNRESTRICTED_PAGES_APPEAR_SET_COLLECTION_TAGS_IN_THE_SITEBLOCKS_TAB_OF_EACH_PAGE: 'Es erscheinen nur veröffentlichte, sichtbare und uneingeschränkt zugängliche Seiten. Schlagwörter vergeben Sie im Siteblocks-Reiter jeder Seite.'
-THESE_COLUMNS_ALSO_APPEAR_IN_THE_SITE_FOOTER_IN_ADDITION_TO_ANY_THEME_FOOTER_CONTENT: Diese Spalten erscheinen auch in der Website-Fußzeile, zusätzlich zum Inhalt der Theme-Fußzeile.
-EDIT_SHARED_FOOTER: Gemeinsame Fußzeile bearbeiten
 OPENS_IN_A_NEW_TAB: Öffnet in einem neuen Tab
-ASK_A_SITE_ADMINISTRATOR_TO_EDIT_THE_SHARED_FOOTER_IN_PLUGINS_→_SITE_BLOCKS: Bitten Sie einen Administrator, die gemeinsame Fußzeile unter Plugins → Site Blocks zu bearbeiten.
 ITEM: Element
 IMAGE: Bild
 CHOOSE_FROM_MEDIA: Aus Mediathek wählen
@@ -55,21 +45,94 @@ REMOVE_ITEM: Element entfernen
 ADD_ITEM: Element hinzufügen
 CLOSE_LIBRARY: Mediathek schließen
 THIS_BLOCK_CANNOT_BE_EDITED_ITS_ORIGINAL_DATA_HAS_BEEN_RETAINED: 'Dieser Block kann nicht bearbeitet werden. Seine ursprünglichen Daten bleiben erhalten.'
-SHARED_COLUMN_1_HEADING: Gemeinsame Spalte 1 – Überschrift
-SHARED_COLUMN_1_TEXT: Gemeinsame Spalte 1 – Text
-SHARED_COLUMN_1_LINK_LABEL: Gemeinsame Spalte 1 – Link-Beschriftung
-SHARED_COLUMN_1_LINK: Gemeinsame Spalte 1 – Link
-SHARED_COLUMN_2_HEADING: Gemeinsame Spalte 2 – Überschrift
-SHARED_COLUMN_2_TEXT: Gemeinsame Spalte 2 – Text
-SHARED_COLUMN_2_LINK_LABEL: Gemeinsame Spalte 2 – Link-Beschriftung
-SHARED_COLUMN_2_LINK: Gemeinsame Spalte 2 – Link
-SHARED_COLUMN_3_HEADING: Gemeinsame Spalte 3 – Überschrift
-SHARED_COLUMN_3_TEXT: Gemeinsame Spalte 3 – Text
-SHARED_COLUMN_3_LINK_LABEL: Gemeinsame Spalte 3 – Link-Beschriftung
-SHARED_COLUMN_3_LINK: Gemeinsame Spalte 3 – Link
-DEVELOPER_ACCESS: Entwicklerzugriff
-OPTIONAL_MACHINE_READABLE_PAGE_DATA_THIS_DOES_NOT_CHANGE_THE_FOOTER: Optionale maschinenlesbare Seitendaten. Diese Einstellung ändert die Fußzeile nicht.
 PUBLIC_PAGE_JSON: Öffentliches Seiten-JSON
 ENABLE_SITEBLOCKS_JSON_URL=_PAGE_FOR_PUBLIC_VISIBLE_PAGES: /siteblocks.json?url=/page für öffentliche, sichtbare Seiten aktivieren
 COLLECTION_TAGS: Schlagwörter für Seitensammlungen
 COMMA_SEPARATED_TAGS_FOR_EXAMPLE_NEWS_YOUTH_PORTFOLIO_COLLECTIONS_MATCH_A_WHOLE_TAG_IGNORING_CASE: 'Durch Kommas getrennte Schlagwörter, zum Beispiel Neuigkeiten, Jugend, Portfolio. Die Sammlung gleicht vollständige Schlagwörter ohne Beachtung der Groß- und Kleinschreibung ab.'
+CONTENT_BLOCKS: Bausteine
+CONTENT_BLOCK: Baustein
+LIBRARY: Bibliothek
+WEBSITE_AREAS: Website-Bereiche
+CREATE_BLOCK: Baustein erstellen
+EDIT_BLOCK: Baustein bearbeiten
+PROJECT_LANGUAGE: Projekt / Sprache
+DRAFT: Entwurf
+PUBLISHED: Veröffentlicht
+UNPUBLISHED_CHANGES: Unveröffentlichte Änderungen
+ARCHIVED: Archiviert
+USES: Verwendungen
+USED_IN: Verwendet in
+NO_BLOCKS_FOUND: Keine Bausteine gefunden
+NOT_USED_YET: Noch nicht verwendet
+UNSAVED_CHANGES: Ungespeicherte Änderungen
+SAVE_DRAFT: Entwurf speichern
+DRAFT_SAVED: Entwurf gespeichert
+DISCARD_DRAFT: Entwurf verwerfen
+VISUAL: Visuell
+PAGE_DRAFT: Seitenentwurf
+PUBLISHED_PAGE: Veröffentlichte Seite
+FOOTER: Fußzeile
+PAGE_PATH: Seitenpfad
+PREVIEW_DRAFT: Entwurf vorschauen
+OPEN_PRIVATE_PAGE_PREVIEW: Private Seitenvorschau öffnen
+HISTORY_AND_ACTIONS: Verlauf und Aktionen
+PUBLISHED_VERSIONS: Veröffentlichte Fassungen
+CHOOSE_A_VERSION: Fassung auswählen
+RESTORE_AS_DRAFT: Als Entwurf wiederherstellen
+DUPLICATE: Duplizieren
+COPY: Kopie
+ARCHIVE: Archivieren
+UNARCHIVE: Archivierung aufheben
+UNPUBLISH: Veröffentlichung zurückziehen
+EXPORT_AND_RESTORE: Export und Wiederherstellung
+EXPORT_LIBRARY: Bibliothek exportieren
+IMPORT_LIBRARY: Bibliothek importieren
+IMPORT_COMPLETED: Import abgeschlossen
+SUPPORTED_BY_THE_ACTIVE_THEME: Vom aktiven Theme unterstützt
+NOT_SUPPORTED_BY_THE_ACTIVE_THEME: Vom aktiven Theme nicht unterstützt
+NONE: Keine
+APPLY_PLACEMENT: Zuordnung übernehmen
+PLACEMENT_SAVED: Zuordnung gespeichert
+BLOCK_FROM_LIBRARY: Baustein aus Bibliothek
+CHOOSE_A_BLOCK: Baustein auswählen
+NO_PUBLISHED_BLOCKS: Keine veröffentlichten Bausteine
+LINKED_BLOCK: Verknüpfter Baustein
+LINKED_BLOCK_UNAVAILABLE: Verknüpfter Baustein nicht verfügbar
+INSERT_LINKED: Verknüpft einsetzen
+INSERT_AS_COPY: Als Kopie einsetzen
+DETACH_AS_COPY: Verknüpfung lösen
+EDIT_SOURCE_USAGE: Quelle bearbeiten / Verwendung
+OPEN_LIBRARY: Bibliothek öffnen
+RELOAD: Neu laden
+ALL: Alle
+REMOVE: Entfernen
+EDIT: Bearbeiten
+BACK_TO_LIBRARY: Zur Bibliothek
+SB_INTRO: 'Inhalte einmal pflegen und mehrfach verwenden. Setzen Sie Bausteine verknüpft oder als eigenständige Kopie in Seiten ein. Das Anlegen allein zeigt sie noch nirgends auf Ihrer Website.'
+SB_DRAFT_HELP: 'Speichern hält Ihren Entwurf privat. Veröffentlichen aktualisiert alle verknüpften Verwendungen dieses Bausteins.'
+SB_NAME_HELP: 'Interner Name, keine sichtbare Überschrift.'
+SB_PREVIEW_HELP: 'Die Einzelvorschau zeigt diesen Entwurf. Eine Seitenvorschau ersetzt vorhandene Verknüpfungen zu diesem Baustein nur für Sie.'
+SB_FOOTER_HELP: 'Wählen Sie veröffentlichte Inhalte für die zusätzliche Theme-Fußzeile. Übernehmen ändert die Zuordnung sofort, veröffentlicht aber keine Entwürfe.'
+SB_COPY_HELP: 'Verknüpfte Inhalte folgen zukünftigen Veröffentlichungen. Eine Kopie wird zu gewöhnlichem Inhalt in diesem Seitenentwurf.'
+SB_LINKED_HELP: 'Dieser Inhalt wird zentral gepflegt. Bearbeiten Sie die Quelle für alle verknüpften Verwendungen oder lösen Sie eine Kopie für diese Seite.'
+SB_HISTORY_HELP: 'Wiederherstellen erzeugt einen Entwurf. Veröffentlichen Sie ihn, damit die wiederhergestellten Inhalte sichtbar werden. Seitenversionen stellen Referenzen wieder her, nicht frühere Quellinhalte.'
+SB_EXPORT_HELP: 'Der Export enthält Bausteine, Verlauf und Fußzeilenzuordnung dieses Projekts. Lokale Medien sichern Sie im Website-Export unter Papierkorb. Der Import erhält IDs und lehnt vorhandene Bausteine ab.'
+SB_NOT_FOUND: Baustein nicht gefunden.
+SB_NOT_AVAILABLE: Wählen Sie einen veröffentlichten, nicht archivierten Baustein.
+SB_CONFLICT: Dieser Inhalt wurde inzwischen geändert. Laden Sie ihn vor dem Speichern neu.
+SB_FORBIDDEN: Sie haben keine Berechtigung für diese Aktion.
+SB_NAME_REQUIRED: Geben Sie einen Namen mit höchstens 160 Zeichen ein.
+SB_TOO_LARGE: Der Inhalt überschreitet 200 KB.
+SB_NO_NESTING: Bibliotheksbausteine können keine anderen Bausteine verknüpfen. Setzen Sie stattdessen eine lokale Kopie ein.
+SB_CANNOT_PUBLISH: Fügen Sie Inhalt hinzu und heben Sie die Archivierung vor dem Veröffentlichen auf.
+SB_IN_USE: Dieser Baustein wird noch verwendet. Entfernen Sie zuerst seine Seiten- und Fußzeilenverknüpfungen.
+SB_BAD_SCOPE: Wählen Sie eine gültige Seite in diesem Projekt.
+SB_BAD_ACTION: Unbekannte Aktion.
+SB_BAD_INPUT: Ungültige Anfragefelder.
+SB_STORAGE_ERROR: Der Inhalt konnte nicht gespeichert werden. Versuchen Sie es erneut.
+SB_BAD_IMPORT: Ungültiger Export oder abweichendes Projekt.
+SB_IMPORT_EXISTS: Der Import würde vorhandene Bausteine oder eine Fußzeilenzuordnung überschreiben.
+SB_CONNECTION: Keine Verbindung. Versuchen Sie es erneut.
+SB_LEAVE: Ungespeicherte Änderungen verwerfen?
+SB_DELETE: Diesen unbenutzten Baustein endgültig löschen?
+SB_MISSING_REF: Dieser verknüpfte Baustein ist im Projekt nicht verfügbar. Wählen Sie einen anderen veröffentlichten Baustein.

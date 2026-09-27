@@ -1,0 +1,42 @@
+<div class="sbl">
+    <header class="sbl__bar"><h1>{{ t('Content blocks') }}</h1><button type="button" @click="reload" :disabled="busy">{{ t('Reload') }}</button></header>
+    <p>{{ t('SB_INTRO') }}</p>
+    <label v-if="scopes.length > 1">{{ t('Project / language') }}<select :value="scope" @change="changeScope" :disabled="busy"><option v-for="project in scopes" :value="project.id">{{ project.title }}</option></select></label>
+    <p v-if="error" class="sbl__error" role="alert">{{ error }}</p>
+    <p v-if="message" class="sbl__notice" role="status">{{ message }}</p>
+    <p v-if="busy" role="status">{{ t('Loading…') }}</p>
+    <nav class="sbl__bar" :aria-label="t('Content blocks')"><button type="button" :aria-pressed="tab === 'library'" @click="tab = 'library'">{{ t('Library') }}</button><button type="button" :aria-pressed="tab === 'areas'" @click="tab = 'areas'">{{ t('Website areas') }}</button></nav>
+    <section v-if="tab === 'library'">
+        <template v-if="!selected">
+        <div class="sbl__bar"><label>{{ t('Search') }}<input type="search" v-model="search"></label><label>{{ t('Status') }}<select v-model="filter"><option value="">{{ t('All') }}</option><option v-for="status in ['Draft','Published','Unpublished changes','Archived']" :value="status">{{ t(status) }}</option></select></label><button class="sbl__primary" type="button" @click="open()" :disabled="busy || !permissions.update">{{ t('Create block') }}</button></div>
+        <ul class="sbl__list"><li v-for="row in visible" :key="row.id"><button type="button" @click="open(row)" :disabled="busy"><strong>{{ row.title }}</strong><span>{{ t(status(row)) }} · {{ row.usage.length }} {{ t('uses') }}</span></button></li></ul>
+        <p v-if="!visible.length && !busy">{{ t('No blocks found') }}</p>
+        </template>
+        <section v-if="selected" class="sbl__edit" :aria-label="t('Edit block')">
+            <button type="button" @click="closeEditor" :disabled="busy">← {{ t('Back to library') }}</button>
+            <h2>{{ selected.id ? t('Edit block') : t('Create block') }}</h2>
+            <p role="status">{{ dirty ? t('Unsaved changes') : t(status(selected)) }}</p>
+            <p>{{ t('SB_DRAFT_HELP') }}</p>
+            <label>{{ t('Name') }}<input id="sb-title" v-model="title" maxlength="160" :disabled="busy || !permissions.update" aria-describedby="sb-name-help"></label><small id="sb-name-help">{{ t('SB_NAME_HELP') }}</small>
+            <details class="sbl__usage"><summary>{{ t('Used in') }} ({{ selected.usage?.length || 0 }})</summary><ul><li v-for="use in selected.usage">{{ t(use.kind === 'footer' ? 'Footer' : use.kind === 'draft' ? 'Page draft' : 'Published page') }} · <a v-if="use.kind !== 'footer'" :href="base + '/tm/content/visual' + (use.path === '/' ? '' : use.path)" target="_blank" rel="noopener">{{ use.path }} ↗</a><span v-else>{{ use.path }}</span></li></ul><p v-if="!selected.usage?.length">{{ t('Not used yet') }}</p></details>
+            <div class="sbl__bar"><button type="button" :disabled="busy" :aria-pressed="mode === 'visual'" @click="setMode('visual')">{{ t('Visual') }}</button><button type="button" :disabled="busy" :aria-pressed="mode === 'raw'" @click="setMode('raw')">Markdown</button></div>
+            <fieldset :disabled="busy || !permissions.update">
+                <label v-if="mode === 'raw'">Markdown<textarea id="sb-markdown" class="sbl__raw" v-model="markdown"></textarea></label>
+                <template v-else>
+                    <ol class="sbl__parts"><li v-for="(part,index) in parts" :key="index">
+                        <div class="sbl__bar"><button type="button" @click="active = active === index ? -1 : index">{{ t('Edit') }} {{ index + 1 }}</button><button type="button" @click="move(index,-1)" :disabled="index === 0">{{ t('Move up') }}</button><button type="button" @click="move(index,1)" :disabled="index === parts.length - 1">{{ t('Move down') }}</button><button type="button" @click="remove(index)">{{ t('Remove') }}</button></div>
+                        <component v-if="active === index" :is="component" :key="selected.id + ':' + index + ':' + component" :markdown="part" :index="index" :library="true" :disabled="busy || !permissions.update" @updateMarkdownEvent="parts[index] = $event"></component>
+                        <library-preview v-else :markdown="part" :scope="scope"></library-preview>
+                    </li></ol>
+                    <div class="sbl__bar"><button v-for="(label,type) in {paragraph:'Text',heading:'Heading',list:'List',quote:'Quote',layout:'Site layout'}" type="button" @click="add(type)">+ {{ t(label) }}</button><button type="button" @click="media">+ {{ t('Image') }}</button></div>
+                </template>
+            </fieldset>
+            <div class="sbl__bar sbl__save"><button type="button" @click="save" :disabled="busy || !dirty || !permissions.update">{{ t('Save draft') }}</button><button class="sbl__primary" type="button" @click="action('publish')" :disabled="busy || !selected.id || !permissions.publish || selected.archived">{{ t('Publish') }}</button><button type="button" @click="action('discard')" :disabled="busy || !selected.id || !permissions.update">{{ t('Discard draft') }}</button></div>
+            <details><summary>{{ t('Preview') }}</summary><p>{{ t('SB_PREVIEW_HELP') }}</p><label>{{ t('Page path') }}<input v-model="previewPath" placeholder="/"></label><button type="button" @click="preview" :disabled="busy">{{ t('Preview draft') }}</button><a v-if="previewUrl" :href="previewUrl" target="_blank" rel="noopener">{{ t('Open private page preview') }} ↗</a><div class="sbl__preview" v-if="previewHtml" v-html="previewHtml"></div></details>
+            <details v-if="selected.id"><summary>{{ t('History and actions') }}</summary><p>{{ t('SB_HISTORY_HELP') }}</p><label>{{ t('Published versions') }}<select v-model="history"><option value="">{{ t('Choose a version') }}</option><option v-for="entry in selected.history" :value="entry.id">{{ entry.at }}</option></select></label><button type="button" @click="action('restore')" :disabled="busy || !history || !permissions.update">{{ t('Restore as draft') }}</button><div class="sbl__bar"><button type="button" @click="duplicate" :disabled="busy || !permissions.update">{{ t('Duplicate') }}</button><button type="button" @click="action(selected.archived ? 'unarchive' : 'archive')" :disabled="busy || !permissions.update">{{ t(selected.archived ? 'Unarchive' : 'Archive') }}</button><button type="button" @click="action('unpublish')" :disabled="busy || !permissions.publish || selected.published === null || !!selected.usage?.length">{{ t('Unpublish') }}</button><button type="button" @click="action('delete')" :disabled="busy || !permissions.delete || !!selected.usage?.length">{{ t('Delete') }}</button></div></details>
+        </section>
+        <details><summary>{{ t('Export and restore') }}</summary><p>{{ t('SB_EXPORT_HELP') }}</p><button type="button" @click="exportLibrary" :disabled="busy">{{ t('Export library') }}</button><label v-if="permissions.publish">{{ t('Import library') }}<input type="file" accept="application/json,.json" @change="importLibrary" :disabled="busy"></label></details>
+    </section>
+    <section v-else><h2>{{ t('Footer') }}</h2><p>{{ t('SB_FOOTER_HELP') }}</p><p>{{ t(footerSupported ? 'Supported by the active theme' : 'Not supported by the active theme') }}</p><label>{{ t('Content block') }}<select v-model="footer" :disabled="busy || !permissions.publish"><option value="">{{ t('None') }}</option><option v-if="placement.footer && !available.some(row => row.id === placement.footer)" :value="placement.footer">{{ blocks.find(row => row.id === placement.footer)?.title }} ({{ t('Archived') }})</option><option v-for="row in available" :value="row.id">{{ row.title }}</option></select></label><button class="sbl__primary" type="button" @click="place" :disabled="busy || !permissions.publish || footer === placement.footer">{{ t('Apply placement') }}</button></section>
+    <dialog v-if="mediaOpen" ref="media" class="sbl__media" :aria-label="t('Choose from media')" @close="mediaOpen = false" @keydown.esc.stop.prevent="$refs.media.close()"><button type="button" @click="$refs.media.close()">{{ t('Close library') }}</button><medialib parentcomponent="images" @addFromMedialibEvent="selectMedia"></medialib></dialog>
+</div>

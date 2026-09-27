@@ -1,4 +1,4 @@
-/** Guided Site Blocks, footer handoffs, and the permission-aware Designer page chooser. */
+/** Guided local layouts and the permission-aware Designer page chooser. */
 import puppeteer from 'puppeteer'
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
@@ -52,7 +52,7 @@ async function designReady(page) {
 try {
     if (shots) mkdirSync(shots, { recursive: true })
     settings.theme = 'lucid'; settings.language = 'en'; settings.pageaccess = true
-    settings.plugins.siteblocks = { ...(settings.plugins.siteblocks || {}), active: true, shared_title1: 'Shared contact', shared_text1: 'One address across themes.' }
+    settings.plugins.siteblocks = { ...(settings.plugins.siteblocks || {}), active: true }
     settings.plugins.designpanel = { active: true }
     writeFileSync(settingsFile, yaml(settings))
     for (const folder of [fixture, blocked, draft]) mkdirSync(folder)
@@ -134,41 +134,16 @@ try {
     assert(!await page.$eval('.dp__page-dialog', node => node.open))
     console.log('ok: native page chooser, title/path search, duplicate titles, keyboard, drafts and access boundaries')
 
-    await page.click('.dp__footer-help summary')
-    await page.click('.dp__footer-help button')
-    assert(await page.evaluate(() => /footer|copyright/i.test(document.activeElement.closest('[data-field]')?.dataset.field || '')))
-    const settingsTabPromise = new Promise(resolve => browser.once('targetcreated', resolve))
-    await page.click('.dp__footer-help a')
-    const settingsTab = await (await settingsTabPromise).page()
-    await settingsTab.waitForSelector('[name=shared_title1]')
-    assert.equal(await settingsTab.evaluate(() => document.activeElement.name), 'shared_title1')
-    assert.match(await settingsTab.$eval('.sb-shared-help', node => node.textContent), /updates every place.*immediately/)
-    const themeBefore = parse(readFileSync(settingsFile)).themes
-    await input(settingsTab, '[name=shared_title1]', 'A shared address')
-    const saved = settingsTab.waitForResponse(response => response.url().endsWith('/api/v1/plugin') && response.request().method() === 'POST')
-    await settingsTab.click('#plugins form [type=submit]')
-    assert.equal((await saved).status(), 200)
-    assert.equal(parse(readFileSync(settingsFile)).plugins.siteblocks.shared_title1, 'A shared address')
-    assert.deepEqual(parse(readFileSync(settingsFile)).themes, themeBefore, 'Shared-footer save touched theme settings')
-    // Capture only the configured card, not the entire plugin catalogue.
-    if (shots) await (await settingsTab.$('#plugins form')).screenshot({ path: join(shots, 'shared-footer-settings.png') })
-    await settingsTab.click('.sb-shared-help a[href*="designpanel"]')
-    await settingsTab.waitForSelector('.dp__fields [data-field]')
-    await settingsTab.waitForFunction(() => /footer|copyright/i.test(document.activeElement.closest('[data-field]')?.dataset.field || ''))
-    await settingsTab.close()
-    console.log('ok: reciprocal footer links open native settings, focus the right controls and preserve separate stores')
-
     await page.goto(base + '/tm/content/visual/authoring-ux', { waitUntil: 'networkidle2' })
     await page.click('#editor .sb--cta')
     await page.waitForSelector('.sb-editor')
     assert.match(await page.$eval('.sb-editor__workflow', node => node.textContent), /page draft.*Publish the page/)
     const guides = new Set()
-    for (const layout of ['hero', 'cta', 'columns', 'gallery', 'slideshow', 'masonry', 'collection', 'shared']) {
+    for (const layout of ['hero', 'cta', 'columns', 'gallery', 'slideshow', 'masonry', 'collection']) {
         await editorField(page, 'Layout', layout)
         guides.add(await page.$eval('.sb-editor__guide', node => node.textContent))
     }
-    assert.equal(guides.size, 8)
-    assert.match(await page.$eval('.sb-editor__shared a', node => node.href), /tm\/plugins#siteblocks-footer$/)
+    assert.equal(guides.size, 7)
     await editorField(page, 'Layout', 'gallery')
     await editorButton(page, 'Add item')
     // Use a real click to verify focus is returned by the native modal dialog.
@@ -201,7 +176,7 @@ try {
     assert.equal(readFileSync(join(fixture, 'index.md'), 'utf8'), content, 'Saving a block published the page')
     await page.reload({ waitUntil: 'networkidle2' })
     assert.match(await page.$eval('#editor', node => node.textContent), /Guided editing/)
-    console.log('ok: eight layout explanations, shared-footer handoff, media focus and draft-only block saving')
+    console.log('ok: seven layout explanations, media focus and draft-only block saving')
 
     // German content-editor chrome and plugin form, with the actual account dark preference.
     const current = parse(readFileSync(settingsFile)); current.language = 'de'
@@ -213,7 +188,7 @@ try {
     assert.match(await page.$eval('.sb-editor legend', node => node.textContent), /Seitenlayout/)
     assert.match(await page.$eval('.sb-editor__workflow', node => node.textContent), /Seitenentwurf/)
     assert.match(await page.$eval('.sb-editor__guide', node => node.textContent), /nächsten Schritt/)
-    for (const layout of ['hero', 'cta', 'columns', 'gallery', 'slideshow', 'masonry', 'collection', 'shared']) {
+    for (const layout of ['hero', 'cta', 'columns', 'gallery', 'slideshow', 'masonry', 'collection']) {
         await editorField(page, 'Layout', layout)
         assert(!guides.has(await page.$eval('.sb-editor__guide', node => node.textContent)), 'Layout guide is still English: ' + layout)
     }
@@ -223,11 +198,6 @@ try {
     await snapshot(page, 'siteblocks-mobile')
     assert(await page.$eval('.sb-editor', node => node.getBoundingClientRect().right <= innerWidth), 'Block form overflows on mobile')
     await page.click('.blox-editor .cancel')
-    await page.goto(base + '/tm/plugins#siteblocks-footer', { waitUntil: 'networkidle2' })
-    await page.waitForSelector('[name=shared_title1]')
-    assert.match(await page.$eval('.sb-shared-help', node => node.textContent), /Gemeinsame Fußzeile/)
-    assert.match(await page.$eval('.sb-shared-help', node => node.textContent), /sofort alle Stellen/)
-    assert.match(await page.$eval('#plugins form legend', node => node.textContent), /Gemeinsame Spalte 1/)
     await page.goto(base + '/tm/designpanel', { waitUntil: 'networkidle2' })
     await designReady(page)
     await page.click('.dp__view-switch button:last-child')
@@ -236,19 +206,29 @@ try {
     assert.match(await page.$eval('#dp-pages-title', node => node.textContent), /Seite für die Vorschau/)
     await snapshot(page, 'page-chooser-mobile-german')
     assert(await page.$eval('.dp__page-dialog', node => node.getBoundingClientRect().right <= innerWidth))
-    // Content editors can use shared blocks without being sent to forbidden settings.
+    // Content editing does not grant Designer access.
     writeFileSync(userFile, yaml({ ...parse(originalUser), userrole: 'editor' }))
     await page.goto(base + '/tm/content/visual/authoring-ux', { waitUntil: 'networkidle2' })
     await page.click('#editor .sb--cta')
     await page.waitForSelector('.sb-editor')
-    await editorField(page, 'Layout', 'shared')
-    assert.equal(await page.$('.sb-editor__shared a'), null)
-    assert.match(await page.$eval('.sb-editor__shared', node => node.textContent), /Administrator/)
     const forbidden = await page.evaluate(async () => {
         try { return (await tmaxios.get('/api/v1/designpanel/pages')).status }
         catch (error) { return error.response.status }
     })
     assert.equal(forbidden, 403)
+    // Core only loads translations for active plugins and the selected locale.
+    // The settings form must remain readable before activation or without a locale file.
+    writeFileSync(userFile, originalUser)
+    for (const [language, active] of [['en', false], ['fr', true]]) {
+        const fallback = parse(readFileSync(settingsFile))
+        fallback.language = language; fallback.plugins.siteblocks.active = active
+        writeFileSync(settingsFile, yaml(fallback))
+        await page.goto(base + '/tm/plugins', { waitUntil: 'networkidle2' })
+        await page.$eval('#plugins input[name="siteblocks"]', node => node.closest('li').querySelector('button').click())
+        await page.waitForSelector('[name=expose_json]')
+        assert.equal(await page.$('[name=shared_title1]'), null)
+    }
+    console.log('ok: readable settings help with inactive plugin and untranslated locale')
     assert.deepEqual(errors, [])
     console.log('ok: German editor/settings/chooser, native dark mode, mobile layouts and no browser errors')
 } finally {

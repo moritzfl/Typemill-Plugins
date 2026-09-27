@@ -1,5 +1,61 @@
 # Site Blocks
 
+Reusable Markdown content under **System → Content blocks** (**Bausteine** in
+German), plus portable layouts in Typemill's native visual editor. No paid plugins
+or external services required.
+
+## Content library
+
+Create named blocks in the library. Names are internal; headings belong in the
+content. The visual editor reuses Typemill's heading, text, list and quote inputs,
+native media selection and Site Blocks layouts. Markdown mode supports larger
+documents. Saving creates a private draft; **Publish** updates all linked uses.
+Creating a block does not place it anywhere automatically.
+
+- Search and filter by draft, published, unpublished changes or archived status.
+- **Used in** lists published pages, page drafts and footer placement.
+- **Preview draft** renders standalone content and creates a ten-minute,
+  session-bound private URL for an existing page. Only existing references to
+  that block are replaced; normal visitors still receive published content.
+- **Website areas → Footer** assigns a published block to the additional theme
+  footer. Applying placement is immediate and does not publish drafts.
+- Publication history retains the last 30 previous published versions.
+  Restoring a version creates a draft. Page versions restore references, not
+  historical versions of their source blocks.
+- Archive hides blocks from new selections while preserving existing uses.
+  Unpublish/delete refuses blocks still used in page sources or the footer.
+- Projects have separate libraries and footer assignments, without cross-project
+  fallback. Simultaneous edits use revision checks; reload resolves conflicts.
+
+In the page editor choose **↗ Block from library**. **Insert linked** saves a
+stable reference and follows future source publications. **Insert as copy** or
+**Detach as copy** puts ordinary Markdown into the page draft; later source
+changes do not affect it. Publishing that page remains a separate action.
+
+The `siteblocks` ACL resource has `read`, `update`, `publish` and `delete` rights.
+Managers inherit all four by default. Page authors can select published blocks
+within their allowed folders without gaining source-management rights.
+
+## Backup and restore
+
+**Export library** downloads project-scoped JSON with IDs, drafts, publications,
+history and footer placement. **Import library** validates that project and
+refuses existing IDs or conflicting footer assignments. It preserves references
+and does not promote drafts into publications.
+
+For a complete site backup, use **Recycle Bin → Export**, including every media
+folder used by your blocks. The archive contains `content/`, selected `media/`
+folders and `data/siteblocks/`. To restore a site, restore these directories to
+the matching Typemill directories together; maintain filesystem ownership and
+clear `data/navigation/`. Alternatively, restore media to their original paths
+and import the library JSON into the same project. JSON alone does not contain
+image bytes.
+
+Site Blocks 2 replaces the former three-column plugin settings and `shared`
+layout. It does not migrate or render that retired data.
+
+## Local page layouts
+
 Portable page layouts using Typemill's native visual editor and publishing flow.
 Enable **Site Blocks** in Plugins, open a page in the visual editor and choose
 **▦ Site layout**. Edit fields, choose media, save the block, then publish the page
@@ -24,7 +80,6 @@ Text fields contain plain text; use ordinary text blocks for Markdown formatting
 | Slideshow | Scroll-snap image strip; full-image previous/next in the lightbox |
 | Masonry | Natural-ratio images in CSS columns |
 | Collection | Latest 1–24 public pages, optionally filtered by folder and tag; cards or list |
-| Shared | The site's shared contact/footer columns |
 
 Images use native media selection or an image URL. X/Y focal-point sliders place
 the crop, with an immediate preview. Cropping uses CSS `object-fit`, preserving
@@ -38,7 +93,7 @@ Layout CSS and gallery behavior ship with the plugin. They work with themes that
 render Typemill's content and plugin assets; maintained themes are tested at
 mobile and desktop widths. Theme-switching does not change the block data.
 
-## Collections and shared content
+## Collections
 
 Each page's **Siteblocks** meta tab has comma-separated tags. Collections match
 one whole tag, case-insensitively, then sort newest-first by manual date (modified
@@ -47,18 +102,8 @@ noindex, draft, redirected/referenced and user/role-restricted pages are exclude
 as are descendants of excluded folders. Collections do not expose private-site
 content, even to logged-in viewers. Empty collections have no cards.
 
-Set up to three shared columns in Plugins → Site Blocks. Every maintained theme
-renders them in its footer; the Shared block can also place them in page content.
-Existing theme-specific footer columns remain independent. Site title, logo and
-navigation already use Typemill's global settings/page tree; they are not copied
-into a second store.
-
-**Edit shared footer** in a Shared block opens the native plugin form directly,
-without leaving the page draft. Only users allowed to configure the system see
-that link; other editors see where an administrator can make the change. The
-form explains that saving shared values makes them live everywhere immediately.
-Its **Theme settings** link, plus **Open theme footer in Design panel** when that
-plugin is active, makes the distinction discoverable in both directions.
+Theme-specific footer settings remain independent of library placement. Site
+title, logo and navigation use Typemill's global settings/page tree.
 
 ## Storage and theme contract
 
@@ -67,6 +112,12 @@ Blocks live inside ordinary Markdown as a native shortcode:
 ```text
 [:siteblock data="BASE64URL_JSON" :]
 ```
+
+Linked library content uses `[:siteblock-ref id="sb_…" :]`. Sources live under
+`data/siteblocks/blocks/`, placements under `data/siteblocks/placements/`.
+Atomic YAML writes and a shared lock protect library revisions and placements.
+References resolve on each render; published source updates do not depend on a
+shared HTML cache. Nested library references are rejected.
 
 The payload is UTF-8 JSON encoded with URL-safe Base64, without padding:
 
@@ -94,7 +145,7 @@ Third-party themes need no block templates. Render `content`,
 `assets.renderCSS()` and `assets.renderJS()` as usual. To support shared footers:
 
 ```twig
-{{ siteblocks_shared|default('')|raw }}
+{{ siteblocks_footer|default('')|raw }}
 ```
 
 The `.sb` class namespace belongs to the plugin. `--sb-columns` and `--sb-gap`

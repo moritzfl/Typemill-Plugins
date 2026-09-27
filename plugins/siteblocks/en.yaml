@@ -1,1 +1,0 @@
-SB_SHARED_FOOTER_HELP: 'These columns appear across maintained themes, in addition to any theme footer content. Shared footer blocks reuse the same values. Saving here updates every place they appear immediately. Theme-specific footer content is separate: <a class="underline" href="themes">Theme settings</a>.'
