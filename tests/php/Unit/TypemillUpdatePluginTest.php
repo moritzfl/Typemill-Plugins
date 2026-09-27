@@ -250,6 +250,25 @@ class TypemillUpdatePluginTest extends TestCase
         $this->assertStringContainsString('old body', (string) file_get_contents($this->root . '/plugins/search/search.php'));
     }
 
+    public function testInstallRefusesABrokenIncludedPhpFile(): void
+    {
+        $this->writePlugin('search', '2.1.0', 'old body');
+
+        $environment = new Environment($this->root);
+        $installer = new PluginInstaller($environment, new Installer($environment));
+        $staged = $installer->stagingPath() . '/search';
+        $this->writeAbsolute($staged . '/search.php', '<?php // entry is fine');
+        $this->writeAbsolute($staged . '/search.yaml', "name: Search\nversion: '2.2.0'\n");
+        $this->writeAbsolute($staged . '/Models/Broken.php', '<?php function (');
+
+        $result = $installer->install('search', $staged);
+
+        $this->assertFalse($result['ok']);
+        $this->assertFalse($result['touched']);
+        $this->assertSame('typemillupdate.err_plugin_php', $result['error_key']);
+        $this->assertStringContainsString('old body', (string) file_get_contents($this->root . '/plugins/search/search.php'));
+    }
+
     public function testInstallReplacesThePluginAndKeepsABackup(): void
     {
         $this->writePlugin('search', '2.1.0', 'old body');

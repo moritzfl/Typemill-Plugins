@@ -42,6 +42,33 @@ class PluginInstaller
      * Cheap gate before a swap: a parse error here would white-screen the
      * admin on the next request. Runtime errors are not caught.
      */
+    public static function directoryParses(string $path): bool
+    {
+        if (!is_dir($path)) {
+            return false;
+        }
+
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS)
+        );
+        $sawEntry = false;
+
+        foreach ($iterator as $file) {
+            if (!$file instanceof \SplFileInfo || !$file->isFile()) {
+                continue;
+            }
+            if (strtolower($file->getExtension()) !== 'php') {
+                continue;
+            }
+            if ($file->isLink() || !self::phpParses($file->getPathname())) {
+                return false;
+            }
+            $sawEntry = true;
+        }
+
+        return $sawEntry;
+    }
+
     public static function phpParses(string $path): bool
     {
         $code = @file_get_contents($path);
@@ -124,7 +151,7 @@ class PluginInstaller
             return self::problem('The staged plugin is incomplete.', 'err_plugin_incomplete');
         }
 
-        if (!self::phpParses($stagedPlugin . DIRECTORY_SEPARATOR . $slug . '.php')) {
+        if (!self::directoryParses($stagedPlugin)) {
             return self::problem(
                 'The new plugin PHP does not parse, so it was not installed.',
                 'err_plugin_php'
@@ -145,7 +172,7 @@ class PluginInstaller
             return ['touched' => false] + self::problem('The plugin to install is incomplete.', 'err_plugin_incomplete');
         }
 
-        if (!self::phpParses($stagedPlugin . DIRECTORY_SEPARATOR . $slug . '.php')) {
+        if (!self::directoryParses($stagedPlugin)) {
             return ['touched' => false] + self::problem(
                 'The new plugin PHP does not parse, so it was not installed.',
                 'err_plugin_php'
