@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="ct-shuttle" viewBox="0 0 400 420" fill="none" aria-hidden="true" focusable="false">
+  <defs>
+    <g id="ct-shuttle-feather">
+      <path d="M-16-228Q-17-232-13-234Q0-242 13-234Q17-232 16-228C16-184 14-129 10-94C8-78 2-61 0-56C-2-61-8-78-10-94C-14-129-16-184-16-228Z" fill="currentColor"/>
+      <path d="M0-232V-56" stroke="#90a59a" stroke-width="1.2" stroke-linecap="round"/>
+      <path d="M-13-213Q-8-208 0-204M0-196Q8-200 13-206M-12-188Q-7-182 0-179M0-171Q7-175 11-180M-10-162Q-6-157 0-153M0-145Q6-149 9-154M-9-137Q-5-131 0-128M0-120Q5-124 8-129M-7-112Q-4-107 0-104" stroke="#b2c2b2" stroke-opacity=".8" stroke-width="1" stroke-linecap="round"/>
+      <path d="M0-60V0" stroke="#edf0dc" stroke-width="2" stroke-linecap="round"/>
+    </g>
+    <linearGradient id="ct-shuttle-cork" x1="136" y1="315" x2="225" y2="336" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fffff5"/>
+      <stop offset=".5" stop-color="#edeedc"/>
+      <stop offset="1" stop-color="#bbc9b5"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(20 5) rotate(26 180 200)">
+    <g transform="translate(180 280)" color="#b4c9bf">
+      <use href="#ct-shuttle-feather" transform="translate(-26 -4) rotate(-15) scale(.8 .97)"/>
+      <use href="#ct-shuttle-feather" transform="translate(-17 -6) rotate(-10) scale(.8 .97)"/>
+      <use href="#ct-shuttle-feather" transform="translate(-9 -7) rotate(-5) scale(.8 .97)"/>
+      <use href="#ct-shuttle-feather" transform="translate(0 -8) scale(.8 .97)"/>
+      <use href="#ct-shuttle-feather" transform="translate(9 -7) rotate(5) scale(.8 .97)"/>
+      <use href="#ct-shuttle-feather" transform="translate(17 -6) rotate(10) scale(.8 .97)"/>
+      <use href="#ct-shuttle-feather" transform="translate(26 -4) rotate(15) scale(.8 .97)"/>
+    </g>
+    <g transform="translate(180 280)">
+      <use href="#ct-shuttle-feather" transform="translate(-30 0) rotate(-17) scale(.85 1)" color="#dce6db"/>
+      <use href="#ct-shuttle-feather" transform="translate(-23 0) rotate(-12.75) scale(.85 1)" color="#f2f3e7"/>
+      <use href="#ct-shuttle-feather" transform="translate(-15 0) rotate(-8.5) scale(.85 1)" color="#fffff5"/>
+      <use href="#ct-shuttle-feather" transform="translate(-8 0) rotate(-4.25) scale(.85 1)" color="#f2f3e7"/>
+      <use href="#ct-shuttle-feather" transform="scale(.85 1)" color="#fffff5"/>
+      <use href="#ct-shuttle-feather" transform="translate(8 0) rotate(4.25) scale(.85 1)" color="#f2f3e7"/>
+      <use href="#ct-shuttle-feather" transform="translate(15 0) rotate(8.5) scale(.85 1)" color="#fffff5"/>
+      <use href="#ct-shuttle-feather" transform="translate(23 0) rotate(12.75) scale(.85 1)" color="#f2f3e7"/>
+      <use href="#ct-shuttle-feather" transform="translate(30 0) rotate(17) scale(.85 1)" color="#dce6db"/>
+    </g>
+    <g stroke-linecap="round">
+      <path d="M134 240Q180 254 226 240M143 260Q180 270 217 260" stroke="#78988d" stroke-width="5"/>
+      <path d="M134 238Q180 252 226 238M143 258Q180 268 217 258" stroke="#eef3df" stroke-width="2.5"/>
+      <path d="M134 240Q180 254 226 240M143 260Q180 270 217 260" stroke="#c0cfbd" stroke-width="1.5" stroke-dasharray="1 5"/>
+    </g>
+    <path d="M136 283H224V313C224 338 204 358 180 358S136 338 136 313Z" fill="url(#ct-shuttle-cork)"/>
+    <path d="M145 299v12c0 18 8 30 21 37" stroke="#fffef1" stroke-width="3" stroke-linecap="round"/>
+    <path d="M135 277Q180 270 225 277L224 294Q180 287 136 294Z" fill="var(--ct-accent, #d5ef57)"/>
+    <path d="M136 294Q180 287 224 294" stroke="#728e67" stroke-width="2"/>
+  </g>
+</svg>

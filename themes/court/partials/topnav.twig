@@ -28,16 +28,16 @@
               {% if children|length > 0 %}data-nav-item{% endif %}>
 
             <a href="{{ element.urlRel }}"
-               class="ct-nav__link"
+               class="ct-nav__link{{ (element.urlRel == clubActionHref or element.urlAbs == clubActionHref) and children|length == 0 ? ' ct-nav__link--action' : '' }}"
                {% if element.active %}aria-current="page"{% elseif element.activeParent %}aria-current="location"{% endif %}
                {% if children|length > 0 %}
                  data-nav-parent
                  aria-expanded="false"
                  aria-controls="{{ panelId }}"
                {% endif %}>{{ element.name|e }}{% if children|length > 0 %}
-              <svg class="ct-nav__caret" width="10" height="6" viewBox="0 0 10 6" fill="none"
-                   stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M1 1l4 4 4-4" />
+              <svg class="ct-nav__caret" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" />
               </svg>
             {% endif %}</a>
 

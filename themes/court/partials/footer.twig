@@ -3,6 +3,15 @@
 <footer class="ct-footer">
   <div class="ct-container">
 
+    <div class="ct-footer__identity">
+      <a class="ct-footer__brand" href="{{ base_url }}">{{ settings.title|e }}{% include 'partials/icon.twig' %}</a>
+      {% if navigation|length > 0 %}
+        <nav aria-label="{{ translate('Club links')|e('html_attr') }}">
+          {% for element in navigation %}<a href="{{ element.urlRel }}">{{ element.name|e }}</a>{% endfor %}
+        </nav>
+      {% endif %}
+    </div>
+
     {% if theme.footercolumns is not empty %}
       <div class="ct-footer__cols">
         {% for column, key in theme.footercolumns %}

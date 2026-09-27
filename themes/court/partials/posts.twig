@@ -21,11 +21,11 @@
       <li class="ct-post">
 
         {% if (theme.blogimage ?? true) and post.meta.heroimage %}
-          <a class="ct-post__media" href="{{ element.urlRel }}" tabindex="-1" aria-hidden="true">
+          <div class="ct-post__media">
             <img src="{{ assets.image(post.meta.heroimage).resize(820, 462).src() }}"
                  alt="{{ post.meta.heroimagealt|default('')|e('html_attr') }}"
                  loading="lazy" decoding="async" />
-          </a>
+          </div>
         {% endif %}
 
         <div class="ct-post__body">
@@ -35,16 +35,16 @@
             </p>
           {% endif %}
 
-          <h2 class="ct-post__title">
+          <{{ postHeading|default('h2') }} class="ct-post__title">
             <a href="{{ element.urlRel }}">{{ post.meta.title|default(element.name)|e }}</a>
-          </h2>
+          </{{ postHeading|default('h2') }}>
 
           {% if post.meta.description %}
             <p class="ct-post__excerpt">{{ post.meta.description|e }}</p>
           {% endif %}
 
           <div class="ct-link" aria-hidden="true">
-            {{ theme.readMore|default(translate('Read more'))|e }}
+            {{ theme.readMore|default(translate('Read more'))|e }} {% include 'partials/icon.twig' %}
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 name: Court
 version: 1.0.0
-description: 'A sports-club theme: navy court band, schedule-first tables, clear training CTAs and a compact top bar. Built for small Verein sites with a handful of pages and a news folder. System font stack, automatic dark mode.'
+description: 'A modern club homepage with bold editorial type, original court artwork, prominent training links and recent news. Responsive, accessible navigation, automatic dark mode and no external fonts or scripts.'
 author: moritz
 homepage: https://github.com/moritzfl/Typemill-Plugins
 license: GPL-2.0
@@ -13,12 +13,13 @@ settings:
   heroBtnLink: ''
   heroLinkLabel: ''
   heroLinkTarget: ''
+  heroImageStyle: auto
   showTiles: true
   tilesTitle: ''
   tilesLead: ''
-  tilesLinkLabel: ''
-  tilesCountLabel: ''
   blog: false
+  showNews: true
+  newsTitle: ''
   blogfolder: '/news'
   blogimage: true
   blogintro: false
@@ -41,7 +42,7 @@ readymades:
 
   sportsclub:
     name: 'Sports club'
-    description: 'Homepage hero with a training CTA, section tiles, and news as a post folder. Defaults match a small German Verein site.'
+    description: 'Editorial club homepage with a training CTA, quick links, and recent news. Defaults match a small German Verein site.'
     settings:
       heroEyebrow: 'Willkommen'
       heroTitle: 'Trainieren. Spielen. Dazugehören.'
@@ -50,11 +51,11 @@ readymades:
       heroBtnLink: '/trainingszeiten'
       heroLinkLabel: 'Neues'
       heroLinkTarget: '/news'
+      heroImageStyle: auto
+      showNews: true
       showTiles: true
       tilesTitle: 'Auf einen Blick'
       tilesLead: ''
-      tilesLinkLabel: ''
-      tilesCountLabel: ''
       blog: false
       blogfolder: '/news'
       breadcrumb: true
@@ -90,6 +91,14 @@ forms:
       type: fieldset
       legend: 'Homepage Hero'
       fields:
+        heroImageStyle:
+          type: select
+          label: 'Homepage image treatment'
+          description: 'Auto displays SVG crests with the court artwork and other images as a full-height photo. Select Crest for a PNG or JPEG logo.'
+          options:
+            auto: 'Auto'
+            crest: 'Club crest + court artwork'
+            photo: 'Full-height photo'
         heroEyebrow:
           type: text
           label: 'Eyebrow (small line above the headline)'
@@ -111,6 +120,7 @@ forms:
           label: 'Primary button link'
           placeholder: '/trainingszeiten'
           css: 'w-half'
+          description: 'Leave the primary action empty to link to the first navigation page automatically.'
         heroLinkLabel:
           type: text
           label: 'Secondary link label'
@@ -124,12 +134,12 @@ forms:
 
     fieldsetTiles:
       type: fieldset
-      legend: 'Section tiles on the homepage'
+      legend: 'Homepage quick links'
       fields:
         showTiles:
           type: checkbox
-          label: 'Tiles'
-          checkboxlabel: 'Show one tile per top-level page'
+          label: 'Quick links'
+          checkboxlabel: 'Show a numbered link to each top-level page'
         tilesTitle:
           type: text
           label: 'Section title'
@@ -137,19 +147,19 @@ forms:
         tilesLead:
           type: text
           label: 'Lead under the section title'
-        tilesLinkLabel:
-          type: text
-          label: 'Tile action label (visual only)'
-          placeholder: 'Öffnen'
-        tilesCountLabel:
-          type: text
-          label: 'Word after a folder page count'
-          placeholder: 'Seiten'
 
     fieldsetBlog:
       type: fieldset
       legend: 'News / blog'
       fields:
+        showNews:
+          type: checkbox
+          label: 'Club homepage'
+          checkboxlabel: 'Show the three latest posts below the homepage content'
+        newsTitle:
+          type: text
+          label: 'Homepage news heading'
+          description: 'Empty uses the site language. Only published posts from the configured folder appear.'
         blog:
           type: checkbox
           label: 'Homepage'
@@ -226,18 +236,18 @@ forms:
       fields:
         courtColor:
           type: text
-          label: 'Court (navy band and brand)'
+          label: 'Court (artwork and footer)'
           placeholder: '#0c3169'
-          description: 'A CSS colour for the hero and footer. Empty keeps the default navy.'
+          description: 'A CSS colour for the court artwork and footer. Empty keeps the default navy.'
         accentColor:
           type: text
           label: 'Accent (buttons and links)'
-          placeholder: '#c5d92a'
+          placeholder: '#d5ef57'
           description: 'A CSS colour for buttons and links. Empty keeps the default shuttle lime.'
         maxwidth:
           type: text
           label: 'Content width'
-          placeholder: '1080px'
+          placeholder: '1200px'
         customcss:
           type: textarea
           label: 'Custom CSS'

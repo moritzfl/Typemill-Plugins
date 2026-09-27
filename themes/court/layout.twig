@@ -1,4 +1,10 @@
 {% set theme = settings.themes.court %}
+{# An existing club gets a useful primary action without first applying a preset.
+   Navigation URLs already include any installation subdirectory. #}
+{% set firstSection = navigation|first %}
+{% set clubActionLabel = theme.heroBtnLabel|default('') ?: firstSection.name|default('') %}
+{% set clubActionHref = theme.heroBtnLink|default('') %}
+{% set clubActionHref = clubActionHref ? (clubActionHref starts with '/' ? base_url ~ clubActionHref : clubActionHref) : firstSection.urlRel|default('') %}
 {% set isHomepage = item.urlRel == '/' %}
 {% set canonicalBase = isHomepage ? base_url : item.urlAbs %}
 {% set validCurrentPage = currentpage and currentpage matches '/^[1-9][0-9]*$/' %}
@@ -38,7 +44,7 @@
   {{ assets.renderMeta() }}
 
   {% block stylesheets %}
-  <link rel="stylesheet" href="{{ base_url }}/themes/court/css/court.css" />
+  <link rel="stylesheet" href="{{ base_url }}/themes/court/css/court.css?v=2" />
   <style>
     {% if theme.courtColor %}
     :root {
