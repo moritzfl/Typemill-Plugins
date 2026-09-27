@@ -147,6 +147,24 @@ class ReadmeMdRendererTest extends TestCase
         }
     }
 
+    /**
+     * SMIL can assign an event handler or a javascript: URL after the attribute
+     * walk has already decided the markup is safe.
+     */
+    public function testSvgAnimationCannotSetAHandler(): void
+    {
+        $html = $this->render(
+            '<svg><a><animate attributeName="href" values="javascript:alert(1)"></animate><text>x</text></a></svg>'
+            . '<svg><set attributeName="onmouseover" to="alert(1)"></set></svg>'
+        );
+
+        $this->assertStringNotContainsString('<animate', $html);
+        $this->assertStringNotContainsString('<set', $html);
+        $this->assertStringNotContainsString('javascript:', $html);
+        $this->assertStringNotContainsString('onmouseover', $html);
+        $this->assertStringContainsString('<text>x</text>', $html);
+    }
+
     /** A data: URL carries its payload inline, so it is not a link to anywhere. */
     public function testInlineDataIsNotAnAddress(): void
     {

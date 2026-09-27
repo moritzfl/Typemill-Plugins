@@ -28,6 +28,9 @@ class ReadmeRenderer
         // Inline SVG is kept - readmes draw badges with it - but this is the one
         // element inside it that can carry a document of its own.
         'foreignObject',
+        // SMIL can set an event handler or a javascript: URL after the attribute
+        // walk has already passed. Badges do not animate.
+        'animate', 'animateTransform', 'animateMotion', 'set', 'handler',
     ];
 
     /** Only these can carry a URL, and only to somewhere sensible. */
