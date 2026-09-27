@@ -4,6 +4,11 @@ Enable the plugin, then open **System → Design panel** with a role allowed to
 update system settings. The active maintained theme's own fields and readymades
 become a live design workspace beside a real frontend preview.
 
+The panel edits only the active theme's settings, never per-page settings or
+content. A setting can affect the whole site (such as text size), only the
+homepage (such as its hero), or particular page types. Selecting a preview page
+does not change the settings being edited. Use **Content** for individual pages.
+
 - Edit colors (with native color pickers), base text scale, hero/CTA copy,
   homepage presentation and footer options supported by the active theme.
 - Find controls by searching their labels, descriptions or sections. The panel
@@ -13,17 +18,14 @@ become a live design workspace beside a real frontend preview.
   canvas. On smaller screens, switch between **Theme settings** and **Private preview**.
 - Enter a local page path and press **Go**, or follow a preview link to inspect
   an interior page. Changing a setting keeps the preview's scroll position.
-- **Choose page** searches published pages by title or path, including hidden
+- **Choose preview page** searches published pages by title or path, including hidden
   pages. Paths distinguish identical titles. The chooser uses Typemill's native
   navigation, project and access rules; unpublished or inaccessible branches and
   reference pages are excluded. Escape closes the chooser and returns focus.
-- **Where is my footer?** takes you to the active theme's footer fields or opens
-  Site Blocks' shared footer settings in a new tab. Shared columns appear across
-  themes in addition to the theme footer; the two sets of settings stay separate.
 - **Start from a preset** shows its description before **Apply to preview**.
   Review the result, then **Save design** or **Discard changes**. Selecting a
   preset alone does not change anything. Applying one can replace theme text.
-- **Save design** makes theme changes live across the site. Until then, changes
+- **Save design** makes changes live wherever the theme uses those settings. Until then, changes
   stay in this open panel; they are not persistent drafts. Leaving with unsaved
   changes triggers the browser's standard warning.
 - **Edit page content** opens that page's native visual editor in a new tab,

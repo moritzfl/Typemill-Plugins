@@ -27,7 +27,7 @@ published documentation, not a hands-on test of their dashboards.
 | Reference | Useful pattern | Application here |
 | --- | --- | --- |
 | [Automad: publishing](https://www.v2.automad.org/user-guide/publishing) | Drafts and public content have explicit states; publishing is scoped to the current section. | Show saved/unsaved state and say that saving updates the live theme across the site. Keep Typemill's separate content publishing flow explicit. |
-| [Automad: global defaults](https://www.v2.automad.org/user-guide/global-vs-pagedata) | Explain the distinction between global values and page-specific data. | Label Designer as site-wide; place the native page-editor handoff next to the previewed page. |
+| [Automad: global defaults](https://www.v2.automad.org/user-guide/global-vs-pagedata) | Explain the distinction between global values and page-specific data. | Explain that Designer edits the active theme, with effects depending on the setting; page selection controls only the preview. Place the native page-editor handoff next to it. |
 | [Automad: layouts](https://www.v2.automad.org/user-guide/layouts) | Page composition has a named, content-oriented home in the block editor. | Guide page text and layout-block work to Content, rather than implying the iframe supports inline text editing. |
 | [Kirby: fields](https://getkirby.com/docs/guide/blueprints/fields) | Schema-driven labels, help and validation support an editor-specific interface. | Keep the active theme's schema authoritative; expose checkbox explanations, connect help text to controls, add search and reveal invalid fields. |
 
@@ -60,16 +60,19 @@ have been redesigned in this change.
 
 ### Follow-up implemented
 
-- **Footer discovery:** “Where is my footer?” opens the active theme's footer
-  controls or the native Site Blocks settings form. That form explains immediate
-  site-wide saving and links back to Themes and, when active, Designer. Shared
-  blocks link to the same form for users with system-update permission.
+- **Footer discovery:** the native Site Blocks settings form explains immediate
+  site-wide saving and links to Themes and, when active, Designer. Shared blocks
+  link to that form for users with system-update permission. The additional
+  Designer footer-help section was removed following user feedback.
+- **Settings scope:** Designer edits only the active theme's settings. Some affect
+  the whole site, others only the homepage or particular page types. Selecting a
+  preview page never switches to per-page settings; the UI now says so explicitly.
 - **Site Blocks guidance:** all eight layouts have a contextual explanation;
   the draft → publish workflow and plain-text formatting are explicit. Controls
   now match the native admin palette, including dark mode and German. The media
   library uses a native modal dialog with focus containment/return. Native block
   Save/Cancel controls remain in flow, clear of the fixed publisher toolbar.
-- **Page selection:** “Choose page” provides title/path search and distinguishes
+- **Page selection:** “Choose preview page” provides title/path search and distinguishes
   duplicate titles with their paths. The server reuses core navigation and access
   filters, including configured projects, restricted/unpublished ancestors and
   editor folder permissions. Reference pages are omitted. Hidden but accessible

@@ -1,13 +1,13 @@
 DESIGN_PANEL: Design-Panel
-SITE_WIDE_THEME_SETTINGS: Theme-Einstellungen für die gesamte Website
-ADJUST_YOUR_THEME_HERE_EDIT_PAGE_TEXT_AND_LAYOUT_BLOCKS_IN_CONTENT: 'Hier passen Sie Ihr Theme an. Seitentexte und Layout-Blöcke bearbeiten Sie unter Content.'
+SETTINGS_FOR_THE_ACTIVE_THEME: Einstellungen des aktiven Themes
+DP_SCOPE_HELP: 'Sie bearbeiten das aktive Theme, keine einzelne Seite. Je nach Einstellung wirken Änderungen auf der ganzen Website, nur auf der Startseite oder auf bestimmten Seitentypen.'
 LOADING_DESIGN_SETTINGS…: Design-Einstellungen werden geladen…
 TRY_AGAIN: Erneut versuchen
 SAVING…: Wird gespeichert…
 UNSAVED_CHANGES: Ungespeicherte Änderungen
 ALL_CHANGES_SAVED: Alle Änderungen gespeichert
 ONLY_YOU_CAN_SEE_THIS_PREVIEW_SAVE_TO_UPDATE_THE_LIVE_SITE: 'Nur Sie sehen diese Vorschau. Speichern übernimmt die Änderungen auf die Website.'
-CHANGES_APPLY_ACROSS_YOUR_SITE_WHEN_YOU_SAVE: 'Beim Speichern gelten die Änderungen für Ihre gesamte Website.'
+DP_SAVE_SCOPE: 'Speichern aktualisiert die Theme-Einstellungen, nicht die ausgewählte Seite.'
 DISCARD_CHANGES: Änderungen verwerfen
 SAVE_DESIGN: Design speichern
 THEME_SETTINGS: Theme-Einstellungen
@@ -36,7 +36,7 @@ TABLET: Tablet
 MOBILE: Mobil
 UPDATING_PREVIEW…: Vorschau wird aktualisiert…
 PREVIEW_OUT_OF_DATE: Vorschau nicht aktuell
-LINKS_OPEN_HERE_TEXT_IS_EDITED_IN_CONTENT: 'Links öffnen sich hier. Texte bearbeiten Sie unter Content.'
+DP_PREVIEW_SCOPE: 'Die Seitenauswahl ändert nur die Vorschau – nicht die Einstellungen, die Sie bearbeiten.'
 EDIT_PAGE_CONTENT: Seiteninhalt bearbeiten
 OPENS_IN_A_NEW_TAB: Öffnet in einem neuen Tab
 RETRY_PREVIEW: Vorschau neu laden
@@ -73,12 +73,7 @@ BUTTON_LINK: Button-Link
 SECONDARY_LINK_LABEL: Beschriftung des zweiten Links
 SECONDARY_LINK_TARGET: Ziel des zweiten Links
 DEFAULTS_TO_THE_HOMEPAGE_TITLE_IF_LEFT_BLANK: Wenn leer, wird der Titel der Startseite verwendet.
-WHERE_IS_MY_FOOTER: Wo bearbeite ich die Fußzeile?
-THEME_FOOTER_SETTINGS_BELONG_TO_THE_ACTIVE_THEME: Die Theme-Fußzeile gehört zum aktiven Theme.
-FIND_THEME_FOOTER_SETTINGS: Theme-Fußzeile finden
-SHARED_FOOTER_COLUMNS_COME_FROM_SITE_BLOCKS_THEY_APPEAR_ACROSS_THEMES_IN_ADDITION_TO_THE_THEME_FOOTER: 'Gemeinsame Fußzeilen-Spalten stammen aus Site Blocks. Sie erscheinen themeübergreifend, zusätzlich zur Theme-Fußzeile.'
-EDIT_SHARED_FOOTER: Gemeinsame Fußzeile bearbeiten
-CHOOSE_PAGE: Seite wählen
+CHOOSE_PREVIEW_PAGE: Vorschauseite wählen
 CHOOSE_A_PAGE_TO_PREVIEW: Seite für die Vorschau wählen
 PUBLISHED_PAGES_YOU_CAN_ACCESS_SELECTING_A_PAGE_DOES_NOT_CHANGE_ITS_CONTENT: 'Veröffentlichte Seiten, auf die Sie zugreifen können. Die Auswahl ändert keinen Seiteninhalt.'
 SEARCH_BY_TITLE_OR_PATH: Nach Titel oder Pfad suchen

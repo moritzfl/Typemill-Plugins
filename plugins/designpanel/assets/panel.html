@@ -2,11 +2,11 @@
     <header class="dp__header">
         <div>
             <h1 class="text-3xl font-bold">{{ t('Design panel') }}</h1>
-            <p class="dp__muted" v-if="state.theme">{{ state.name || state.theme }} · {{ t('Site-wide theme settings') }}</p>
+            <p class="dp__muted" v-if="state.theme">{{ state.name || state.theme }} · {{ t('Settings for the active theme') }}</p>
         </div>
         <a class="dp__link" :href="base + '/tm/themes'">{{ t('Themes') }}</a>
     </header>
-    <p class="dp__intro">{{ t('Adjust your theme here. Edit page text and layout blocks in Content.') }}</p>
+    <p class="dp__intro">{{ t('DP_SCOPE_HELP') }}</p>
     <p v-if="loading" role="status">{{ t('Loading design settings…') }}</p>
     <div v-if="error" class="dp__notice dp__notice--error" role="alert">
         <p>{{ error }}</p>
@@ -16,7 +16,7 @@
         <div class="dp__toolbar">
             <div class="dp__save-state" role="status" aria-live="polite">
                 <strong>{{ busy ? t('Saving…') : dirty ? t('Unsaved changes') : t('All changes saved') }}</strong>
-                <span>{{ dirty ? t('Only you can see this preview. Save to update the live site.') : t('Changes apply across your site when you save.') }}</span>
+                <span>{{ dirty ? t('Only you can see this preview. Save to update the live site.') : t('DP_SAVE_SCOPE') }}</span>
             </div>
             <div class="dp__actions">
                 <button class="dp__button" type="button" :disabled="busy || !dirty" @click="reset">{{ t('Discard changes') }}</button>
@@ -45,19 +45,6 @@
                         <p v-if="selectedPreset" class="dp__muted">{{ t(selectedPreset.description) }}</p>
                         <p class="dp__muted">{{ t('Replaces matching settings, including text. Review the preview before saving.') }}</p>
                         <button class="dp__button" type="button" :disabled="busy || !presetKey" @click="preset">{{ t('Apply to preview') }}</button>
-                    </div>
-                </details>
-                <details class="dp__footer-help" v-if="hasThemeFooter || state.sharedFooter">
-                    <summary>{{ t('Where is my footer?') }}</summary>
-                    <div class="dp__preset-body">
-                        <template v-if="hasThemeFooter">
-                            <p class="dp__muted">{{ t('Theme footer settings belong to the active theme.') }}</p>
-                            <button class="dp__button" type="button" @click="showFooter">{{ t('Find theme footer settings') }}</button>
-                        </template>
-                        <template v-if="state.sharedFooter">
-                            <p class="dp__muted">{{ t('Shared footer columns come from Site Blocks. They appear across themes, in addition to the theme footer.') }}</p>
-                            <a class="dp__link" :href="base + '/tm/plugins#siteblocks-footer'" target="_blank" rel="noopener">{{ t('Edit shared footer') }} ↗<span class="dp__sr-only">{{ t('(opens in a new tab)') }}</span></a>
-                        </template>
                     </div>
                 </details>
                 <form class="dp__fields" ref="fields" @submit.prevent="save" novalidate>
@@ -93,7 +80,7 @@
                 </form>
             </section>
             <section class="dp__preview" :aria-label="t('Private preview')" :aria-busy="previewBusy">
-                <div class="dp__preview-heading"><h2>{{ t('Private preview') }}</h2><button class="dp__button" type="button" @click="choosePage">{{ t('Choose page') }}</button></div>
+                <div class="dp__preview-heading"><h2>{{ t('Private preview') }}</h2><button class="dp__button" type="button" @click="choosePage">{{ t('Choose preview page') }}</button></div>
                 <div class="dp__preview-controls">
                     <form class="dp__page" @submit.prevent="go">
                         <label for="dp-path">{{ t('Page path') }}</label>
@@ -103,7 +90,7 @@
                 </div>
                 <p v-if="pathError" id="dp-path-error" class="dp__notice dp__notice--error" role="alert">{{ pathError }}</p>
                 <div class="dp__preview-meta">
-                    <span role="status">{{ previewBusy ? t('Updating preview…') : previewError ? t('Preview out of date') : t('Links open here. Text is edited in Content.') }}</span>
+                    <span role="status">{{ previewBusy ? t('Updating preview…') : previewError ? t('Preview out of date') : t('DP_PREVIEW_SCOPE') }}</span>
                     <a class="dp__link" :href="base + '/tm/content/visual' + (path === '/' ? '' : path)" target="_blank" rel="noopener">{{ t('Edit page content') }} <span class="dp__sr-only">{{ t('(opens in a new tab)') }}</span><span aria-hidden="true">↗</span></a>
                 </div>
                 <div v-if="previewError" class="dp__notice dp__notice--error" role="alert"><p>{{ previewError }}</p><button class="dp__button" type="button" @click="preview">{{ t('Retry preview') }}</button></div>

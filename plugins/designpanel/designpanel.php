@@ -93,7 +93,6 @@ class designpanel extends Plugin
         try {
             $state = $this->definition();
             $state['revision'] = $this->revision($state['theme']);
-            $state['sharedFooter'] = !empty($this->getSettings()['plugins']['siteblocks']['active']);
             // Only return panel fields, never unrelated theme secrets or custom CSS.
             $keys = array_fill_keys(array_column($state['fields'], 'key'), true);
             $state['values'] = array_intersect_key($state['values'], $keys);

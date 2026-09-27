@@ -72,7 +72,9 @@ try {
     assert(!page.url().includes('/tm/login'))
     await page.goto(base + '/tm/designpanel', { waitUntil: 'networkidle2' })
     await ready(page)
-    assert.match(await page.$eval('.dp__header', node => node.textContent), /Lucid · Site-wide theme settings/)
+    assert.match(await page.$eval('.dp__header', node => node.textContent), /Lucid · Settings for the active theme/)
+    assert.match(await page.$eval('.dp__intro', node => node.textContent), /You are editing the active theme, not an individual page/)
+    assert.doesNotMatch(await page.$eval('.dp', node => node.textContent), /DP_(SCOPE_HELP|SAVE_SCOPE|PREVIEW_SCOPE)/)
     await screenshot(page, 'designer-desktop')
 
     // Search exposes matching controls and announces an understandable empty state.
@@ -252,6 +254,9 @@ try {
     assert.match(await page.$eval('.dp', node => node.textContent), /Design speichern/)
     assert.match(await page.$eval('.dp__preview-heading', node => node.textContent), /Private Vorschau/)
     assert.match(await page.$eval('label[for=dp-typeScale]', node => node.textContent), /Textgröße/)
+    assert.match(await page.$eval('.dp__intro', node => node.textContent), /Sie bearbeiten das aktive Theme, keine einzelne Seite/)
+    assert.match(await page.$eval('.dp__save-state', node => node.textContent), /Theme-Einstellungen, nicht die ausgewählte Seite/)
+    assert.match(await page.$eval('.dp__preview-meta', node => node.textContent), /Seitenauswahl ändert nur die Vorschau/)
     await screenshot(page, 'designer-german')
 
     // Unsupported themes provide recovery links, not an empty workspace.

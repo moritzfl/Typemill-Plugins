@@ -171,7 +171,7 @@ try {
         settings.theme = theme; writeFileSync(settingsFile, yaml(settings)); clear()
         await page.goto(base + '/tm/designpanel', { waitUntil: 'networkidle2' })
         await page.waitForSelector('.dp iframe', { timeout: 15000 })
-        assert.match(await page.$eval('.dp header p', node => node.textContent), /Site-wide theme settings/)
+        assert.match(await page.$eval('.dp header p', node => node.textContent), /Settings for the active theme/)
         assert.equal(await page.$('.dp [role=alert]'), null)
         console.log('ok: design schema + private preview (' + theme + ')')
     }

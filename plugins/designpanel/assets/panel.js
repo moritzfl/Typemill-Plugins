@@ -1,3 +1,9 @@
+const designPanelText = {
+    DP_SCOPE_HELP: 'You are editing the active theme, not an individual page. Settings may affect the whole site, only the homepage or particular page types.',
+    DP_SAVE_SCOPE: 'Saving updates the active theme, not the selected page.',
+    DP_PREVIEW_SCOPE: 'Page selection changes only the preview, not which settings you edit.',
+};
+
 const app = Vue.createApp({
     template: designPanelTemplate,
     data: () => ({ state: {}, values: {}, original: {}, loading: true, busy: false, message: '', error: '',
@@ -12,7 +18,6 @@ const app = Vue.createApp({
             const query = this.pageSearch.trim().toLocaleLowerCase();
             return this.pages.filter(page => (page.title + ' ' + page.path).toLocaleLowerCase().includes(query));
         },
-        hasThemeFooter() { return (this.state.fields || []).some(field => /footer|copyright/i.test(field.key)); },
         groups() {
             const query = this.search.trim().toLocaleLowerCase();
             const fields = (this.state.fields || []).filter(field =>
@@ -34,7 +39,10 @@ const app = Vue.createApp({
         window.removeEventListener('message', this.navigate); window.removeEventListener('beforeunload', this.unload);
     },
     methods: {
-        t(value) { return this.$filters.translate(value || ''); },
+        t(value) {
+            const translated = this.$filters.translate(value || '');
+            return translated === value && Object.hasOwn(designPanelText, value) ? designPanelText[value] : translated;
+        },
         label(field) { return this.t(field.key === 'typeScale' ? 'Text size (%)' : field.label || field.key); },
         colorValue(value) {
             if (/^#[a-f0-9]{6}$/i.test(value || '')) return value;
