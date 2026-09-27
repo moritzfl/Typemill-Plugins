@@ -92,7 +92,8 @@ Browser tests live in `tests/browser/`:
 | `plugin-readmemd.mjs` | Points a page at a repository and then takes GitHub away: the stored copy has to carry the page. Also checks placement, a page naming no repository, the live fetch (tolerantly), and that the admin screens load. |
 | `site-builder.mjs` | Portable layouts across all maintained themes, focal crops, lightbox focus, native block editing/drafts, restricted-page JSON, shared footers, private design previews and saving. |
 | `designpanel-ux.mjs` | Designer preset/save scope, preview navigation and recovery, validation, responsive widths, German and dark mode. |
-| `site-authoring-ux.mjs` | Permission-aware page selection, reciprocal footer settings links, native plugin saving, block guidance, media dialog focus, draft isolation and German/mobile/dark layouts. |
+| `site-authoring-ux.mjs` | Permission-aware page selection, local layout guidance, media dialog focus, draft isolation and German/mobile/dark layouts. |
+| `siteblocks-library.mjs` | Library creation, private previews, publication, linked insertion/copies, usage, conflicts, project/role boundaries, export restoration, footer assignment and German/mobile/dark layouts. |
 | `gitupdate-packages.mjs` | Real dashboard install/pin/remove against a temporary HTTPS repository; verifies active-package guards and settings restoration after reinstall. |
 
 These write their own fixture page and settings and restore both in a `finally` block. Faults of this kind are invisible to the API and PHPUnit suites, which never render a theme: a negative margin only shows once an element paints a background, and contrast is decided by a stack of palettes, surfaces, gradients and scrims that no single declaration reveals.

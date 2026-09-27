@@ -87,10 +87,17 @@ temporary test CA in the disposable Docker container and removes it in `finally`
 previews, scroll retention, validation, save/discard, failed requests, stale responses,
 native-editor handoff, 320–1440px layouts, mobile view switching, dark mode and German.
 `site-authoring-ux.mjs` covers title-based page selection (including duplicate titles,
-draft and restricted ancestors, folder permissions and keyboard operation), reciprocal
-footer links and native plugin saving, all eight block-layout explanations, the media
+draft and restricted ancestors, folder permissions and keyboard operation),
+all seven local block-layout explanations, the media
 dialog, draft-only saving, German and dark/mobile layouts. Set `AUTHORING_SHOTS` to
 a container directory to capture those screens, using the same pattern as `DESIGN_SHOTS`.
+
+`siteblocks-library.mjs` covers the reusable-content library, native authoring,
+linked/copy insertion, private drafts and previews, shared publication, usage,
+revision conflicts, project/role isolation, JSON restore, footer placement and
+German/mobile/dark layouts. Set `LIBRARY_SHOTS` for screenshots. The PHPUnit export
+round-trip also verifies restoration of library IDs, drafts, published content,
+page references, footer assignments and media from the complete site archive.
 The suites restore their settings and content fixtures. Run browser suites
 serially: theme/settings fixtures share one Typemill instance.
 
