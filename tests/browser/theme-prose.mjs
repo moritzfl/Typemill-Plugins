@@ -88,6 +88,10 @@ not touch the line above or the line below it.
 | blogpagesize | number | 10 | homepage | How many posts one page of the list shows |
 | breadcrumb | checkbox | true | every page | Whether the trail above the text is shown |
 
+| Provider | Sign-in | Quota | Web search | Images | Video | Voice | Docs | Proxy |
+|----------|---------|-------|------------|--------|-------|-------|------|-------|
+| OpenAI | Browser login | yes | yes | yes | no | yes | yes | yes |
+
 A closing paragraph.
 `
 
@@ -274,6 +278,25 @@ function measure() {
     // Nothing in the running text may make the page itself scroll sideways. A
     // table is the usual culprit: it is as wide as its columns need, and a
     // phone is not, so left in the flow it drags the whole layout with it.
+    // A short header must stay one line. overflow-wrap:anywhere plus a table
+    // forced to the viewport stacks "Provider" as a vertical strip; the wrapper
+    // should scroll instead.
+    const stackedHeaders = []
+    for (const cell of root.querySelectorAll('th')) {
+        const text = (cell.textContent || '').replace(/\s+/g, ' ').trim()
+        if (text.length < 4 || text.length > 20) continue
+        const range = document.createRange()
+        range.selectNodeContents(cell)
+        const tops = new Set(
+            [...range.getClientRects()]
+                .filter((rect) => rect.width > 1 && rect.height > 1)
+                .map((rect) => Math.round(rect.top))
+        )
+        if (tops.size > 1) {
+            stackedHeaders.push({ text, lines: tops.size })
+        }
+    }
+
     const overflow = Math.round(document.documentElement.scrollWidth - document.documentElement.clientWidth)
     const widest = Array.from(root.children)
         .map((element) => ({
@@ -288,6 +311,7 @@ function measure() {
         negativeGaps,
         paragraphGaps,
         collisions,
+        stackedHeaders,
         overflow,
         widest,
         viewport: window.innerWidth,
@@ -326,6 +350,15 @@ async function assertThemeProse(page, theme, widths) {
             `${theme} @${width}px: a button covers text that is not its own:\n`
                 + result.collisions
                     .map((hit) => `  "${hit.button}" covers "${hit.covers}" by ${hit.by}px`)
+                    .join('\n')
+        )
+
+        assert(
+            result.stackedHeaders.length === 0,
+            `${theme} @${width}px: a table header is stacked a letter at a time `
+                + `instead of scrolling:\n`
+                + result.stackedHeaders
+                    .map((entry) => `  "${entry.text}" is ${entry.lines} lines`)
                     .join('\n')
         )
 

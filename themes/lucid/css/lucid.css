@@ -1096,6 +1096,11 @@ a:hover {
  * every table in .tm-table, and that wrapper is where the scrolling belongs:
  * making the table itself a block takes its own layout away - cells stop
  * sharing a row, and a table that centres itself stops being centred.
+ *
+ * overflow-wrap:anywhere on the prose is inherited, and it also shrinks a
+ * column's minimum to one character. A nine-column matrix then stacks
+ * "Provider" as a vertical strip instead of scrolling. Cells opt out, and a
+ * header stays one line so the column cannot collapse under its label.
  */
 .lc-prose .tm-table {
     max-width: 100%;
@@ -1112,6 +1117,8 @@ a:hover {
 .lc-prose td {
     padding: 12px 14px;
     border-bottom: 1px solid var(--lc-border-subtle);
+    overflow-wrap: normal;
+    word-break: normal;
 }
 
 /* An align attribute on a cell is an instruction from whoever wrote the table,
@@ -1123,6 +1130,7 @@ a:hover {
 
 .lc-prose th {
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .lc-prose a {

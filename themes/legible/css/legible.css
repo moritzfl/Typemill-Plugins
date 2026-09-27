@@ -760,6 +760,10 @@ main {
  * every table in .tm-table, and that wrapper is where the scrolling belongs:
  * making the table itself a block takes its own layout away - cells stop
  * sharing a row, and a table that centres itself stops being centred.
+ *
+ * A header stays one line, and cells do not inherit a wrap mode that can break
+ * a word into single letters. Otherwise a wide matrix shrinks to the viewport
+ * and stacks "Provider" as a vertical strip instead of scrolling.
  */
 .lg-prose .tm-table {
     max-width: 100%;
@@ -776,6 +780,8 @@ main {
 .lg-prose td {
     border: 1px solid var(--lg-border);
     padding: 10px 12px;
+    overflow-wrap: normal;
+    word-break: normal;
 }
 
 /* An align attribute on a cell is an instruction from whoever wrote the table,
@@ -788,6 +794,7 @@ main {
 .lg-prose th {
     background: var(--lg-bg-alt);
     font-family: var(--lg-sans);
+    white-space: nowrap;
 }
 
 .lg-prose figcaption {

@@ -928,6 +928,15 @@ a:hover {
 }
 
 .ct-prose tbody th,
+.ct-prose td,
+.ct-prose thead th {
+    /* A wrap mode that can break anywhere shrinks a column to one character.
+       Headers stay one line so a wide matrix scrolls instead of stacking. */
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+.ct-prose tbody th,
 .ct-prose td {
     padding: 0.7rem 0.9rem;
     border-top: 1px solid var(--ct-border-subtle);

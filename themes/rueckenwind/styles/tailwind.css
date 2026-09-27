@@ -171,13 +171,29 @@
     @apply my-10 border-0 border-t border-gray-200 dark:border-gray-700;
   }
 
+  /* Scroll the wrapper Typemill puts around a table, not the table itself.
+     display:block on the table takes the row layout away. overflow-wrap:anywhere
+     on .prose would otherwise shrink a column to one character, so a wide
+     matrix stacks its headers instead of scrolling. */
+  .prose .tm-table {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
   .prose table {
-    @apply my-6 block w-full max-w-full overflow-x-auto border-collapse text-sm;
+    @apply my-6 w-full border-collapse text-sm;
+    display: table;
   }
 
   .prose th,
   .prose td {
     min-width: 8rem;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .prose th {
+    white-space: nowrap;
   }
 
   .prose th {
@@ -460,6 +476,7 @@
   .prose th,
   .prose td {
     min-width: 0;
+    white-space: normal;
   }
 
   .prose pre {

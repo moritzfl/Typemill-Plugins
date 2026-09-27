@@ -880,6 +880,10 @@ a {
  * every table in .tm-table, and that wrapper is where the scrolling belongs:
  * making the table itself a block takes its own layout away - cells stop
  * sharing a row, and a table that centres itself stops being centred.
+ *
+ * A header stays one line, and cells do not inherit a wrap mode that can break
+ * a word into single letters. Otherwise a wide matrix shrinks to the viewport
+ * and stacks "Provider" as a vertical strip instead of scrolling.
  */
 .at-prose .tm-table {
     max-width: 100%;
@@ -896,6 +900,12 @@ a {
 .at-prose td {
     padding: 10px 12px;
     border-bottom: 1px solid var(--at-border);
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+.at-prose th {
+    white-space: nowrap;
 }
 
 /* An align attribute on a cell is an instruction from whoever wrote the table,

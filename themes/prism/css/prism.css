@@ -1002,6 +1002,10 @@ a:hover {
  * every table in .tm-table, and that wrapper is where the scrolling belongs:
  * making the table itself a block takes its own layout away - cells stop
  * sharing a row, and a table that centres itself stops being centred.
+ *
+ * A header stays one line, and cells do not inherit a wrap mode that can break
+ * a word into single letters. Otherwise a wide matrix shrinks to the viewport
+ * and stacks "Provider" as a vertical strip instead of scrolling.
  */
 .pr-prose .tm-table {
     max-width: 100%;
@@ -1018,6 +1022,8 @@ a:hover {
 .pr-prose td {
     padding: 11px 14px;
     border-bottom: 1px solid var(--pr-border);
+    overflow-wrap: normal;
+    word-break: normal;
 }
 
 /* An align attribute on a cell is an instruction from whoever wrote the table,
@@ -1030,6 +1036,7 @@ a:hover {
 .pr-prose th {
     font-weight: 700;
     background: var(--pr-bg-alt);
+    white-space: nowrap;
 }
 
 /* ── Posts ────────────────────────────────────────────────────────── */
