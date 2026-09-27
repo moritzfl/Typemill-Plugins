@@ -360,8 +360,13 @@ class VersionStore
         return null;
     }
 
-    public function restoreVersionToCurrentPage(object $item, array $currentMetadata, string $versionId): array
-    {
+    public function restoreVersionToCurrentPage(
+        object $item,
+        array $currentMetadata,
+        string $versionId,
+        bool $canPublish = false,
+        bool $canUnpublish = false
+    ): array {
         $pageId = $this->resolvePageId($item, $currentMetadata);
         $record = $this->records->loadPageRecord($pageId);
         $version = $this->findVersion($record, $versionId);
@@ -370,12 +375,19 @@ class VersionStore
             return ['success' => false, 'message' => 'Version not found.'];
         }
 
-        $content = new Content();
-        $markdownArray = $content->markdownTextToArray($version['markdown'] ?? '');
+        // Owning a page is enough to edit a draft. Publishing and unpublishing
+        // are separate privileges; a contributor must not gain them by restoring.
+        $mode = self::restoreWriteMode($version, $canPublish, $canUnpublish);
+        if ($mode === null) {
+            return ['success' => false, 'message' => 'That version has no content to restore.'];
+        }
 
-        if (($version['status'] ?? '') === 'published') {
+        $content = new Content();
+        $markdownArray = $content->markdownTextToArray($version['markdown']);
+
+        if ($mode === 'publish') {
             $result = $content->publishMarkdown($item, $markdownArray);
-        } elseif (($version['status'] ?? '') === 'unpublished') {
+        } elseif ($mode === 'unpublish') {
             $result = $content->unpublishMarkdown($item, $markdownArray);
         } else {
             $result = $content->saveDraftMarkdown($item, $markdownArray);
@@ -444,6 +456,31 @@ class VersionStore
         return $entries;
     }
 
+    /**
+     * How a version may be written back.
+     *
+     * Null means the version has no markdown (a publish/unpublish event). Those
+     * must not be restored as an empty page. Publish and unpublish are only
+     * used when the caller holds that privilege; otherwise the text is saved
+     * as a draft.
+     */
+    public static function restoreWriteMode(array $version, bool $canPublish, bool $canUnpublish): ?string
+    {
+        if (($version['event_only'] ?? false) || !is_string($version['markdown'] ?? null)) {
+            return null;
+        }
+
+        $status = (string) ($version['status'] ?? '');
+        if ($status === 'published' && $canPublish) {
+            return 'publish';
+        }
+        if ($status === 'unpublished' && $canUnpublish) {
+            return 'unpublish';
+        }
+
+        return 'draft';
+    }
+
     public function restoreDeletedEntry(string $recordId, string $versionId, bool $force = false, string $recordType = 'page'): array
     {
         $recordType = $this->sanitizeRecordType($recordType);
@@ -454,6 +491,11 @@ class VersionStore
 
         if (!$version || empty($version['snapshot_files'])) {
             return ['success' => false, 'message' => 'Deleted version not found.'];
+        }
+
+        $activeId = (string) ($record['deleted']['version_id'] ?? '');
+        if ($activeId === '' || $activeId !== $versionId) {
+            return ['success' => false, 'message' => 'That version is not the active recycle-bin entry.'];
         }
 
         $conflicts = $this->findSnapshotConflicts($version['snapshot_files']);
@@ -516,6 +558,11 @@ class VersionStore
                     ];
                 }
 
+                $previous = $this->readOccupiedBytes($location, $operation['folder'], $operation['filename']);
+                if ($previous === false) {
+                    throw new \RuntimeException('Could not read the file that would be overwritten.');
+                }
+
                 if (!$this->storage->writeFile($location, $operation['folder'], $operation['filename'], $operation['content'])) {
                     throw new \RuntimeException('Failed to write restored file.');
                 }
@@ -524,6 +571,7 @@ class VersionStore
                     'location' => $location,
                     'folder' => $operation['folder'],
                     'filename' => $operation['filename'],
+                    'previous' => $previous,
                 ];
             }
         } catch (\Throwable $e) {
@@ -768,9 +816,33 @@ class VersionStore
         return $username;
     }
 
+    /**
+     * Bytes already at the destination, or null when the path is new.
+     * False means the existing file could not be read, so the restore must stop.
+     */
+    private function readOccupiedBytes(string $location, string $folder, string $filename): string|false|null
+    {
+        $relative = ($folder !== '' && $folder !== '.')
+            ? $folder . '/' . $filename
+            : $filename;
+        $path = $this->resolveStoragePath($location, $relative);
+        if ($path === null || !is_file($path)) {
+            return null;
+        }
+
+        $bytes = file_get_contents($path);
+
+        return $bytes === false ? false : $bytes;
+    }
+
     private function rollbackRestoreFiles(array $writtenFiles, array $createdDirectories): void
     {
         foreach (array_reverse($writtenFiles) as $file) {
+            if (is_string($file['previous'] ?? null)) {
+                $this->storage->writeFile($file['location'], $file['folder'], $file['filename'], $file['previous']);
+                continue;
+            }
+
             $this->storage->deleteFile($file['location'], $file['folder'], $file['filename']);
         }
 

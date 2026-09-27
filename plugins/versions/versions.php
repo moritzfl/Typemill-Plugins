@@ -544,7 +544,14 @@ class versions extends Plugin
             return $permissionResponse;
         }
 
-        $result = $this->getStore()->restoreVersionToCurrentPage($item, $metadata, $versionId);
+        $userrole = $request->getAttribute('c_userrole');
+        $result = $this->getStore()->restoreVersionToCurrentPage(
+            $item,
+            $metadata,
+            $versionId,
+            $this->userroleIsAllowed($userrole, 'content', 'publish'),
+            $this->userroleIsAllowed($userrole, 'content', 'unpublish')
+        );
         if (!$result['success']) {
             return $this->jsonResponse($response, ['message' => $result['message']], 500);
         }
