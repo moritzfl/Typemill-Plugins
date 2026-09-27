@@ -1,0 +1,31 @@
+name: Git Update
+version: 1.0.0
+description: "Update the plugins and themes from this repository that are already installed. Every commit is a release. Folders the server does not have are left alone."
+author: Moritz
+homepage: https://github.com/moritzfl/Typemill-Plugins
+license: GPL-2.0
+
+settings:
+  repository: 'moritzfl/Typemill-Plugins'
+  branch: 'main'
+  token: ''
+  api_base: 'https://api.github.com'
+
+forms:
+  fields:
+    repository:
+      type: text
+      label: Repository
+      description: "owner/name, or a https://github.com/owner/name address. The latest commit on the branch is the release."
+    branch:
+      type: text
+      label: Branch
+      css: w-half
+    token:
+      type: text
+      label: GitHub token
+      description: "Only needed for a private repository, or when GitHub's unauthenticated limit is too low. A fine-grained token with read access to contents is enough."
+    api_base:
+      type: text
+      label: API address
+      description: "Change this only for GitHub Enterprise. Must be https."

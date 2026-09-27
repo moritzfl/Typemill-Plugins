@@ -118,6 +118,16 @@ express. Includes a CSP setting to whitelist external domains used by embedded c
 
 ---
 
+### `gitupdate` — Git Update
+
+Updates plugins and themes from this git repository that are already installed on the server. Every commit on the
+configured branch is a release. A server that only has a subset is only offered that subset — nothing missing is
+installed, and content, media, settings and the Typemill core are never touched.
+
+→ See [`plugins/gitupdate/README.md`](plugins/gitupdate/README.md) for full documentation.
+
+---
+
 ### `typemillupdate` — Typemill Update
 
 Updates Typemill itself from the dashboard instead of replacing the `system` folder over FTP by hand, and updates

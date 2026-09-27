@@ -1,0 +1,89 @@
+<?php
+
+namespace Plugins\gitupdate\Models;
+
+/**
+ * The commit each installed folder was last replaced with.
+ *
+ * A missing entry means this server has never been synced, so an update is
+ * offered. The file lives under data/, which the download route does not serve.
+ */
+final class Ledger
+{
+    private string $file;
+
+    public function __construct(string $root)
+    {
+        $dir = rtrim($root, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . 'gitupdate';
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+        $this->file = $dir . DIRECTORY_SEPARATOR . 'applied.json';
+    }
+
+    public function sha(string $kind, string $slug): ?string
+    {
+        $data = $this->read();
+
+        return Reference::sha($data[$kind][$slug] ?? null);
+    }
+
+    public function remember(string $kind, string $slug, string $sha): bool
+    {
+        $sha = Reference::sha($sha);
+        if ($sha === null || Reference::kind($kind) === null || !Reference::isSlug($slug)) {
+            return false;
+        }
+
+        $data = $this->read();
+        $data[$kind][$slug] = $sha;
+
+        $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        if ($json === false) {
+            return false;
+        }
+
+        $temporary = $this->file . '.' . bin2hex(random_bytes(4)) . '.tmp';
+        if (@file_put_contents($temporary, $json . "\n", LOCK_EX) === false) {
+            return false;
+        }
+
+        if (!@rename($temporary, $this->file)) {
+            @unlink($temporary);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @return array{plugin: array<string, string>, theme: array<string, string>}
+     */
+    private function read(): array
+    {
+        $empty = ['plugin' => [], 'theme' => []];
+        if (!is_file($this->file)) {
+            return $empty;
+        }
+
+        $decoded = json_decode((string) @file_get_contents($this->file), true);
+        if (!is_array($decoded)) {
+            return $empty;
+        }
+
+        foreach (['plugin', 'theme'] as $kind) {
+            $rows = $decoded[$kind] ?? [];
+            if (!is_array($rows)) {
+                continue;
+            }
+            foreach ($rows as $slug => $sha) {
+                if (is_string($slug) && Reference::isSlug($slug) && Reference::sha(is_string($sha) ? $sha : null) !== null) {
+                    $empty[$kind][$slug] = strtolower($sha);
+                }
+            }
+        }
+
+        return $empty;
+    }
+}

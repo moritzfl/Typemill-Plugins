@@ -57,7 +57,7 @@ npm run test:browser    # Puppeteer browser smoke tests in Docker (required for 
 
 API tests live in `tests/api/` and use `tests/api/helpers/auth.js` for session login with the correct `Referer` and `X-Session-Auth` headers.
 
-`test:setup` also ensures **`versions`**, **`preview`**, **`files`**, **`typemillupdate`**, **`linkbuttons`**, **`readmemd`**, and **`syntax`** are active in settings (required for trash, file-manager, preview, core-update API tests, the theme prose layout test, the readme meta-field test, and the syntax-colour half of the contrast test). On a fresh instance it creates minimal `settings.yaml`; on an existing instance it only toggles those plugins and refreshes the test user. Stock **Highlight** is forced off when present — it fights Syntax for the same blocks.
+`test:setup` also ensures **`versions`**, **`preview`**, **`files`**, **`typemillupdate`**, **`gitupdate`**, **`linkbuttons`**, **`readmemd`**, and **`syntax`** are active in settings (required for trash, file-manager, preview, core-update API tests, the theme prose layout test, the readme meta-field test, and the syntax-colour half of the contrast test). On a fresh instance it creates minimal `settings.yaml`; on an existing instance it only toggles those plugins and refreshes the test user. Stock **Highlight** is forced off when present — it fights Syntax for the same blocks.
 
 The setup script builds a local Typemill image with PHP **`zip`** baked in (exports and folder ZIP downloads). If you use an older container without it, setup installs `zip` at runtime and reloads Apache.
 

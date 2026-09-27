@@ -1,0 +1,19 @@
+GITUPDATE_TITLE: Git-Update
+GITUPDATE_SUBTITLE: "Aktualisiert Plugins und Themes aus dem Git-Repository, die bereits installiert sind. Jeder Commit ist ein Release. Alles andere auf dem Server bleibt unberührt."
+GITUPDATE_LOADING: Laden
+GITUPDATE_CHECK: Erneut prüfen
+GITUPDATE_HEAD: Neuester Commit
+GITUPDATE_UP_TO_DATE: Alles, was aus diesem Repository installiert ist, ist auf dem neuesten Commit.
+GITUPDATE_AVAILABLE: Ein Update ist verfügbar.
+GITUPDATE_UPDATE: Aktualisieren
+GITUPDATE_UPDATE_ALL: Alle aktualisieren
+GITUPDATE_NOT_INSTALLED: "Im Repository, nicht auf diesem Server:"
+GITUPDATE_NEVER: noch nicht synchron
+GITUPDATE_CURRENT: Aktuell
+GITUPDATE_NONE: Keines der installierten Plugins oder Themes stammt aus diesem Repository.
+GITUPDATE_CONFIRM_TITLE: Auf den neuesten Commit aktualisieren?
+GITUPDATE_CONFIRM_TEXT: Die ausgewählten Ordner werden durch die Fassung aus diesem Commit ersetzt. Inhalte, Medien, Einstellungen und alles, was hier nicht installiert ist, bleiben unberührt. Der bisherige Ordner wird als Sicherung behalten.
+GITUPDATE_CANCEL: Abbrechen
+GITUPDATE_CONFIRM: Ja, fortfahren
+GITUPDATE_BLOCKED: Die PHP-Zip-Erweiterung fehlt, daher kann ein Update nicht entpackt werden.
+GITUPDATE_ADMIN_ONLY: Nur ein Administrator kann ein Update ausführen.

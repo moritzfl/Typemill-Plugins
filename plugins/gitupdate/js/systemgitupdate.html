@@ -1,0 +1,62 @@
+<Transition name="initial" appear>
+    <div class="tm-gu">
+        <header class="tm-gu__page-header">
+            <h1 class="text-3xl font-bold">{{ $filters.translate('gitupdate.title') }}</h1>
+            <p class="text-stone-500 dark:text-stone-400 text-sm">{{ $filters.translate('gitupdate.subtitle') }}</p>
+        </header>
+
+        <div v-if="message" class="tm-gu-banner text-white" :class="messageClass">{{ message }}</div>
+
+        <section class="tm-gu-panel bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-600 shadow-sm">
+            <div v-if="loading" class="text-stone-500 dark:text-stone-400">{{ $filters.translate('gitupdate.loading') }}…</div>
+            <div v-else>
+                <div class="tm-gu-head" v-if="status.head">
+                    <div>
+                        <span class="tm-gu-label">{{ $filters.translate('gitupdate.head') }}</span>
+                        <strong class="tm-gu-sha">{{ status.head.short }}</strong>
+                    </div>
+                    <p class="tm-gu-note">{{ status.repository }} @ {{ status.branch }}<span v-if="status.head.message"> — {{ status.head.message }}</span></p>
+                </div>
+                <p v-else class="tm-gu-note">{{ status.repository }} @ {{ status.branch }}</p>
+
+                <p v-if="status.error" class="tm-gu-note tm-gu-note--warn">{{ status.error }}</p>
+                <p v-else-if="pending === 0 && status.head" class="tm-gu-note tm-gu-note--ok">{{ $filters.translate('gitupdate.up_to_date') }}</p>
+                <p v-else-if="pending > 0" class="tm-gu-note tm-gu-note--ok">{{ $filters.translate('gitupdate.available') }}</p>
+
+                <p v-if="status.blocked" class="tm-gu-note tm-gu-note--error">{{ $filters.translate('gitupdate.blocked') }}</p>
+                <p v-if="!status.can_update" class="tm-gu-note">{{ $filters.translate('gitupdate.admin_only') }}</p>
+
+                <div class="tm-gu-actions">
+                    <button type="button" class="tm-gu-btn" :disabled="busy" @click.prevent="load">{{ $filters.translate('gitupdate.check') }}</button>
+                    <button type="button" class="tm-gu-btn tm-gu-btn--primary" :disabled="busy || !status.can_update || status.blocked || pending === 0" @click.prevent="confirmAll = true">{{ $filters.translate('gitupdate.update_all') }}</button>
+                </div>
+
+                <ul class="tm-gu-list" v-if="status.items.length">
+                    <li v-for="item in status.items" :key="item.kind + item.slug" class="tm-gu-item">
+                        <div class="tm-gu-item__text">
+                            <span class="tm-gu-item__name">{{ item.name }}</span>
+                            <span class="tm-gu-item__meta">{{ item.kind }} · {{ item.slug }}</span>
+                            <span class="tm-gu-item__sha">{{ item.applied || $filters.translate('gitupdate.never') }}<span v-if="status.head"> → {{ status.head.short }}</span></span>
+                        </div>
+                        <span v-if="!item.update_available" class="tm-gu-flag tm-gu-flag--ok">{{ $filters.translate('gitupdate.current') }}</span>
+                        <button v-else type="button" class="tm-gu-btn tm-gu-btn--small tm-gu-btn--primary" :disabled="busy || !status.can_update || status.blocked" @click.prevent="ask(item)">{{ $filters.translate('gitupdate.update') }}</button>
+                    </li>
+                </ul>
+                <p v-else-if="!status.error" class="tm-gu-note">{{ $filters.translate('gitupdate.none') }}</p>
+
+                <p v-if="status.absent && status.absent.length" class="tm-gu-note">{{ $filters.translate('gitupdate.not_installed') }} {{ status.absent.join(', ') }}</p>
+            </div>
+        </section>
+
+        <div v-if="confirmAll || confirmItem" class="tm-gu-overlay">
+            <div class="tm-gu-dialog bg-white dark:bg-stone-800">
+                <h2 class="tm-gu-dialog__title">{{ $filters.translate('gitupdate.confirm_title') }}</h2>
+                <p class="tm-gu-dialog__text">{{ $filters.translate('gitupdate.confirm_text') }}</p>
+                <div class="tm-gu-dialog__actions">
+                    <button type="button" class="tm-gu-btn" @click.prevent="confirmAll = false; confirmItem = null">{{ $filters.translate('gitupdate.cancel') }}</button>
+                    <button type="button" class="tm-gu-btn tm-gu-btn--primary" @click.prevent="runConfirmed">{{ $filters.translate('gitupdate.confirm') }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</Transition>
