@@ -40,7 +40,7 @@ final class GitHub
         $date = '';
         if (is_array($decoded['commit'] ?? null)) {
             $message = trim((string) ($decoded['commit']['message'] ?? ''));
-            $date = (string) ($decoded['commit']['committer']['date'] ?? $decoded['commit']['author']['date'] ?? '');
+            $date = self::dateOf($decoded) ?? '';
         }
 
         $line = preg_split('/\R/', $message)[0] ?? '';
@@ -82,6 +82,54 @@ final class GitHub
             'error' => null,
             'error_key' => null,
         ];
+    }
+
+    /**
+     * Commit dates for shas we already recorded but never dated.
+     *
+     * A lookup that fails is skipped. The status page still loads; that row
+     * simply has no date.
+     *
+     * @param list<string> $shas
+     * @return array<string, string> sha => ISO-8601
+     */
+    public function dates(array $shas): array
+    {
+        $found = [];
+        foreach ($shas as $sha) {
+            $sha = Reference::sha($sha);
+            if ($sha === null || isset($found[$sha])) {
+                continue;
+            }
+
+            $result = $this->get(Reference::commitUrl($this->apiBase, $this->repository, $sha), true);
+            if (!$result['ok']) {
+                continue;
+            }
+
+            $decoded = json_decode((string) $result['body'], true);
+            $date = self::dateOf(is_array($decoded) ? $decoded : []);
+            if ($date !== null) {
+                $found[$sha] = $date;
+            }
+        }
+
+        return $found;
+    }
+
+    /**
+     * @param array<string, mixed> $commit
+     */
+    public static function dateOf(array $commit): ?string
+    {
+        $inner = $commit['commit'] ?? null;
+        if (!is_array($inner)) {
+            return null;
+        }
+
+        $raw = $inner['committer']['date'] ?? $inner['author']['date'] ?? null;
+
+        return Reference::commitDate(is_string($raw) ? $raw : null);
     }
 
     /**

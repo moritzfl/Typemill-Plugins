@@ -23,12 +23,26 @@ final class Ledger
 
     public function sha(string $kind, string $slug): ?string
     {
-        $data = $this->read();
-
-        return Reference::sha($data[$kind][$slug] ?? null);
+        return $this->entry($kind, $slug)['sha'];
     }
 
-    public function remember(string $kind, string $slug, string $sha): bool
+    /**
+     * @return array{sha: ?string, date: ?string}
+     */
+    public function entry(string $kind, string $slug): array
+    {
+        $row = $this->read()[$kind][$slug] ?? null;
+        if (!is_array($row)) {
+            return ['sha' => null, 'date' => null];
+        }
+
+        return [
+            'sha' => Reference::sha($row['sha'] ?? null),
+            'date' => Reference::commitDate($row['date'] ?? null),
+        ];
+    }
+
+    public function remember(string $kind, string $slug, string $sha, ?string $date = null): bool
     {
         $sha = Reference::sha($sha);
         if ($sha === null || Reference::kind($kind) === null || !Reference::isSlug($slug)) {
@@ -36,7 +50,10 @@ final class Ledger
         }
 
         $data = $this->read();
-        $data[$kind][$slug] = $sha;
+        $data[$kind][$slug] = [
+            'sha' => $sha,
+            'date' => Reference::commitDate($date),
+        ];
 
         $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         if ($json === false) {
@@ -58,7 +75,7 @@ final class Ledger
     }
 
     /**
-     * @return array{plugin: array<string, string>, theme: array<string, string>}
+     * @return array{plugin: array<string, array{sha: string, date: ?string}>, theme: array<string, array{sha: string, date: ?string}>}
      */
     private function read(): array
     {
@@ -77,10 +94,18 @@ final class Ledger
             if (!is_array($rows)) {
                 continue;
             }
-            foreach ($rows as $slug => $sha) {
-                if (is_string($slug) && Reference::isSlug($slug) && Reference::sha(is_string($sha) ? $sha : null) !== null) {
-                    $empty[$kind][$slug] = strtolower($sha);
+            foreach ($rows as $slug => $row) {
+                if (!is_string($slug) || !Reference::isSlug($slug)) {
+                    continue;
                 }
+                // Older ledgers stored the sha as a string and had no date.
+                $sha = is_string($row) ? $row : (is_array($row) ? ($row['sha'] ?? null) : null);
+                $sha = Reference::sha(is_string($sha) ? $sha : null);
+                if ($sha === null) {
+                    continue;
+                }
+                $date = is_array($row) ? Reference::commitDate($row['date'] ?? null) : null;
+                $empty[$kind][$slug] = ['sha' => $sha, 'date' => $date];
             }
         }
 

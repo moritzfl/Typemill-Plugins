@@ -59,6 +59,18 @@ final class Reference
         return preg_match('/^[a-f0-9]{40}$/', $value) === 1 ? $value : null;
     }
 
+    /**
+     * A commit timestamp as GitHub returns it. Anything else is not shown as a date.
+     */
+    public static function commitDate(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        return preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:Z|[+-]\d{2}:\d{2})$/', $value) === 1
+            ? $value
+            : null;
+    }
+
     public static function apiBase(?string $value): ?string
     {
         $value = rtrim(trim((string) $value), '/');

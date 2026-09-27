@@ -9,6 +9,8 @@ GITUPDATE_UPDATE: Update
 GITUPDATE_UPDATE_ALL: Update all
 GITUPDATE_NOT_INSTALLED: "In the repository, not on this server:"
 GITUPDATE_NEVER: not synced
+GITUPDATE_INSTALLED_ON: Installed
+GITUPDATE_UNKNOWN_DATE: date unknown
 GITUPDATE_CURRENT: Current
 GITUPDATE_NONE: None of the installed plugins or themes come from this repository.
 GITUPDATE_CONFIRM_TITLE: Update to the latest commit?

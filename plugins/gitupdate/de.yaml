@@ -9,6 +9,8 @@ GITUPDATE_UPDATE: Aktualisieren
 GITUPDATE_UPDATE_ALL: Alle aktualisieren
 GITUPDATE_NOT_INSTALLED: "Im Repository, nicht auf diesem Server:"
 GITUPDATE_NEVER: noch nicht synchron
+GITUPDATE_INSTALLED_ON: Installiert
+GITUPDATE_UNKNOWN_DATE: Datum unbekannt
 GITUPDATE_CURRENT: Aktuell
 GITUPDATE_NONE: Keines der installierten Plugins oder Themes stammt aus diesem Repository.
 GITUPDATE_CONFIRM_TITLE: Auf den neuesten Commit aktualisieren?

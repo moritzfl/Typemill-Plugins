@@ -14,6 +14,7 @@
                     <div>
                         <span class="tm-gu-label">{{ $filters.translate('gitupdate.head') }}</span>
                         <strong class="tm-gu-sha">{{ status.head.short }}</strong>
+                        <span v-if="formatDate(status.head.date)" class="tm-gu-date">{{ formatDate(status.head.date) }}</span>
                     </div>
                     <p class="tm-gu-note">{{ status.repository }} @ {{ status.branch }}<span v-if="status.head.message"> — {{ status.head.message }}</span></p>
                 </div>
@@ -36,7 +37,13 @@
                         <div class="tm-gu-item__text">
                             <span class="tm-gu-item__name">{{ item.name }}</span>
                             <span class="tm-gu-item__meta">{{ item.kind }} · {{ item.slug }}</span>
-                            <span class="tm-gu-item__sha">{{ item.applied || $filters.translate('gitupdate.never') }}<span v-if="status.head"> → {{ status.head.short }}</span></span>
+                            <span class="tm-gu-item__sha">
+                                {{ $filters.translate('gitupdate.installed_on') }}
+                                {{ item.applied || $filters.translate('gitupdate.never') }}
+                                <span v-if="item.applied_date">· {{ formatDate(item.applied_date) }}</span>
+                                <span v-else-if="item.applied">· {{ $filters.translate('gitupdate.unknown_date') }}</span>
+                                <span v-if="status.head"> → {{ status.head.short }}<span v-if="formatDate(status.head.date)"> · {{ formatDate(status.head.date) }}</span></span>
+                            </span>
                         </div>
                         <span v-if="!item.update_available" class="tm-gu-flag tm-gu-flag--ok">{{ $filters.translate('gitupdate.current') }}</span>
                         <button v-else type="button" class="tm-gu-btn tm-gu-btn--small tm-gu-btn--primary" :disabled="busy || !status.can_update || status.blocked" @click.prevent="ask(item)">{{ $filters.translate('gitupdate.update') }}</button>
@@ -51,7 +58,11 @@
         <div v-if="confirmAll || confirmItem" class="tm-gu-overlay">
             <div class="tm-gu-dialog bg-white dark:bg-stone-800">
                 <h2 class="tm-gu-dialog__title">{{ $filters.translate('gitupdate.confirm_title') }}</h2>
-                <p class="tm-gu-dialog__text">{{ $filters.translate('gitupdate.confirm_text') }}</p>
+                <p class="tm-gu-dialog__text">
+                    {{ $filters.translate('gitupdate.confirm_text') }}
+                    <span v-if="confirmItem">{{ $filters.translate('gitupdate.installed_on') }} {{ confirmItem.applied || $filters.translate('gitupdate.never') }}<span v-if="formatDate(confirmItem.applied_date)"> · {{ formatDate(confirmItem.applied_date) }}</span>. </span>
+                    <span v-if="status.head">{{ $filters.translate('gitupdate.head') }} {{ status.head.short }}<span v-if="formatDate(status.head.date)"> · {{ formatDate(status.head.date) }}</span>.</span>
+                </p>
                 <div class="tm-gu-dialog__actions">
                     <button type="button" class="tm-gu-btn" @click.prevent="confirmAll = false; confirmItem = null">{{ $filters.translate('gitupdate.cancel') }}</button>
                     <button type="button" class="tm-gu-btn tm-gu-btn--primary" @click.prevent="runConfirmed">{{ $filters.translate('gitupdate.confirm') }}</button>

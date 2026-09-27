@@ -184,6 +184,29 @@ class GitUpdateTest extends TestCase
         $this->assertNull($ledger->sha('theme', 'files'));
     }
 
+    public function testTheLedgerKeepsTheCommitDateBesideTheId(): void
+    {
+        $this->root = sys_get_temp_dir() . '/tm_gitupdate_' . uniqid('', true);
+        mkdir($this->root, 0775, true);
+        $sha = str_repeat('b', 40);
+        $date = '2026-03-12T08:30:00Z';
+        $ledger = new Ledger($this->root);
+
+        $this->assertTrue($ledger->remember('theme', 'court', $sha, $date));
+        $entry = (new Ledger($this->root))->entry('theme', 'court');
+        $this->assertSame($sha, $entry['sha']);
+        $this->assertSame($date, $entry['date']);
+        $this->assertNull(Reference::commitDate('yesterday'));
+
+        file_put_contents(
+            $this->root . '/data/gitupdate/applied.json',
+            json_encode(['plugin' => ['files' => $sha]])
+        );
+        $legacy = (new Ledger($this->root))->entry('plugin', 'files');
+        $this->assertSame($sha, $legacy['sha']);
+        $this->assertNull($legacy['date']);
+    }
+
     private function write(string $path, string $contents): void
     {
         $directory = dirname($path);

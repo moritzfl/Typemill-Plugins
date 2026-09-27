@@ -11,6 +11,7 @@ gitupdateStyle.textContent = `
 .tm-gu-label{display:block;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:#78716c}
 .dark .tm-gu-label{color:#a8a29e}
 .tm-gu-sha{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1.25rem}
+.tm-gu-date{margin-left:.6rem;font-size:.95rem;font-weight:600}
 .tm-gu-note{font-size:.875rem;color:#78716c;margin:.5rem 0}
 .dark .tm-gu-note{color:#a8a29e}
 .tm-gu-note--ok{color:#0d9488;font-weight:600}
@@ -97,6 +98,12 @@ const app = Vue.createApp({
                 this.fail(error);
                 this.load();
             });
+        },
+        formatDate(iso) {
+            if (!iso) return '';
+            const date = new Date(iso);
+            if (Number.isNaN(date.getTime())) return '';
+            return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
         },
         fail(error) {
             const data = error && error.response ? error.response.data : null;

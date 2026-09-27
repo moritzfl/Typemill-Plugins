@@ -129,7 +129,7 @@ class gitupdate extends Plugin
         }
 
         $payload['head'] = self::presentHead($head);
-        $listed = $this->listItems($root, $catalog, $head['sha']);
+        $listed = $this->listItems($root, $catalog, $head['sha'], $github, (string) ($head['date'] ?? ''));
         $payload['items'] = $listed['items'];
         $payload['absent'] = $listed['absent'];
 
@@ -256,7 +256,7 @@ class gitupdate extends Plugin
                 break;
             }
 
-            $ledger->remember($item['kind'], $item['slug'], $head['sha']);
+            $ledger->remember($item['kind'], $item['slug'], $head['sha'], $head['date'] ?? null);
             $updated[] = $item['kind'] . '/' . $item['slug'];
         }
 
@@ -313,11 +313,12 @@ class gitupdate extends Plugin
      * @param array{plugins: list<string>, themes: list<string>} $catalog
      * @return array{items: list<array<string, mixed>>, absent: list<string>}
      */
-    private function listItems(string $root, array $catalog, string $sha): array
+    private function listItems(string $root, array $catalog, string $sha, ?GitHub $github = null, string $headDate = ''): array
     {
         $ledger = new Ledger($root);
-        $items = [];
+        $rows = [];
         $absent = [];
+        $missing = [];
 
         foreach (['plugin', 'theme'] as $kind) {
             $installed = Catalog::installed($root, $kind);
@@ -327,15 +328,39 @@ class gitupdate extends Plugin
                     $absent[] = $kind . '/' . $slug;
                     continue;
                 }
-                $applied = $ledger->sha($kind, $slug);
-                $items[] = [
+                $applied = $ledger->entry($kind, $slug);
+                if ($applied['sha'] !== null && $applied['date'] === null && $applied['sha'] !== $sha) {
+                    $missing[$applied['sha']] = true;
+                }
+                $rows[] = [
                     'kind' => $kind,
                     'slug' => $slug,
                     'name' => $installed[$slug]['name'],
-                    'applied' => $applied !== null ? substr($applied, 0, 7) : null,
-                    'update_available' => $applied !== $sha,
+                    'applied' => $applied,
                 ];
             }
+        }
+
+        $lookedUp = $github !== null && $missing !== [] ? $github->dates(array_keys($missing)) : [];
+        $headDate = Reference::commitDate($headDate);
+        $items = [];
+        foreach ($rows as $row) {
+            $appliedSha = $row['applied']['sha'];
+            $appliedDate = $row['applied']['date'];
+            if ($appliedDate === null && $appliedSha !== null) {
+                $appliedDate = $appliedSha === $sha ? $headDate : ($lookedUp[$appliedSha] ?? null);
+                if ($appliedDate !== null) {
+                    $ledger->remember($row['kind'], $row['slug'], $appliedSha, $appliedDate);
+                }
+            }
+            $items[] = [
+                'kind' => $row['kind'],
+                'slug' => $row['slug'],
+                'name' => $row['name'],
+                'applied' => $appliedSha !== null ? substr($appliedSha, 0, 7) : null,
+                'applied_date' => $appliedDate,
+                'update_available' => $appliedSha !== $sha,
+            ];
         }
 
         return ['items' => $items, 'absent' => $absent];
@@ -428,7 +453,7 @@ class gitupdate extends Plugin
             'sha' => $head['sha'],
             'short' => substr($head['sha'], 0, 7),
             'message' => (string) ($head['message'] ?? ''),
-            'date' => (string) ($head['date'] ?? ''),
+            'date' => Reference::commitDate($head['date'] ?? null),
         ];
     }
 
