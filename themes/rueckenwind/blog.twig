@@ -45,7 +45,7 @@
     <ul class="space-y-8">
       {% for element in pagelist.folderContent|slice(offset, pagesize) %}
         {% set post = getPageMeta(settings, element) %}
-        {% set orderDate = element.order is defined and element.order matches '/^\d{8}$/' ? element.order[0:4] ~ '-' ~ element.order[4:2] ~ '-' ~ element.order[6:2] : '' %}
+        {% set orderDate = element.order is defined and element.order matches '/^\\d{8}$/' ? element.order[0:4] ~ '-' ~ element.order[4:2] ~ '-' ~ element.order[6:2] : '' %}
         {% set date = post.meta.manualdate|default(post.meta.modified|default(orderDate)) %}
 
         <li class="group overflow-hidden rounded-2xl border border-gray-200/80 bg-white/80 shadow-sm shadow-gray-950/5 ring-1 ring-gray-950/5 transition-all hover:border-primary-300 hover:shadow-lg hover:shadow-primary-500/10 dark:border-gray-800/80 dark:bg-gray-900/70 dark:ring-white/10 dark:hover:border-primary-700">
