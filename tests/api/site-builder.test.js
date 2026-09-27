@@ -12,6 +12,7 @@ describe('Site building API boundaries', () => {
 
     it('does not expose design settings or package writes anonymously', async () => {
         expect((await fetch(base + '/api/v1/designpanel/state')).status).toBe(401)
+        expect((await fetch(base + '/api/v1/designpanel/pages')).status).toBe(401)
         for (const path of ['/api/v1/designpanel/preview', '/api/v1/designpanel/save', '/api/v1/gitupdate/package']) {
             const result = await fetch(base + path, { method: 'POST', headers: { Referer: base + '/tm/login', 'Content-Type': 'application/json' }, body: '{}' })
             expect(result.status).toBe(401)

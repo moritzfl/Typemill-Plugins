@@ -1,1 +1,88 @@
 DESIGN_PANEL: Design-Panel
+SITE_WIDE_THEME_SETTINGS: Theme-Einstellungen für die gesamte Website
+ADJUST_YOUR_THEME_HERE_EDIT_PAGE_TEXT_AND_LAYOUT_BLOCKS_IN_CONTENT: 'Hier passen Sie Ihr Theme an. Seitentexte und Layout-Blöcke bearbeiten Sie unter Content.'
+LOADING_DESIGN_SETTINGS…: Design-Einstellungen werden geladen…
+TRY_AGAIN: Erneut versuchen
+SAVING…: Wird gespeichert…
+UNSAVED_CHANGES: Ungespeicherte Änderungen
+ALL_CHANGES_SAVED: Alle Änderungen gespeichert
+ONLY_YOU_CAN_SEE_THIS_PREVIEW_SAVE_TO_UPDATE_THE_LIVE_SITE: 'Nur Sie sehen diese Vorschau. Speichern übernimmt die Änderungen auf die Website.'
+CHANGES_APPLY_ACROSS_YOUR_SITE_WHEN_YOU_SAVE: 'Beim Speichern gelten die Änderungen für Ihre gesamte Website.'
+DISCARD_CHANGES: Änderungen verwerfen
+SAVE_DESIGN: Design speichern
+THEME_SETTINGS: Theme-Einstellungen
+FIND_A_SETTING: Einstellung finden
+SEARCH_LABELS_AND_SECTIONS…: Einstellungen und Bereiche suchen…
+START_FROM_A_PRESET: Mit einer Vorlage starten
+PRESET: Vorlage
+CHOOSE_A_STARTING_POINT…: Vorlage auswählen…
+REPLACES_MATCHING_SETTINGS_INCLUDING_TEXT_REVIEW_THE_PREVIEW_BEFORE_SAVING: 'Ersetzt zugehörige Einstellungen, auch Texte. Prüfen Sie die Vorschau vor dem Speichern.'
+APPLY_TO_PREVIEW: Auf Vorschau anwenden
+GENERAL: Allgemein
+TEXT_SIZE_%: Textgröße (%)
+THEME_DEFAULT: Theme-Standard
+USE_THEME_DEFAULT: Theme-Standard verwenden
+RESET: Zurücksetzen
+LEAVE_BLANK_TO_USE_THE_THEME_DEFAULT: 'Leer lassen, um den Theme-Standard zu verwenden.'
+NO_MATCHING_SETTINGS_TRY_ANOTHER_SEARCH: 'Keine passenden Einstellungen. Versuchen Sie einen anderen Suchbegriff.'
+PRIVATE_PREVIEW: Private Vorschau
+PUBLISHED_PAGE_CONTENT: Veröffentlichter Seiteninhalt
+PAGE_PATH: Seitenpfad
+GO: Anzeigen
+PREVIEW_WIDTH: Vorschaubreite
+FIT_TO_PANEL: Anpassen
+DESKTOP: Desktop
+TABLET: Tablet
+MOBILE: Mobil
+UPDATING_PREVIEW…: Vorschau wird aktualisiert…
+PREVIEW_OUT_OF_DATE: Vorschau nicht aktuell
+LINKS_OPEN_HERE_TEXT_IS_EDITED_IN_CONTENT: 'Links öffnen sich hier. Texte bearbeiten Sie unter Content.'
+EDIT_PAGE_CONTENT: Seiteninhalt bearbeiten
+OPENS_IN_A_NEW_TAB: Öffnet in einem neuen Tab
+RETRY_PREVIEW: Vorschau neu laden
+PRIVATE_DESIGN_PREVIEW: Private Design-Vorschau
+YOUR_PREVIEW_WILL_APPEAR_HERE: Hier erscheint Ihre Vorschau.
+USE_A_LOCAL_PAGE_PATH_FOR_EXAMPLE_ABOUT: 'Geben Sie einen lokalen Seitenpfad ein, zum Beispiel /ueber-uns.'
+CHECK_THE_HIGHLIGHTED_SETTING_BEFORE_PREVIEWING: Prüfen Sie die markierte Einstellung vor der Vorschau.
+THE_PREVIEW_DID_NOT_LOAD_TRY_AGAIN: 'Die Vorschau wurde nicht geladen. Versuchen Sie es erneut.'
+THIS_PAGE_CANNOT_BE_PREVIEWED_CHECK_THE_PATH_OR_TRY_ANOTHER_PAGE: 'Diese Seite kann nicht angezeigt werden. Prüfen Sie den Pfad oder wählen Sie eine andere Seite.'
+DESIGN_SAVED_YOUR_CHANGES_ARE_LIVE: 'Design gespeichert. Ihre Änderungen sind jetzt öffentlich.'
+COULD_NOT_CONNECT_PLEASE_TRY_AGAIN: 'Verbindung fehlgeschlagen. Versuchen Sie es erneut.'
+SELECT_A_MAINTAINED_THEME_IN_THEMES_FIRST: Wählen Sie zuerst unter Themes ein unterstütztes Theme aus.
+THE_ACTIVE_THEME_CHANGED_RELOAD_THE_PANEL: 'Das aktive Theme wurde geändert. Laden Sie das Design-Panel neu.'
+THEME_SETTINGS_CHANGED_ELSEWHERE_RELOAD_BEFORE_SAVING: 'Die Theme-Einstellungen wurden andernorts geändert. Laden Sie das Design-Panel vor dem Speichern neu.'
+COULD_NOT_SAVE_THEME_SETTINGS: Die Theme-Einstellungen konnten nicht gespeichert werden.
+USE_A_LOCAL_PAGE_PATH: Verwenden Sie einen lokalen Seitenpfad.
+WORKSPACE_VIEW: Arbeitsbereich
+HOMEPAGE_HERO: Startseiten-Kopfbereich
+HOMEPAGE_SECTION_TILES: Startseiten-Kacheln
+HOMEPAGE_QUICK_LINKS: Startseiten-Schnellzugriffe
+BLOG_POSTS: Blog / Beiträge
+NEWS_BLOG: Neuigkeiten / Blog
+ARTICLE_META: Artikelinformationen
+LABELS: Beschriftungen
+COLORS: Farben
+FOOTER_COLUMNS: Fußzeilen-Spalten
+COPYRIGHT_LINE: Copyright-Zeile
+LOOK: Erscheinungsbild
+EYEBROW_SMALL_LINE_ABOVE_THE_HEADLINE: Kleine Zeile über der Überschrift
+HEADLINE: Überschrift
+SUBHEADLINE: Unterüberschrift
+BUTTON_LABEL: Button-Beschriftung
+BUTTON_LINK: Button-Link
+SECONDARY_LINK_LABEL: Beschriftung des zweiten Links
+SECONDARY_LINK_TARGET: Ziel des zweiten Links
+DEFAULTS_TO_THE_HOMEPAGE_TITLE_IF_LEFT_BLANK: Wenn leer, wird der Titel der Startseite verwendet.
+WHERE_IS_MY_FOOTER: Wo bearbeite ich die Fußzeile?
+THEME_FOOTER_SETTINGS_BELONG_TO_THE_ACTIVE_THEME: Die Theme-Fußzeile gehört zum aktiven Theme.
+FIND_THEME_FOOTER_SETTINGS: Theme-Fußzeile finden
+SHARED_FOOTER_COLUMNS_COME_FROM_SITE_BLOCKS_THEY_APPEAR_ACROSS_THEMES_IN_ADDITION_TO_THE_THEME_FOOTER: 'Gemeinsame Fußzeilen-Spalten stammen aus Site Blocks. Sie erscheinen themeübergreifend, zusätzlich zur Theme-Fußzeile.'
+EDIT_SHARED_FOOTER: Gemeinsame Fußzeile bearbeiten
+CHOOSE_PAGE: Seite wählen
+CHOOSE_A_PAGE_TO_PREVIEW: Seite für die Vorschau wählen
+PUBLISHED_PAGES_YOU_CAN_ACCESS_SELECTING_A_PAGE_DOES_NOT_CHANGE_ITS_CONTENT: 'Veröffentlichte Seiten, auf die Sie zugreifen können. Die Auswahl ändert keinen Seiteninhalt.'
+SEARCH_BY_TITLE_OR_PATH: Nach Titel oder Pfad suchen
+LOADING_PAGES…: Seiten werden geladen…
+COULD_NOT_LOAD_PAGES: Seiten konnten nicht geladen werden.
+NO_MATCHING_PAGES_TRY_ANOTHER_SEARCH_OR_ENTER_A_PAGE_PATH: 'Keine passenden Seiten. Versuchen Sie einen anderen Suchbegriff oder geben Sie einen Seitenpfad ein.'
+SHOWING_THE_FIRST_100_MATCHES_REFINE_YOUR_SEARCH_FOR_MORE_SPECIFIC_RESULTS: 'Die ersten 100 Treffer werden angezeigt. Grenzen Sie die Suche für weitere Ergebnisse ein.'

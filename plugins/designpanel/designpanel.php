@@ -3,6 +3,9 @@
 namespace Plugins\designpanel;
 
 use Plugins\designpanel\Models\Schema;
+use Typemill\Models\Navigation;
+use Typemill\Models\Meta;
+use Typemill\Models\User;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Typemill\Models\Settings;
@@ -23,7 +26,7 @@ class designpanel extends Plugin
     {
         $routes = [['httpMethod' => 'get', 'route' => '/tm/designpanel', 'name' => 'designpanel.admin',
             'class' => 'Typemill\Controllers\ControllerWebSystem:blankSystemPage', 'resource' => 'system', 'privilege' => 'update']];
-        foreach (['state' => 'get', 'preview' => 'post', 'save' => 'post'] as $method => $verb) {
+        foreach (['state' => 'get', 'pages' => 'get', 'preview' => 'post', 'save' => 'post'] as $method => $verb) {
             $routes[] = ['httpMethod' => $verb, 'route' => '/api/v1/designpanel/' . $method, 'name' => 'designpanel.' . $method,
                 'class' => 'Plugins\designpanel\designpanel:' . $method, 'resource' => 'system', 'privilege' => 'update'];
         }
@@ -46,7 +49,9 @@ class designpanel extends Plugin
 
     public function onSessionSegmentsLoaded($event)
     {
-        if (isset($_GET['designpreview'])) { $event->setData(array_merge($event->getData(), ['/'])); }
+        // Core compares prefixes after trimming the route, but uses the original
+        // segment length. An empty prefix matches interior pages as well as '/'.
+        if (isset($_GET['designpreview'])) { $event->setData(array_merge($event->getData(), [''])); }
     }
 
     public function onPageReady($event)
@@ -59,6 +64,9 @@ class designpanel extends Plugin
             $settings['themes'][$theme] = $preview['values'];
             $event->setData(array_merge($event->getData(), ['settings' => $settings]));
             $this->addJS('/designpanel/assets/preview.js', 'defer');
+            // The preview already lives inside admin. Show the visitor-facing
+            // layout without a second, nonfunctional Admin shortcut.
+            $this->addInlineCSS('body > div:has(> a[href$="/tm/account"]) { display: none; }');
             $this->addMeta('designpreview', '<meta name="robots" content="noindex,nofollow">');
             header('Cache-Control: private, no-store');
         }
@@ -71,7 +79,7 @@ class designpanel extends Plugin
         if (!in_array($theme, self::THEMES, true)) { throw new \InvalidArgumentException('Select a maintained theme in Themes first.'); }
         $definition = (new Settings())->getObjectSettings('themesFolder', $theme);
         $fields = Schema::fields($definition['forms']['fields'] ?? []);
-        return ['theme' => $theme, 'fields' => $fields, 'presets' => $definition['readymades'] ?? [],
+        return ['theme' => $theme, 'name' => $definition['name'] ?? $theme, 'fields' => $fields, 'presets' => $definition['readymades'] ?? [],
             'values' => array_replace($definition['settings'] ?? [], $settings['themes'][$theme] ?? [])];
     }
 
@@ -85,6 +93,7 @@ class designpanel extends Plugin
         try {
             $state = $this->definition();
             $state['revision'] = $this->revision($state['theme']);
+            $state['sharedFooter'] = !empty($this->getSettings()['plugins']['siteblocks']['active']);
             // Only return panel fields, never unrelated theme secrets or custom CSS.
             $keys = array_fill_keys(array_column($state['fields'], 'key'), true);
             $state['values'] = array_intersect_key($state['values'], $keys);
@@ -92,6 +101,53 @@ class designpanel extends Plugin
             unset($preset);
             return $this->json($response, $state);
         } catch (\InvalidArgumentException $e) { return $this->json($response, ['message' => $e->getMessage()], 422); }
+    }
+
+    public function pages(Request $request, Response $response, $args)
+    {
+        $settings = $this->getSettings();
+        $urlinfo = $this->urlinfo();
+        $navigation = new Navigation();
+        $meta = new Meta();
+        $user = (new User())->setUser((string) $request->getAttribute('c_username'));
+        if (!$user) { return $this->json($response, ['message' => 'Could not load pages.'], 403); }
+        $restrictions = !empty($settings['pageaccess']) ? [
+            'username' => $request->getAttribute('c_username'), 'userrole' => $request->getAttribute('c_userrole'),
+            'acl' => $this->container->get('acl'),
+        ] : false;
+        $paths = ['/'];
+        foreach ($navigation->getAllProjects($settings) ?: [] as $project) {
+            if (!$project['base']) { $paths[] = '/' . $project['id']; }
+        }
+        $pages = [];
+        foreach ($paths as $projectPath) {
+            $navigation = new Navigation();
+            $navigation->setProject($settings, $projectPath);
+            $tree = $navigation->generateLiveNavigationFromDraft($navigation->getFullDraftNavigation($urlinfo, $settings['langattr'] ?? 'en'));
+            if ($user->getValue('folderaccess')) { $tree = $navigation->getAllowedFolders($tree, $user->getValue('folderaccess')); }
+            $home = $navigation->getHomepageItem($urlinfo['baseurl']);
+            if ($navigation->checkFolderAccess($projectPath, $user->getValue('folderaccess'))) {
+                $homeMeta = $meta->getMetaData($home)['meta'] ?? [];
+                foreach (['alloweduser', 'allowedrole'] as $key) {
+                    if (!empty($homeMeta[$key])) { $home->$key = $homeMeta[$key]; }
+                }
+                array_unshift($tree, $home);
+            }
+            // Core rules prune restricted ancestors and unpublished branches.
+            // Hidden pages are still useful to an editor and remain selectable.
+            $tree = $navigation->removePages($tree, false, $restrictions);
+            $walk = function (array $items) use (&$walk, &$pages, $meta): void {
+                foreach ($items as $item) {
+                    $metadata = $meta->getMetaData($item)['meta'] ?? [];
+                    if (!empty($metadata['reference'])) { continue; }
+                    $pages[] = ['path' => '/' . trim($item->urlRelWoF, '/'),
+                        'title' => (string) ($metadata['title'] ?? $item->name)];
+                    if (!empty($item->folderContent)) { $walk($item->folderContent); }
+                }
+            };
+            $walk($tree);
+        }
+        return $this->json($response, ['pages' => $pages]);
     }
 
     public function preview(Request $request, Response $response, $args)

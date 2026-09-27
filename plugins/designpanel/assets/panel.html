@@ -1,31 +1,127 @@
 <div class="dp">
-    <header><h1>{{ $filters.translate('Design panel') }}</h1><p>{{ state.theme }} · {{ dirty ? 'Unsaved preview' : 'Saved settings' }}</p></header>
-    <p v-if="message" role="status">{{ message }}</p>
-    <div v-if="state.theme" class="dp__toolbar">
-        <button type="button" :disabled="busy || !dirty" @click="save">Save design</button>
-        <button type="button" :disabled="busy || !dirty" @click="reset">Discard changes</button>
-        <a :href="base + '/tm/content/visual' + (path === '/' ? '' : path)">Edit page content</a>
-        <label>Preview width<select v-model="width"><option value="100%">Desktop</option><option value="390px">Mobile</option><option value="768px">Tablet</option></select></label>
-        <label>Page path<input v-model="path" @change="preview" placeholder="/"></label>
-        <label>Readymade<select @change="preset($event.target.value)"><option value="">Choose…</option><option v-for="(preset,key) in state.presets" :value="key">{{ preset.name }}</option></select></label>
+    <header class="dp__header">
+        <div>
+            <h1 class="text-3xl font-bold">{{ t('Design panel') }}</h1>
+            <p class="dp__muted" v-if="state.theme">{{ state.name || state.theme }} · {{ t('Site-wide theme settings') }}</p>
+        </div>
+        <a class="dp__link" :href="base + '/tm/themes'">{{ t('Themes') }}</a>
+    </header>
+    <p class="dp__intro">{{ t('Adjust your theme here. Edit page text and layout blocks in Content.') }}</p>
+    <p v-if="loading" role="status">{{ t('Loading design settings…') }}</p>
+    <div v-if="error" class="dp__notice dp__notice--error" role="alert">
+        <p>{{ error }}</p>
+        <button v-if="!state.theme" class="dp__button" type="button" @click="load">{{ t('Try again') }}</button>
     </div>
-    <div v-if="state.theme" class="dp__workspace">
-        <form class="dp__fields" @submit.prevent="save" @input="changed" @change="changed">
-            <details v-for="group in groups" :key="group" :open="group === groups[0]">
-                <summary>{{ group || 'General' }}</summary>
-                <div v-for="field in state.fields.filter(field => field.group === group)" :key="field.key" class="dp__field">
-                    <label :for="'dp-' + field.key">{{ field.label || field.key }}</label>
-                    <input v-if="field.type === 'checkbox'" :id="'dp-' + field.key" type="checkbox" v-model="values[field.key]">
-                    <div v-else-if="field.type === 'checkboxlist'" class="dp__checks" role="group" :aria-label="field.label"><label v-for="(label,key) in field.options"><input type="checkbox" :value="key" v-model="values[field.key]"> {{ label }}</label></div>
-                    <select v-else-if="['select','radio'].includes(field.type)" :id="'dp-' + field.key" v-model="values[field.key]"><option v-for="(label,key) in field.options" :value="key">{{ label }}</option></select>
-                    <textarea v-else-if="field.type === 'textarea'" :id="'dp-' + field.key" v-model="values[field.key]" :maxlength="field.maxlength || 20000"></textarea>
-                    <input v-else-if="field.type === 'number'" :id="'dp-' + field.key" type="number" v-model.number="values[field.key]" :min="field.min || 0" :max="field.max || 10000">
-                    <div v-else-if="field.key.toLowerCase().includes('color')" class="dp__color"><input type="color" :aria-label="field.label + ' picker'" :value="/^#[a-f0-9]{6}$/i.test(values[field.key] || '') ? values[field.key] : '#000000'" @input="values[field.key] = $event.target.value"><input :id="'dp-' + field.key" type="text" v-model="values[field.key]" placeholder="Theme default"></div>
-                    <input v-else :id="'dp-' + field.key" type="text" v-model="values[field.key]" :placeholder="field.placeholder || ''" :maxlength="field.maxlength || 20000">
-                    <small v-if="field.description">{{ field.description }}</small>
+    <template v-if="state.theme">
+        <div class="dp__toolbar">
+            <div class="dp__save-state" role="status" aria-live="polite">
+                <strong>{{ busy ? t('Saving…') : dirty ? t('Unsaved changes') : t('All changes saved') }}</strong>
+                <span>{{ dirty ? t('Only you can see this preview. Save to update the live site.') : t('Changes apply across your site when you save.') }}</span>
+            </div>
+            <div class="dp__actions">
+                <button class="dp__button" type="button" :disabled="busy || !dirty" @click="reset">{{ t('Discard changes') }}</button>
+                <button class="dp__button dp__button--primary" type="button" :disabled="busy || !dirty" @click="save">{{ busy ? t('Saving…') : t('Save design') }}</button>
+            </div>
+        </div>
+        <p v-if="message" class="dp__notice" role="status">{{ message }}</p>
+        <div class="dp__view-switch" role="group" :aria-label="t('Workspace view')">
+            <button class="dp__button" type="button" :aria-pressed="pane === 'settings'" @click="pane = 'settings'">{{ t('Theme settings') }}</button>
+            <button class="dp__button" type="button" :aria-pressed="pane === 'preview'" @click="pane = 'preview'">{{ t('Private preview') }}</button>
+        </div>
+        <div class="dp__workspace" :class="{'dp__workspace--preview': pane === 'preview'}">
+            <section class="dp__settings" :aria-label="t('Theme settings')">
+                <div class="dp__search">
+                    <label for="dp-search">{{ t('Find a setting') }}</label>
+                    <input id="dp-search" type="search" v-model="search" :placeholder="t('Search labels and sections…')">
                 </div>
-            </details>
-        </form>
-        <div class="dp__canvas"><iframe v-if="previewUrl" :src="previewUrl" :style="{width}" title="Private design preview" ref="preview"></iframe></div>
-    </div>
+                <details v-if="Object.keys(state.presets || {}).length" class="dp__presets">
+                    <summary>{{ t('Start from a preset') }}</summary>
+                    <div class="dp__preset-body">
+                        <label for="dp-preset">{{ t('Preset') }}</label>
+                        <select id="dp-preset" v-model="presetKey" :disabled="busy">
+                            <option value="">{{ t('Choose a starting point…') }}</option>
+                            <option v-for="(preset,key) in state.presets" :value="key">{{ t(preset.name) }}</option>
+                        </select>
+                        <p v-if="selectedPreset" class="dp__muted">{{ t(selectedPreset.description) }}</p>
+                        <p class="dp__muted">{{ t('Replaces matching settings, including text. Review the preview before saving.') }}</p>
+                        <button class="dp__button" type="button" :disabled="busy || !presetKey" @click="preset">{{ t('Apply to preview') }}</button>
+                    </div>
+                </details>
+                <details class="dp__footer-help" v-if="hasThemeFooter || state.sharedFooter">
+                    <summary>{{ t('Where is my footer?') }}</summary>
+                    <div class="dp__preset-body">
+                        <template v-if="hasThemeFooter">
+                            <p class="dp__muted">{{ t('Theme footer settings belong to the active theme.') }}</p>
+                            <button class="dp__button" type="button" @click="showFooter">{{ t('Find theme footer settings') }}</button>
+                        </template>
+                        <template v-if="state.sharedFooter">
+                            <p class="dp__muted">{{ t('Shared footer columns come from Site Blocks. They appear across themes, in addition to the theme footer.') }}</p>
+                            <a class="dp__link" :href="base + '/tm/plugins#siteblocks-footer'" target="_blank" rel="noopener">{{ t('Edit shared footer') }} ↗<span class="dp__sr-only">{{ t('(opens in a new tab)') }}</span></a>
+                        </template>
+                    </div>
+                </details>
+                <form class="dp__fields" ref="fields" @submit.prevent="save" novalidate>
+                    <fieldset :disabled="busy">
+                        <legend class="dp__sr-only">{{ t('Theme settings') }}</legend>
+                        <details v-for="(group,index) in groups" :key="group.name + (search ? '-search' : '')" :open="!!search || index === 0">
+                            <summary>{{ t(group.name || 'General') }}<span class="dp__count">{{ group.fields.length }}</span></summary>
+                            <div class="dp__group-fields">
+                                <div v-for="field in group.fields" :key="field.key" class="dp__field" :data-field="field.key">
+                                    <label v-if="field.type !== 'checkbox'" :for="field.type === 'checkboxlist' ? undefined : 'dp-' + field.key" :id="'dp-label-' + field.key">{{ label(field) }}</label>
+                                    <label v-if="field.type === 'checkbox'" class="dp__check" :for="'dp-' + field.key">
+                                        <input :id="'dp-' + field.key" type="checkbox" v-model="values[field.key]" :aria-describedby="field.description ? 'dp-help-' + field.key : undefined">
+                                        <span>{{ t(field.checkboxlabel || field.label || field.key) }}</span>
+                                    </label>
+                                    <div v-else-if="field.type === 'checkboxlist'" class="dp__checks" role="group" :aria-labelledby="'dp-label-' + field.key" :aria-describedby="field.description ? 'dp-help-' + field.key : undefined">
+                                        <label v-for="(option,key) in field.options" class="dp__check"><input type="checkbox" :value="key" v-model="values[field.key]"> <span>{{ t(option) }}</span></label>
+                                    </div>
+                                    <select v-else-if="['select','radio'].includes(field.type)" :id="'dp-' + field.key" v-model="values[field.key]" :aria-describedby="field.description ? 'dp-help-' + field.key : undefined"><option v-for="(option,key) in field.options" :value="key">{{ t(option) }}</option></select>
+                                    <textarea v-else-if="field.type === 'textarea'" :id="'dp-' + field.key" v-model="values[field.key]" :maxlength="field.maxlength || 20000" :aria-describedby="field.description ? 'dp-help-' + field.key : undefined"></textarea>
+                                    <input v-else-if="field.type === 'number'" :id="'dp-' + field.key" type="number" v-model.number="values[field.key]" :min="field.min ?? 0" :max="field.max ?? 10000" :step="field.step || 'any'" :aria-describedby="field.description ? 'dp-help-' + field.key : undefined">
+                                    <div v-else-if="field.key.toLowerCase().includes('color')" class="dp__color">
+                                        <input type="color" :aria-label="label(field)" :value="colorValue(values[field.key])" @input="values[field.key] = $event.target.value">
+                                        <input :id="'dp-' + field.key" type="text" v-model="values[field.key]" pattern="#[a-fA-F0-9]{3}([a-fA-F0-9]{3})?" :placeholder="t('Theme default')" :aria-describedby="'dp-help-' + field.key">
+                                        <button class="dp__button" type="button" :disabled="!values[field.key]" @click="values[field.key] = ''" :aria-label="t('Use theme default') + ': ' + label(field)">{{ t('Reset') }}</button>
+                                    </div>
+                                    <input v-else :id="'dp-' + field.key" type="text" v-model="values[field.key]" :placeholder="field.placeholder || ''" :maxlength="field.maxlength || 20000" :aria-describedby="field.description ? 'dp-help-' + field.key : undefined">
+                                    <small v-if="field.description || field.key.toLowerCase().includes('color')" :id="'dp-help-' + field.key">{{ t(field.description || 'Leave blank to use the theme default.') }}</small>
+                                </div>
+                            </div>
+                        </details>
+                    </fieldset>
+                    <p v-if="!groups.length" class="dp__empty">{{ t('No matching settings. Try another search.') }}</p>
+                </form>
+            </section>
+            <section class="dp__preview" :aria-label="t('Private preview')" :aria-busy="previewBusy">
+                <div class="dp__preview-heading"><h2>{{ t('Private preview') }}</h2><button class="dp__button" type="button" @click="choosePage">{{ t('Choose page') }}</button></div>
+                <div class="dp__preview-controls">
+                    <form class="dp__page" @submit.prevent="go">
+                        <label for="dp-path">{{ t('Page path') }}</label>
+                        <div><input id="dp-path" v-model="pathInput" placeholder="/" spellcheck="false" :aria-invalid="!!pathError" :aria-describedby="pathError ? 'dp-path-error' : undefined"><button class="dp__button" type="submit">{{ t('Go') }}</button></div>
+                    </form>
+                    <label for="dp-width">{{ t('Preview width') }}<select id="dp-width" v-model="width"><option value="100%">{{ t('Fit to panel') }}</option><option value="1280px">{{ t('Desktop') }} · 1280px</option><option value="768px">{{ t('Tablet') }} · 768px</option><option value="390px">{{ t('Mobile') }} · 390px</option></select></label>
+                </div>
+                <p v-if="pathError" id="dp-path-error" class="dp__notice dp__notice--error" role="alert">{{ pathError }}</p>
+                <div class="dp__preview-meta">
+                    <span role="status">{{ previewBusy ? t('Updating preview…') : previewError ? t('Preview out of date') : t('Links open here. Text is edited in Content.') }}</span>
+                    <a class="dp__link" :href="base + '/tm/content/visual' + (path === '/' ? '' : path)" target="_blank" rel="noopener">{{ t('Edit page content') }} <span class="dp__sr-only">{{ t('(opens in a new tab)') }}</span><span aria-hidden="true">↗</span></a>
+                </div>
+                <div v-if="previewError" class="dp__notice dp__notice--error" role="alert"><p>{{ previewError }}</p><button class="dp__button" type="button" @click="preview">{{ t('Retry preview') }}</button></div>
+                <div class="dp__canvas"><iframe v-if="previewUrl" :src="previewUrl" :style="{width}" :title="t('Private design preview')" ref="preview" @load="previewLoaded"></iframe><p v-else class="dp__empty">{{ t('Your preview will appear here.') }}</p></div>
+            </section>
+        </div>
+        <dialog class="dp__page-dialog" ref="pages" aria-labelledby="dp-pages-title" aria-describedby="dp-pages-help" @keydown.esc.stop.prevent="$refs.pages.close()">
+            <div class="dp__header"><h2 id="dp-pages-title">{{ t('Choose a page to preview') }}</h2><button type="button" class="dp__button" @click="$refs.pages.close()">{{ t('Close') }}</button></div>
+            <p id="dp-pages-help" class="dp__muted">{{ t('Published pages you can access. Selecting a page does not change its content.') }}</p>
+            <label for="dp-page-search">{{ t('Search by title or path') }}</label>
+            <input id="dp-page-search" type="search" v-model="pageSearch" autofocus>
+            <p v-if="pagesLoading" role="status">{{ t('Loading pages…') }}</p>
+            <div v-else-if="pagesError" class="dp__notice dp__notice--error" role="alert"><p>{{ pagesError }}</p><button type="button" class="dp__button" @click="loadPages">{{ t('Try again') }}</button></div>
+            <template v-else>
+                <p v-if="!matchingPages.length" role="status">{{ t('No matching pages. Try another search or enter a page path.') }}</p>
+                <p v-else-if="matchingPages.length > 100" class="dp__muted">{{ t('Showing the first 100 matches. Refine your search for more specific results.') }}</p>
+                <ul class="dp__page-results"><li v-for="page in matchingPages.slice(0,100)" :key="page.path"><button type="button" @click="selectPage(page)" :aria-current="page.path === path ? 'page' : undefined"><strong>{{ page.title }}</strong><span>{{ page.path }}</span></button></li></ul>
+            </template>
+        </dialog>
+    </template>
 </div>
