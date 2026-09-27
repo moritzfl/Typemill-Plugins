@@ -8,7 +8,7 @@
     <nav class="sbl__bar" :aria-label="t('Content blocks')"><button type="button" :aria-pressed="tab === 'library'" @click="tab = 'library'">{{ t('Library') }}</button><button type="button" :aria-pressed="tab === 'areas'" @click="tab = 'areas'">{{ t('Website areas') }}</button></nav>
     <section v-if="tab === 'library'">
         <template v-if="!selected">
-        <div class="sbl__bar"><label>{{ t('Search') }}<input type="search" v-model="search"></label><label>{{ t('Status') }}<select v-model="filter"><option value="">{{ t('All') }}</option><option v-for="status in ['Draft','Published','Unpublished changes','Archived']" :value="status">{{ t(status) }}</option></select></label><button class="sbl__primary" type="button" @click="open()" :disabled="busy || !permissions.update">{{ t('Create block') }}</button></div>
+        <div class="sbl__bar sbl__filters"><label>{{ t('Search') }}<input type="search" v-model="search"></label><label>{{ t('Status') }}<select v-model="filter"><option value="">{{ t('All') }}</option><option v-for="status in ['Draft','Published','Unpublished changes','Archived']" :value="status">{{ t(status) }}</option></select></label><button class="sbl__primary" type="button" @click="open()" :disabled="busy || !permissions.update">{{ t('Create block') }}</button></div>
         <ul class="sbl__list"><li v-for="row in visible" :key="row.id"><button type="button" @click="open(row)" :disabled="busy"><strong>{{ row.title }}</strong><span>{{ t(status(row)) }} · {{ row.usage.length }} {{ t('uses') }}</span></button></li></ul>
         <p v-if="!visible.length && !busy">{{ t('No blocks found') }}</p>
         </template>

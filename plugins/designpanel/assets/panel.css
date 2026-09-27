@@ -30,3 +30,4 @@ body:has(.dp) #main{max-width:1680px;padding:0 1.5rem}body:has(.dp) #main>aside{
 @media(max-width:1023px){body:has(.dp) #main>aside{width:auto}body:has(.dp) #main{padding:0 1rem}}
 @media(max-width:600px){body:has(.dp) #main{padding:0 .5rem}body:has(.dp) #main>article{padding:1rem}.dp__actions{width:100%;align-items:stretch}.dp__actions .dp__button{flex:1}.dp__preview-controls{gap:.75rem}.dp__preview-controls>label{flex:1 1 100%}.dp__canvas{padding:.5rem}.dp__header{gap:.5rem}.dp__intro{font-size:.875rem}}
 @media(prefers-reduced-motion:reduce){.dp summary:before{transition:none}}
+.dp select{-webkit-appearance:none;appearance:none;padding-inline-end:2.25rem;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}

@@ -25,8 +25,8 @@ GITUPDATE_BROWSE: Pakete im Repository
 GITUPDATE_SEARCH: Pakete filtern
 GITUPDATE_INSTALL: Installieren
 GITUPDATE_INSTALL_HELP: Pakete stammen aus dem konfigurierten Repository beim angezeigten Commit. Installierte Pakete werden separat unter Plugins oder Themes aktiviert.
-GITUPDATE_PIN: Commit festhalten
-GITUPDATE_UNPIN: Freigeben
-GITUPDATE_PINNED: Festgehalten
+GITUPDATE_PIN: Version fixieren
+GITUPDATE_UNPIN: Fixierung aufheben
+GITUPDATE_PINNED: Version fixiert
 GITUPDATE_REMOVE: Entfernen
 GITUPDATE_REMOVE_CONFIRM: Paketdateien entfernen? Einstellungen und Inhalte bleiben erhalten.
