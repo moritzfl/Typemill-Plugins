@@ -130,6 +130,19 @@ class VersionExportService
                 $stats['content_files'] = $stats['files'] - $before;
             }
 
+            $libraryRoot = rtrim($storage->getFolderPath('dataFolder'), DIRECTORY_SEPARATOR) . '/siteblocks';
+            if (is_dir($libraryRoot)) {
+                $lock = fopen($libraryRoot . '/.lock', 'c');
+                if (!$lock || !flock($lock, LOCK_SH)) { return null; }
+                try {
+                    foreach (['blocks', 'placements'] as $folder) {
+                        if (is_dir($libraryRoot . '/' . $folder)) {
+                            $this->addDirectoryToZip($zip, $libraryRoot . '/' . $folder, 'data/siteblocks/' . $folder, $stats);
+                        }
+                    }
+                } finally { flock($lock, LOCK_UN); fclose($lock); }
+            }
+
             $mediaRoot = $this->resolveMediaRoot($storage);
             if ($mediaRoot !== null && $options->mediaFolders !== []) {
                 $before = $stats['files'];
@@ -194,6 +207,7 @@ class VersionExportService
             $includes[] = 'media';
         }
         $includes[] = 'versions';
+        if (is_dir($libraryRoot)) { $includes[] = 'siteblocks'; }
         if ($options->includeRecycleBin) {
             $includes[] = 'recycle_bin';
         }

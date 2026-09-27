@@ -149,6 +149,31 @@ class VersionExportServiceTest extends TestCase
         $this->assertSame(['custom', 'files', 'live'], $service->listMediaSubfolders($storage));
     }
 
+    public function testLibraryReferencesAndMediaSurviveSiteExportRestore(): void
+    {
+        if (!class_exists(\ZipArchive::class)) { $this->markTestSkipped('ZIP required for restore verification.'); }
+        $library = new \Plugins\siteblocks\Models\Library($this->root . '/data/siteblocks', $this->root . '/content');
+        $row = $library->save('', '', '', 'Contact', '![Photo](/media/live/published.jpg)');
+        $row = $library->action($row['id'], '', $row['revision'], 'publish');
+        $library->save($row['id'], '', $row['revision'], 'Contact', 'Private next version');
+        $library->place('', $row['id'], '');
+        $reference = '[:siteblock-ref id="' . $row['id'] . '" :]';
+        file_put_contents($this->root . '/content/welcome.md', $reference);
+        $storage = new ExportStorageDouble($this->root . '/content', $this->root . '/media/files', $this->root . '/data');
+        $download = (new VersionExportService())->createFullExport(new VersionRecordRepository($storage, 'versions'), $storage, ExportOptions::defaults(['live']));
+        self::assertNotNull($download);
+        $zipFile = $this->root . '/backup.zip'; file_put_contents($zipFile, $download['content']);
+        $zip = new \ZipArchive(); self::assertTrue($zip->open($zipFile));
+        self::assertContains('siteblocks', json_decode($zip->getFromName('manifest.json'), true)['includes']);
+        $zip->extractTo($this->root . '/restored'); $zip->close();
+        $restored = new \Plugins\siteblocks\Models\Library($this->root . '/restored/data/siteblocks', $this->root . '/restored/content');
+        self::assertSame($row['published'], $restored->get($row['id'])['published']);
+        self::assertSame('Private next version', $restored->get($row['id'])['draft']);
+        self::assertSame($row['id'], $restored->placement('')['footer']);
+        self::assertSame($reference, file_get_contents($this->root . '/restored/content/welcome.md'));
+        self::assertSame('jpeg-data', file_get_contents($this->root . '/restored/media/live/published.jpg'));
+    }
+
     public function testGetMediaSubfolderSizesIgnoresTemporaryPaths(): void
     {
         $storage = new ExportStorageDouble(
