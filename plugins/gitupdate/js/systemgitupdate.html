@@ -52,7 +52,7 @@
                         </li>
                     </ul>
                 </section>
-                <p v-else-if="!status.error" class="tm-gu-note">{{ $filters.translate('gitupdate.none') }}</p>
+                <p v-if="!loading && groups.length === 0 && !status.error" class="tm-gu-note">{{ $filters.translate('gitupdate.none') }}</p>
 
                 <p v-if="status.absent && status.absent.length" class="tm-gu-note">{{ $filters.translate('gitupdate.not_installed') }} {{ status.absent.join(', ') }}</p>
             </div>
