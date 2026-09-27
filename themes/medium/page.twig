@@ -8,7 +8,7 @@
     {% include 'partials/breadcrumb.twig' %}
   {% endif %}
 
-  <div class="md-article">
+  <div class="md-article{{ item.elementType == 'folder' ? ' md-article--folder' : '' }}">
 
     <h1 class="md-article__title">{{ title|e }}</h1>
 

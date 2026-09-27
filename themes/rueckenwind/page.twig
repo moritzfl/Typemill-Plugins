@@ -37,7 +37,7 @@
       {% set showEditTop   = 'top' in theme.gitPosition|default([]) and theme.gitLink %}
       {% set showPrintTop  = 'top' in theme.printPosition|default([]) %}
       {% if showDateTop or showAuthorTop or showEditTop or showPrintTop %}
-        <div class="not-prose mt-4 mb-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200/80 bg-gray-50/80 px-4 py-3 text-sm text-gray-500 shadow-sm shadow-gray-950/5 dark:border-gray-800/80 dark:bg-gray-900/70 dark:text-gray-400">
+        <div class="not-prose mt-4 mb-8 flex flex-wrap items-center justify-between gap-3 border-y border-gray-200/80 py-4 text-sm text-gray-600 dark:border-gray-800/80 dark:text-gray-400">
           <div class="flex flex-wrap items-center gap-4">
             {% if showDateTop %}
               <time pubdate datetime="{{ published }}" class="flex items-center gap-1">
@@ -89,7 +89,7 @@
       {% set showEditBot   = 'bottom' in theme.gitPosition|default([]) and theme.gitLink %}
       {% set showPrintBot  = 'bottom' in theme.printPosition|default([]) %}
       {% if showDateBot or showAuthorBot or showEditBot or showPrintBot %}
-        <div class="not-prose mt-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200/80 bg-gray-50/80 px-4 py-3 text-sm text-gray-500 shadow-sm shadow-gray-950/5 dark:border-gray-800/80 dark:bg-gray-900/70 dark:text-gray-400">
+        <div class="not-prose mt-10 flex flex-wrap items-center justify-between gap-3 border-y border-gray-200/80 py-4 text-sm text-gray-600 dark:border-gray-800/80 dark:text-gray-400">
           <div class="flex flex-wrap items-center gap-4">
             {% if showDateBot %}
               <time pubdate datetime="{{ published }}" class="flex items-center gap-1">

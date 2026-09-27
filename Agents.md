@@ -81,6 +81,7 @@ Browser tests live in `tests/browser/`:
 |------|--------|
 | `admin-pages.mjs` | Logs in through the real login form, opens admin pages (e.g. **System → Files**, **System → Versions**), and fails on JS console errors or stuck loading states. |
 | `theme-prose.mjs` | Renders one fixture page in every **own** theme at four widths and measures the running text: no block may be pulled over the one above it, consecutive paragraphs may not sit flush, nothing with a background (e.g. a Link Buttons button) may overlap text it does not own, and the page may not scroll sideways. |
+| `theme-polish.mjs` | Long site names and titles at 320–1440px; single-target gallery/feed cards, Medium image alignment, Legible reader controls at extra-large size in portrait/landscape, and Rückenwind's no-hero homepage title. |
 | `blog-homepage.mjs` | Makes the post list the homepage in each theme, follows the pager to page two (it must stay on this site), and asks for a page of zero posts. |
 | `theme-language.mjs` | Switches the site to German and reads the words that come out: labels must follow the site language, not the theme's shipped English. |
 | `theme-navigation.mjs` | Opens the mobile drawer with the keyboard and checks where focus goes, then closes it with Escape and checks again. A drawer that covers the page must also hold Tab inside it, take the page behind it out of reach, and hand back the scroll lock exactly as it found it. |

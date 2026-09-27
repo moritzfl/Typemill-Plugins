@@ -26,6 +26,10 @@ custom properties.
 | Gradient | `linear-gradient(90deg, #7232f1, #fb76fa 50%, #ffcf5e)` |
 | Shadows | layered: a tight contact shadow over a soft ambient one |
 
+Cards use a light border and a restrained shadow, with an accent border on hover. Mobile
+sections and cards have tighter padding; headlines balance their lines and long titles wrap
+inside their column.
+
 Every token is a CSS custom property on `:root`. The accent colour, the hero gradient and the grid
 width each have their own settings field, and anything else can be overridden in Custom CSS:
 

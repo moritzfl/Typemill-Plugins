@@ -230,9 +230,11 @@ a {
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .at-nav--overlay .at-nav__brand,
@@ -494,6 +496,7 @@ a {
 .at-hero {
     position: relative;
     min-height: 78vh;
+    min-height: clamp(360px, 78svh, 900px);
     display: grid;
     align-items: end;
     overflow: hidden;
@@ -527,7 +530,7 @@ a {
     width: 100%;
     max-width: var(--at-wide);
     margin-inline: auto;
-    padding: 0 var(--at-gutter) 56px;
+    padding: calc(var(--at-nav-height) + 48px) var(--at-gutter) 56px;
     color: var(--at-on-dark);
     text-shadow: 0 1px 18px rgba(0, 0, 0, 0.4);
 }
@@ -570,7 +573,7 @@ a {
 .at-hero--plain .at-hero__inner {
     color: var(--at-text);
     text-shadow: none;
-    padding-bottom: 0;
+    padding-block: 0;
 }
 
 .at-hero--plain .at-hero__eyebrow {
@@ -639,6 +642,20 @@ a {
     position: relative;
 }
 
+.at-tile__link {
+    display: block;
+    color: inherit;
+}
+
+.at-tile__link:hover {
+    color: inherit;
+    text-decoration: none;
+}
+
+.at-tile__link:focus-visible {
+    outline-offset: 5px;
+}
+
 .at-tile__media {
     display: block;
     overflow: hidden;
@@ -663,10 +680,17 @@ a {
 }
 
 .at-tile__title {
-    font-size: 14px;
+    font-size: 16px;
+    line-height: 1.4;
     font-weight: 500;
     letter-spacing: 0.01em;
     margin: 0;
+}
+
+.at-tile:hover .at-tile__title,
+.at-tile:focus-within .at-tile__title {
+    text-decoration: underline;
+    text-underline-offset: 4px;
 }
 
 .at-tile__meta {
@@ -683,7 +707,8 @@ a {
     inset: auto 0 0 0;
     padding: 18px;
     color: var(--at-on-dark);
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.62));
+    /* A bright photograph still needs a dark surface behind every text pixel. */
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.85));
     opacity: 0;
     transition: opacity 0.25s ease;
 }
@@ -724,6 +749,7 @@ a {
 
 .at-section__head {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
     gap: 24px;
@@ -753,6 +779,24 @@ a {
     font-weight: 500;
     letter-spacing: -0.02em;
     margin: 0 0 14px;
+}
+
+.at-hero__title,
+.at-article__title,
+.at-section__title,
+.at-tile__title {
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+    .at-section {
+        padding-block: 48px;
+    }
+
+    .at-gallery--masonry .at-tile {
+        margin-bottom: calc(var(--at-gap) + 10px);
+    }
 }
 
 .at-article__meta {

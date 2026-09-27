@@ -207,9 +207,11 @@ a:hover {
     font-weight: 700;
     letter-spacing: -0.02em;
     color: inherit;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 /* Scoped to the bar's own links: a descendant selector would also repaint the
@@ -606,6 +608,7 @@ a:hover {
     font-weight: 800;
     letter-spacing: -0.035em;
     margin: 0;
+    max-width: 20ch;
 }
 
 .pr-hero__subtitle {
@@ -750,7 +753,7 @@ a:hover {
 
 .pr-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
     gap: 22px;
     list-style: none;
     margin: 0;
@@ -760,16 +763,18 @@ a:hover {
 .pr-card {
     background: var(--pr-surface);
     border-radius: var(--pr-radius-lg);
-    box-shadow: var(--pr-shadow-sm);
+    border: 1px solid var(--pr-border);
+    box-shadow: 0 4px 16px -12px rgba(6, 27, 49, 0.2);
     padding: 28px 26px;
     display: flex;
     flex-direction: column;
-    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .pr-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--pr-shadow-md);
+    transform: translateY(-2px);
+    border-color: var(--pr-accent);
+    box-shadow: 0 12px 28px -20px rgba(6, 27, 49, 0.3);
 }
 
 .pr-section--dark .pr-card {
@@ -849,7 +854,29 @@ a:hover {
     font-size: 13px;
     font-weight: 700;
     color: var(--pr-accent);
-    margin-bottom: 10px;
+    margin: 0 0 16px;
+}
+
+.pr-hero__title,
+.pr-article__title,
+.pr-section__title,
+.pr-card__title {
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+    .pr-section {
+        padding-block: 52px;
+    }
+
+    .pr-section--tight {
+        padding-block: 36px;
+    }
+
+    .pr-card {
+        padding: 24px;
+    }
 }
 
 /* ── Article ──────────────────────────────────────────────────────── */

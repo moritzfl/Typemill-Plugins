@@ -48,7 +48,7 @@
     --lg-measure: 66ch;
     --lg-wide: 1100px;
     --lg-gutter: 24px;
-    --lg-radius: 6px;
+    --lg-radius: 10px;
 
     /* WCAG 2.5.5 asks for 44px; nothing interactive here goes below it. */
     --lg-target: 44px;
@@ -296,6 +296,8 @@ main {
     gap: 10px;
     min-height: var(--lg-target);
     padding: 4px 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
 }
 
 .lg-brand:visited {
@@ -464,7 +466,7 @@ main {
     right: 0;
     z-index: 70;
     width: min(23rem, calc(100vw - 2 * var(--lg-gutter)));
-    padding: 18px;
+    padding: 20px;
     background: var(--lg-bg);
     border: 2px solid var(--lg-border);
     border-radius: var(--lg-radius);
@@ -492,6 +494,8 @@ main {
 
 .lg-reader__group + .lg-reader__group {
     margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--lg-border-faint);
 }
 
 .lg-reader__legend {
@@ -510,10 +514,8 @@ main {
     border: 0;
 }
 
-/* A fixed two-column grid rather than a wrapping row. Wrapping made each group
-   break differently, and the row even re-broke as the selection moved, because
-   the tick made the chosen button wider - so the buttons shifted under the
-   pointer of the person clicking them. */
+/* Fixed columns keep choices still when the selection changes. The longer
+   spacing labels get a full row, including at the largest reader size. */
 .lg-reader__options {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -525,7 +527,21 @@ main {
     grid-column: 1 / -1;
 }
 
+.lg-reader__options[data-reader-group="spacing"] {
+    grid-template-columns: 1fr;
+}
+
+@media (max-width: 360px) {
+    .lg-reader__options {
+        grid-template-columns: 1fr;
+    }
+}
+
 .lg-reader__option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3em;
     min-height: var(--lg-target);
     padding: 8px 10px;
     font: inherit;
@@ -555,8 +571,8 @@ main {
 .lg-reader__option::before {
     content: "\2713";
     display: inline-block;
+    flex-shrink: 0;
     width: 1em;
-    margin-right: 0.3em;
     visibility: hidden;
 }
 
@@ -597,6 +613,13 @@ main {
     line-height: 1.2;
     font-weight: 700;
     margin: 0 0 0.4em;
+}
+
+.lg-article__title,
+.lg-section__title,
+.lg-card__title {
+    text-wrap: balance;
+    overflow-wrap: anywhere;
 }
 
 .lg-article__lead {
@@ -828,11 +851,13 @@ main {
     position: relative;
     border: 2px solid var(--lg-border-faint);
     border-radius: var(--lg-radius);
-    padding: 18px 20px;
+    padding: 22px;
 }
 
-.lg-card:hover {
+.lg-card:hover,
+.lg-card:focus-within {
     border-color: var(--lg-border);
+    background: var(--lg-bg-alt);
 }
 
 .lg-card__title {
@@ -855,7 +880,8 @@ main {
     inset: 0;
 }
 
-.lg-card__title a:hover {
+.lg-card:hover .lg-card__title a,
+.lg-card:focus-within .lg-card__title a {
     text-decoration: underline;
 }
 

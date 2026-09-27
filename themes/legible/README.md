@@ -97,6 +97,8 @@ Everything is a custom property on `:root` that the Custom CSS field can overrid
 Lists are `<ul>` of cards with a heading each, so they can be navigated by heading as well as by
 link. The whole card is clickable through a stretched pseudo-element on the title link, which keeps
 **one** link per entry — a separate "read more" would put two identical links in the tab order.
+Hover and keyboard focus underline the title and tint the card using the selected contrast
+palette. Long titles wrap inside the reading column, including at the largest reader size.
 
 ## Readymades
 

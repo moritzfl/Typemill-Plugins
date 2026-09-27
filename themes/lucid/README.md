@@ -24,6 +24,7 @@ The theme is built on one strict typographic system rather than ad-hoc values:
 | Header height | 44px, `saturate(180%) blur(20px)` |
 | Buttons | fully rounded |
 | Cards / media | 18px radius |
+| Mobile tiles | 28px × 24px padding, 24px headings, a subtle border |
 | Light | text `#1d1d1f`, background `#fff`, sections `#f5f5f7`, accent `#0071e3` |
 | Dark | text `#f5f5f7`, background `#000`, sections `#1d1d1f`, accent `#2997ff` |
 

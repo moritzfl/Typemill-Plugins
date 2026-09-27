@@ -10,6 +10,7 @@ Cyanine Typemill theme.
 - Sidebar navigation with collapsible folders
 - Automatic dark mode following system preference, with a manual icon-based Light / Dark / System toggle
 - Optional homepage hero (title, tagline, call-to-action button)
+- A normal page title when the homepage hero is disabled
 - Blog mode: use the homepage as a post listing
 - Per-page author, date, edit link, and print button
 - Up to three Markdown footer columns

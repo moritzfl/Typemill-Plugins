@@ -52,6 +52,9 @@ The proportion, gap, accent, surface and column width are settings; the rest are
 | **Grid** | Every picture cropped to one proportion, for a strict wall |
 
 Captions sit **below** the picture, or **over** it, revealed on hover and on keyboard focus.
+On touch screens they stay below the image. Each tile is one link named by its title,
+with a visible focus ring around the whole tile. Captions use 16px type and the mobile
+wall leaves extra space between pictures.
 
 ## Surfaces
 

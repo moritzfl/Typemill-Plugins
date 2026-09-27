@@ -62,11 +62,11 @@
   <header id="topbar" class="sticky top-0 z-40 flex h-14 items-center border-b border-gray-200/80 bg-white/80 shadow-sm shadow-gray-950/5 backdrop-blur-xl dark:border-gray-800/80 dark:bg-gray-950/75">
     <div class="flex w-full items-center justify-between gap-4 px-4 sm:px-6">
 
-      <a href="{{ base_url }}" class="flex shrink-0 items-center gap-2.5 text-lg font-semibold tracking-tight text-gray-900 transition-colors hover:text-primary-600 dark:text-white dark:hover:text-primary-300">
+      <a href="{{ base_url }}" class="flex min-w-0 items-center gap-2.5 text-lg font-semibold tracking-tight text-gray-900 transition-colors hover:text-primary-600 dark:text-white dark:hover:text-primary-300">
         {% if logo %}
           <img src="{{ base_url }}/{{ logo }}" alt="{{ settings.title|e }}" class="h-8 w-auto rounded-md" />
         {% else %}
-          <span>{{ settings.title|e }}</span>
+          <span class="truncate">{{ settings.title|e }}</span>
         {% endif %}
       </a>
 

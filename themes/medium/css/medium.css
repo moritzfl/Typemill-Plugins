@@ -179,9 +179,11 @@ a {
     font-size: 24px;
     font-weight: 700;
     letter-spacing: -0.02em;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .md-nav__brand img {
@@ -443,6 +445,17 @@ a {
     margin: 0 0 12px;
 }
 
+.md-article__title,
+.md-masthead__title,
+.md-post__title {
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+}
+
+.md-article--folder {
+    padding-bottom: 24px;
+}
+
 .md-article__standfirst {
     font-family: var(--md-serif);
     font-size: clamp(19px, 2.4vw, 22px);
@@ -497,7 +510,7 @@ a {
 }
 
 .md-article__hero {
-    margin-bottom: 40px;
+    margin: 32px 0 40px;
 }
 
 .md-article__hero img {
@@ -772,10 +785,9 @@ a {
     padding: 0;
 }
 
-/* The whole row is the target. Only the title is a link - the thumbnail is
-   already kept out of the tab order - so there is one stop per entry and its
-   name is the article's. Text inside a row cannot be selected as a result,
-   which is the price of the row being a single large target. */
+/* The whole row is the target. Only the title is a link, so there is one stop
+   per entry and its name is the article's. Text inside a row cannot be selected
+   as a result, which is the price of the row being a single large target. */
 .md-post {
     position: relative;
     display: flex;
@@ -815,6 +827,13 @@ a {
     outline-offset: 4px;
 }
 
+.md-post:hover .md-post__title a,
+.md-post:focus-within .md-post__title a {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+}
+
 .md-post__title {
     font-family: var(--md-serif);
     font-size: 22px;
@@ -832,7 +851,7 @@ a {
     margin: 0;
 }
 
-/* The thumbnail is a small fixed square beside the text, not a banner. */
+/* A landscape thumbnail on desktop, a compact square on mobile. */
 .md-post__media {
     flex-shrink: 0;
     width: 160px;
@@ -845,6 +864,10 @@ a {
 }
 
 @media (max-width: 640px) {
+    .md-article {
+        padding-top: 36px;
+    }
+
     .md-post {
         gap: 18px;
     }

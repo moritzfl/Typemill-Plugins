@@ -30,25 +30,20 @@
       {% set date = meta.manualdate|default(meta.modified|default(orderDate)) %}
 
       <li class="at-tile">
-        <a class="at-tile__media" href="{{ element.urlRel }}" tabindex="-1" aria-hidden="true">
-          {#
-            The stored picture is used as it is. Typemill's resize crops to an
-            exact box - it has no proportional mode - which would defeat a
-            masonry wall, and the grid is cropped in CSS anyway so the ratio
-            stays a setting rather than being baked into a file.
-          #}
-          <img src="{{ base_url }}/{{ meta.heroimage|e }}"
-               alt="{{ meta.heroimagealt|default(meta.title|default(element.name))|e('html_attr') }}"
-               loading="lazy" decoding="async" />
+        <a class="at-tile__link" href="{{ element.urlRel }}" aria-labelledby="at-tile-title-{{ loop.index }}">
+          <div class="at-tile__media">
+            {# Keep the stored proportion; grid cropping belongs to CSS. #}
+            <img src="{{ base_url }}/{{ meta.heroimage|e }}"
+                 alt="{{ meta.heroimagealt|default(meta.title|default(element.name))|e('html_attr') }}"
+                 loading="lazy" decoding="async" />
+          </div>
+          <div class="at-tile__body">
+            <h3 class="at-tile__title" id="at-tile-title-{{ loop.index }}">{{ meta.title|default(element.name)|e }}</h3>
+            {% if date and (theme.galleryDates ?? true) %}
+              <span class="at-tile__meta"><time datetime="{{ date }}">{{ date|date(theme.dateFormat|default('Y')) }}</time></span>
+            {% endif %}
+          </div>
         </a>
-        <div class="at-tile__body">
-          <h3 class="at-tile__title">
-            <a href="{{ element.urlRel }}">{{ meta.title|default(element.name)|e }}</a>
-          </h3>
-          {% if date and (theme.galleryDates ?? true) %}
-            <span class="at-tile__meta"><time datetime="{{ date }}">{{ date|date(theme.dateFormat|default('Y')) }}</time></span>
-          {% endif %}
-        </div>
       </li>
     {% endfor %}
   </ul>

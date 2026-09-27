@@ -33,6 +33,10 @@ Column width, body size and the accent are settings; everything else is a custom
 There is also a **Typeface** switch that sets the article in the interface sans-serif instead, for
 sites where a serif is wrong.
 
+Article images align with the reading column. Folder introductions use a shorter bottom gap
+to keep the feed nearby. Each feed row has one link, covering its thumbnail as well as its
+title; hover and keyboard focus underline that title.
+
 ## Byline and reading time
 
 Articles carry a byline: a round monogram with the author's initial, the author, the date, and an

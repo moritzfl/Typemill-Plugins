@@ -185,10 +185,11 @@ a:hover {
     font-size: 15px;
     font-weight: 600;
     letter-spacing: -0.015em;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .lc-nav__brand:hover {
@@ -711,13 +712,14 @@ a:hover {
     line-height: 1.07143;
     font-weight: 600;
     letter-spacing: -0.022em;
-    margin: 0;
+    margin: 0 auto;
+    max-width: 22ch;
     overflow-wrap: anywhere;
 }
 
 .lc-hero__subtitle {
     font-size: clamp(19px, 2.4vw, 28px);
-    line-height: 1.14286;
+    line-height: 1.35;
     font-weight: 400;
     letter-spacing: 0.007em;
     color: var(--lc-text-secondary);
@@ -794,6 +796,10 @@ a:hover {
     gap: 4px;
 }
 
+a.lc-link {
+    min-height: 44px;
+}
+
 .lc-link:hover {
     text-decoration: underline;
 }
@@ -832,7 +838,8 @@ a:hover {
     text-align: center;
     display: flex;
     flex-direction: column;
-    transition: transform 0.25s ease;
+    border: 1px solid var(--lc-border-subtle);
+    transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
 .lc-section--alt .lc-tile {
@@ -840,7 +847,8 @@ a:hover {
 }
 
 .lc-tile:hover {
-    transform: translateY(-4px);
+    transform: translateY(-2px);
+    border-color: var(--lc-border);
 }
 
 .lc-tile:hover .lc-link {
@@ -872,6 +880,24 @@ a:hover {
     letter-spacing: 0.007em;
     margin: 0 0 8px;
     color: var(--lc-text);
+}
+
+.lc-hero__title,
+.lc-article__title,
+.lc-section__title,
+.lc-tile__title {
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+    .lc-tile {
+        padding: 28px 24px;
+    }
+
+    .lc-tile__title {
+        font-size: 24px;
+    }
 }
 
 .lc-tile__text {

@@ -126,8 +126,9 @@ async function assertHeroAndTables(page) {
             const box = panel.getBoundingClientRect()
             const copy = Array.from(panel.querySelectorAll('h1, p'))
             const table = document.querySelector('main .prose table')
+            const wrapper = table?.closest('.tm-table')
             const scroll = document.querySelector('.content-scroll')
-            if (table) table.scrollLeft = table.scrollWidth
+            if (wrapper) wrapper.scrollLeft = wrapper.scrollWidth
             return {
                 title: panel.querySelector('h1')?.textContent.trim(),
                 description: panel.querySelector('p')?.textContent.trim(),
@@ -139,9 +140,10 @@ async function assertHeroAndTables(page) {
                         && rect.left >= box.left && rect.right <= box.right
                 }),
                 overflow: scroll.scrollWidth - scroll.clientWidth,
-                tableScrollable: Boolean(table && getComputedStyle(table).overflowX === 'auto'),
-                tableOverflows: Boolean(table && table.scrollWidth > table.clientWidth),
-                tableScrolled: Boolean(table && table.scrollLeft > 0),
+                tableScrollable: Boolean(wrapper && getComputedStyle(wrapper).overflowX === 'auto'
+                    && getComputedStyle(table).display === 'table'),
+                tableOverflows: Boolean(wrapper && wrapper.scrollWidth > wrapper.clientWidth),
+                tableScrolled: Boolean(wrapper && wrapper.scrollLeft > 0),
                 altsPresent: Array.from(document.images).every((img) => img.hasAttribute('alt')),
                 homeNamed: Boolean(document.querySelector('#breadcrumb a')?.getAttribute('aria-label')),
             }
