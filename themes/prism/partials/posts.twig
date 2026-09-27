@@ -24,15 +24,17 @@
           <p class="pr-post__date"><time datetime="{{ date }}">{{ date|date(theme.dateFormat|default('d.m.Y')) }}</time></p>
         {% endif %}
 
-        <h3 class="pr-card__title">
-          <a href="{{ element.urlRel }}">{{ post.meta.title|default(element.name)|e }}</a>
-        </h3>
+        <h2 class="pr-card__title">
+          <a class="pr-card__link" href="{{ element.urlRel }}">{{ post.meta.title|default(element.name)|e }}</a>
+        </h2>
 
         {% if post.meta.description %}
           <p class="pr-card__text">{{ post.meta.description|e }}</p>
         {% endif %}
 
-        <div><a class="pr-link" href="{{ element.urlRel }}">{{ translate('Read more') }}</a></div>
+        <div class="pr-card__action" aria-hidden="true">
+          <span class="pr-link">{{ translate('Read more') }}</span>
+        </div>
       </li>
     {% endfor %}
   </ul>

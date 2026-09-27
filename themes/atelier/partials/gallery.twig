@@ -30,7 +30,7 @@
       {% set date = meta.manualdate|default(meta.modified|default(orderDate)) %}
 
       <li class="at-tile">
-        <a class="at-tile__media" href="{{ element.urlRel }}">
+        <a class="at-tile__media" href="{{ element.urlRel }}" tabindex="-1" aria-hidden="true">
           {#
             The stored picture is used as it is. Typemill's resize crops to an
             exact box - it has no proportional mode - which would defeat a
