@@ -170,11 +170,15 @@ describe('Core update API', () => {
         const response = await fetch(`${BASE_URL}/api/v1/typemillupdate/status`)
         expect(response.status).toBeGreaterThanOrEqual(400)
 
+        // Redirects are not followed: a POST without a Referer is turned away
+        // with a 302 to the login form, and following it lands on a page that
+        // answers 200.
         const plugin = await fetch(`${BASE_URL}/api/v1/typemillupdate/plugin`, {
             method: 'POST',
+            redirect: 'manual',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ plugin: 'search' }),
         })
-        expect(plugin.status).toBeGreaterThanOrEqual(400)
+        expect(plugin.status).toBeGreaterThanOrEqual(300)
     })
 })
