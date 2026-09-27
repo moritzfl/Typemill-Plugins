@@ -12,6 +12,8 @@ GITUPDATE_NEVER: noch nicht synchron
 GITUPDATE_INSTALLED_ON: Installiert
 GITUPDATE_UNKNOWN_DATE: Datum unbekannt
 GITUPDATE_CURRENT: Aktuell
+GITUPDATE_PLUGINS: Plugins
+GITUPDATE_THEMES: Themes
 GITUPDATE_NONE: Keines der installierten Plugins oder Themes stammt aus diesem Repository.
 GITUPDATE_CONFIRM_TITLE: Auf den neuesten Commit aktualisieren?
 GITUPDATE_CONFIRM_TEXT: Die ausgewählten Ordner werden durch die Fassung aus diesem Commit ersetzt. Inhalte, Medien, Einstellungen und alles, was hier nicht installiert ist, bleiben unberührt. Der bisherige Ordner wird als Sicherung behalten.

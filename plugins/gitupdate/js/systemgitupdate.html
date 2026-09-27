@@ -32,23 +32,26 @@
                     <button type="button" class="tm-gu-btn tm-gu-btn--primary" :disabled="busy || !status.can_update || status.blocked || pending === 0" @click.prevent="confirmAll = true">{{ $filters.translate('gitupdate.update_all') }}</button>
                 </div>
 
-                <ul class="tm-gu-list" v-if="status.items.length">
-                    <li v-for="item in status.items" :key="item.kind + item.slug" class="tm-gu-item">
-                        <div class="tm-gu-item__text">
-                            <span class="tm-gu-item__name">{{ item.name }}</span>
-                            <span class="tm-gu-item__meta">{{ item.kind }} · {{ item.slug }}</span>
-                            <span class="tm-gu-item__sha">
-                                {{ $filters.translate('gitupdate.installed_on') }}
-                                {{ item.applied || $filters.translate('gitupdate.never') }}
-                                <span v-if="item.applied_date">· {{ formatDate(item.applied_date) }}</span>
-                                <span v-else-if="item.applied">· {{ $filters.translate('gitupdate.unknown_date') }}</span>
-                                <span v-if="status.head"> → {{ status.head.short }}<span v-if="formatDate(status.head.date)"> · {{ formatDate(status.head.date) }}</span></span>
-                            </span>
-                        </div>
-                        <span v-if="!item.update_available" class="tm-gu-flag tm-gu-flag--ok">{{ $filters.translate('gitupdate.current') }}</span>
-                        <button v-else type="button" class="tm-gu-btn tm-gu-btn--small tm-gu-btn--primary" :disabled="busy || !status.can_update || status.blocked" @click.prevent="ask(item)">{{ $filters.translate('gitupdate.update') }}</button>
-                    </li>
-                </ul>
+                <section v-for="group in groups" :key="group.kind" class="tm-gu-group">
+                    <h2 class="tm-gu-group__title">{{ group.label }}</h2>
+                    <ul class="tm-gu-list">
+                        <li v-for="item in group.items" :key="item.slug" class="tm-gu-item" :class="{ 'tm-gu-item--behind': item.update_available }">
+                            <div class="tm-gu-item__row">
+                                <span class="tm-gu-item__name">{{ item.name }}</span>
+                                <span class="tm-gu-item__slug">{{ item.slug }}</span>
+                                <span class="tm-gu-item__side">
+                                    <span v-if="!item.update_available" class="tm-gu-flag tm-gu-flag--ok">{{ $filters.translate('gitupdate.current') }}</span>
+                                    <button v-else type="button" class="tm-gu-btn tm-gu-btn--small tm-gu-btn--primary" :disabled="busy || !status.can_update || status.blocked" @click.prevent="ask(item)">{{ $filters.translate('gitupdate.update') }}</button>
+                                </span>
+                            </div>
+                            <p v-if="item.update_available && status.head" class="tm-gu-item__diff">
+                                {{ stamp(item.applied, item.applied_date) }}
+                                <span aria-hidden="true">→</span>
+                                {{ stamp(status.head.short, status.head.date) }}
+                            </p>
+                        </li>
+                    </ul>
+                </section>
                 <p v-else-if="!status.error" class="tm-gu-note">{{ $filters.translate('gitupdate.none') }}</p>
 
                 <p v-if="status.absent && status.absent.length" class="tm-gu-note">{{ $filters.translate('gitupdate.not_installed') }} {{ status.absent.join(', ') }}</p>

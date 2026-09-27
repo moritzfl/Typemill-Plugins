@@ -23,13 +23,20 @@ gitupdateStyle.textContent = `
 .tm-gu-btn:disabled{opacity:.5;cursor:not-allowed}
 .tm-gu-btn--primary{border-color:#14b8a6;background:#14b8a6;color:#fff}
 .tm-gu-btn--small{min-height:1.9rem;padding:0 .6rem;font-size:.75rem}
-.tm-gu-list{display:flex;flex-direction:column;gap:.5rem;margin:1rem 0 0;padding:0;list-style:none}
-.tm-gu-item{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;padding:.6rem .75rem;background:#fafaf9;border:1px solid #e7e5e4}
-.dark .tm-gu-item{background:#1c1917;border-color:#44403c}
-.tm-gu-item__text{display:flex;flex-wrap:wrap;align-items:baseline;gap:.35rem .75rem;flex:1}
+.tm-gu-group{margin-top:1.15rem}
+.tm-gu-group__title{margin:0 0 .15rem;font-size:.75rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#78716c}
+.dark .tm-gu-group__title{color:#a8a29e}
+.tm-gu-list{margin:0;padding:0;list-style:none}
+.tm-gu-item{padding:.45rem 0;border-bottom:1px solid #e7e5e4}
+.dark .tm-gu-item{border-color:#44403c}
+.tm-gu-item--behind{margin:.35rem 0;padding:.6rem .75rem;background:#fafaf9;border:1px solid #e7e5e4}
+.dark .tm-gu-item--behind{background:#1c1917;border-color:#44403c}
+.tm-gu-item__row{display:flex;align-items:baseline;gap:.6rem}
 .tm-gu-item__name{font-weight:700}
-.tm-gu-item__meta,.tm-gu-item__sha{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8125rem;color:#57534e}
-.dark .tm-gu-item__meta,.dark .tm-gu-item__sha{color:#d6d3d1}
+.tm-gu-item__slug{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.75rem;color:#a8a29e}
+.tm-gu-item__side{margin-left:auto;flex-shrink:0}
+.tm-gu-item__diff{margin:.35rem 0 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8125rem;color:#57534e}
+.dark .tm-gu-item__diff{color:#d6d3d1}
 .tm-gu-flag{font-size:.75rem}
 .tm-gu-flag--ok{color:#0d9488}
 .tm-gu-overlay{position:fixed;inset:0;background:rgba(68,64,60,.9);display:flex;align-items:center;justify-content:center;z-index:60}
@@ -56,6 +63,18 @@ const app = Vue.createApp({
     computed: {
         pending() {
             return (this.status.items || []).filter((item) => item.update_available).length;
+        },
+        groups() {
+            const labels = { plugin: 'gitupdate.plugins', theme: 'gitupdate.themes' };
+            return ['plugin', 'theme'].map((kind) => ({
+                kind,
+                label: this.$filters.translate(labels[kind]),
+                items: (this.status.items || [])
+                    .filter((item) => item.kind === kind)
+                    .slice()
+                    .sort((a, b) => Number(b.update_available) - Number(a.update_available)
+                        || String(a.name).localeCompare(String(b.name))),
+            })).filter((group) => group.items.length);
         },
     },
     mounted() {
@@ -98,6 +117,11 @@ const app = Vue.createApp({
                 this.fail(error);
                 this.load();
             });
+        },
+        stamp(sha, date) {
+            if (!sha) return this.$filters.translate('gitupdate.never');
+            const formatted = this.formatDate(date);
+            return formatted ? sha + ' · ' + formatted : sha + ' · ' + this.$filters.translate('gitupdate.unknown_date');
         },
         formatDate(iso) {
             if (!iso) return '';

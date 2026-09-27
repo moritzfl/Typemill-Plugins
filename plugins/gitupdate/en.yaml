@@ -12,6 +12,8 @@ GITUPDATE_NEVER: not synced
 GITUPDATE_INSTALLED_ON: Installed
 GITUPDATE_UNKNOWN_DATE: date unknown
 GITUPDATE_CURRENT: Current
+GITUPDATE_PLUGINS: Plugins
+GITUPDATE_THEMES: Themes
 GITUPDATE_NONE: None of the installed plugins or themes come from this repository.
 GITUPDATE_CONFIRM_TITLE: Update to the latest commit?
 GITUPDATE_CONFIRM_TEXT: The selected folders will be replaced with the copy from that commit. Content, media, settings and anything not installed here stay untouched. The previous folder is kept as a backup.
